@@ -26,7 +26,7 @@
                 <rolesConfig v-if="showSections.rolesConfig"></rolesConfig>
                 <usersConfig v-if="showSections.usersConfig"></usersConfig>
                 <ingredientsConfig v-if="showSections.ingredientsConfig"></ingredientsConfig>
-                <dishesCategories v-if="showSections.dishesCategories"></dishesCategories>
+                <productsCategories v-if="showSections.dishesCategories"></productsCategories>
                 <tablesConfig v-if="showSections.tablesConfig"></tablesConfig>
                 <financialConfig v-if="showSections.financialConfig"></financialConfig>
                 <reservationPreferences v-if="showSections.reservationPreferences" @cancel="resetConfigOptions"></reservationPreferences>
@@ -42,7 +42,7 @@ import systemConfig from "./config/systemConfig.vue";
 import rolesConfig from "./config/rolesConfig.vue";
 import usersConfig from "./config/usersConfig.vue";
 import ingredientsConfig from "./config/ingredientsConfig.vue";
-import dishesCategories from "./config/dishesCategories.vue";
+import productsCategories from "./config/productsCategories.vue";
 import tablesConfig from "./config/tablesConfig.vue";
 import financialConfig from "./config/financialConfig.vue";
 import reservationPreferences from "./config/reservationPreferences.vue";
@@ -56,12 +56,12 @@ export default {
             configMenus: [
                 {
                     id: 0,
-                    name: "Categorias de pratos",
+                    name: "Categorias de produtos",
                     subMenus: [
                         {
                             id: 0,
                             name: "Listar categorias",
-                            link: "dishesCategories"
+                            link: "productsCategories"
                         }
                     ]
                 },
@@ -215,7 +215,7 @@ export default {
         rolesConfig,
         usersConfig,
         ingredientsConfig,
-        dishesCategories,
+        productsCategories,
         tablesConfig,
         financialConfig,
         reservationPreferences,

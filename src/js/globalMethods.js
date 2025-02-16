@@ -221,7 +221,7 @@ export const globalMethods = {
             let parent = $(event.target).parent().parent();
 
             this.showEditButtons();
-            this.contentObject = parseInt(id);
+            this.editId = parseInt(id);
             this.selectGridRow(parent);
         },
         showEditButtons: function () {

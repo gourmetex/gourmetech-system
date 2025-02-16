@@ -7,7 +7,7 @@
         <div class="digital-menu-container">
             <dataTable :dataTable="digitalMenu" :rowsPerPage="7" searchText="item" :loaded="contentLoaded">
                 <template slot="column-comanda" slot-scope="props">
-                    <p class="clicable text-center" v-on:click="selectRow2($event)">{{ props.item.comanda }}</p>
+                    <p class="clicable text-center" v-on:click="selectRow($event)">{{ props.item.comanda }}</p>
                 </template>
                 <template slot="column-mesa" slot-scope="props">
                     <p class="text-center">{{ props.item.mesa }}</p>

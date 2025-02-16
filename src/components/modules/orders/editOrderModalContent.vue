@@ -284,7 +284,7 @@ export default {
                 quantidade: accumulatedQuantity
             }
 
-            api.post("/dishes/quantity_avalilable", data).then(() => {
+            api.post("/products/quantity_avalilable", data).then(() => {
                 if (self.order.dishes.length == 0 || !selectedDishHaveInGrid) {
                     self.order.dishes.push(newDishGrid);
                 } else {
@@ -434,7 +434,7 @@ export default {
         returnAllDishes: function () {
             let self = this;
 
-            api.get("/dishes").then((response) => {
+            api.get("/products").then((response) => {
                 self.dishes_list = response.data.returnObj;
             }).catch((error) => {
                 console.log(error);

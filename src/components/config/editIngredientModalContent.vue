@@ -64,7 +64,7 @@ export default {
                 path = "edit_ingredient";
             }
 
-            api.post("/dishes/ingredients/" + path, data).then(() => {
+            api.post("/products/ingredients/" + path, data).then(() => {
                 self.$emit("savedContent", true);
             }).catch((error) => {
                 console.log(error);
@@ -77,7 +77,7 @@ export default {
             
             if (self.ingredientid == 0 || self.ingredientid == null) return;
 
-            api.get("/dishes/ingredients/" + self.ingredientid).then((response) => {
+            api.get("/products/ingredients/" + self.ingredientid).then((response) => {
                 self.ingredient = response.data.returnObj;
             }).catch((error) => {
                 console.log(error);
@@ -86,7 +86,7 @@ export default {
         returnIngredientsCategories: function () {
             let self = this;
 
-            api.get("/dishes/ingredient_categories").then((response) => {
+            api.get("/products/ingredient_categories").then((response) => {
                 self.ingredients_categories = response.data.returnObj;
             }).catch((error) => {
                 console.log(error);
@@ -95,7 +95,7 @@ export default {
         returnUnitiesOfMeasurement: function () {
             let self = this;
 
-            api.get("/dishes/unities_of_measurement").then((response) => {
+            api.get("/products/unities_of_measurement").then((response) => {
                 self.unity_measurement = response.data.returnObj;
             }).catch((error) => {
                 console.log(error);

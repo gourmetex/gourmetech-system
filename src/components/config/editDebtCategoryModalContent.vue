@@ -91,7 +91,7 @@ export default {
         returnDishesCategoriesColors: function () {
             let self = this;
             
-            api.get("/dishes/categories/categories_colors").then((response) => {
+            api.get("/products/categories/categories_colors").then((response) => {
                 self.categoriesColors = response.data.returnObj;
             }).catch((error) => {
                 console.log(error);

@@ -77,7 +77,7 @@ export default {
                 path = self.categoryid;
             }
 
-            api.post("/dishes/categories/" + path, data).then(() => {
+            api.post("/products/categories/" + path, data).then(() => {
                 self.$emit("savedContent", true);
             }).catch((error) => {
                 console.log(error);
@@ -90,7 +90,7 @@ export default {
             
             if (self.categoryid == 0 || self.categoryid == null) return;
 
-            api.get("/dishes/categories/" + self.categoryid).then((response) => {
+            api.get("/products/categories/" + self.categoryid).then((response) => {
                 self.category = response.data.returnObj;
             }).catch((error) => {
                 console.log(error);
@@ -99,7 +99,7 @@ export default {
         returnDishesCategoriesColors: function () {
             let self = this;
             
-            api.get("/dishes/categories/categories_colors").then((response) => {
+            api.get("/products/categories/categories_colors").then((response) => {
                 self.categoriesColors = response.data.returnObj;
             }).catch((error) => {
                 console.log(error);

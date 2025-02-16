@@ -39,7 +39,7 @@
                 </button>
             </div>
         </div>
-        <modal v-if="showModal" :modaltitle="modalTitle" :modalbutton1="modalButton1" :excludepath="'/dishes/ingredients/' + editId" :modalbutton2="modalButton2" :modalbutton3="modalButton3" @closeModal="closeModalFunction(); returnAllIngredients();">
+        <modal v-if="showModal" :modaltitle="modalTitle" :modalbutton1="modalButton1" :excludepath="'/products/ingredients/' + editId" :modalbutton2="modalButton2" :modalbutton3="modalButton3" @closeModal="closeModalFunction(); returnAllIngredients();">
             <editIngredientModalContent v-if="showEditIngredientModalContent" :ingredientid="editId" @savedContent="closeModalFunction(); returnAllIngredients();"></editIngredientModalContent>
         </modal>
     </div>
@@ -89,7 +89,7 @@ export default {
         returnIngredientsCategories: function () {
             let self = this;
 
-            api.get("/dishes/ingredient_categories").then((response) => {
+            api.get("/products/ingredient_categories").then((response) => {
                 self.ingredients_categories = response.data.returnObj;
             }).catch((error) => {
                 console.log(error);
@@ -104,7 +104,7 @@ export default {
 
             self.contentLoaded = false;
 
-            api.post("/dishes/ingredients", data).then((response) => {
+            api.post("/products/ingredients", data).then((response) => {
                 self.ingredients = response.data.returnObj;
                 self.contentLoaded = true;
             }).catch((error) => {

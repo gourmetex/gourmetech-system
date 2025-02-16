@@ -29,7 +29,7 @@
                 </template>                
             </dataTable>
         </div>
-        <modal v-if="showModal" :modaltitle="modalTitle" :modalbutton1="modalButton1" :excludepath="'/dishes/' + editId" :modalbutton2="modalButton2" :modalbutton3="modalButton3" @closeModal="closeModalFunction(); returnDishes();">
+        <modal v-if="showModal" :modaltitle="modalTitle" :modalbutton1="modalButton1" :excludepath="'/products/' + editId" :modalbutton2="modalButton2" :modalbutton3="modalButton3" @closeModal="closeModalFunction(); returnDishes();">
             <editProductModalContent v-if="showEditDishModalContent" :dishid="editId" @savedContent="closeModalFunction(); returnDishes();"></editProductModalContent>
         </modal>
     </div>

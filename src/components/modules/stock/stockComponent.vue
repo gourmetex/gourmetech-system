@@ -108,7 +108,7 @@ export default {
         returnIngredientsCategories: function () {
             let self = this;
 
-            api.get("/dishes/ingredient_categories").then((response) => {
+            api.get("/products/ingredient_categories").then((response) => {
                 self.ingredients_categories = response.data.returnObj;
             }).catch((error) => {
                 console.log(error);

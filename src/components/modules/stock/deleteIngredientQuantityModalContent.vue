@@ -69,7 +69,7 @@ export default {
         returnAllIngredients: function () {
             let self = this;
 
-            api.post("/dishes/ingredients").then((response) => {
+            api.post("/products/ingredients").then((response) => {
                 self.ingredients = response.data.returnObj;
             }).catch((error) => {
                 console.log(error);
