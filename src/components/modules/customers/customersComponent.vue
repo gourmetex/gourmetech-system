@@ -31,7 +31,7 @@
                     <p>{{ props.item.telefone }}</p>
                 </template>
                 <template slot="column-especial" slot-scope="props">
-                    <p class="text-center">{{ props.item.especial }}</p>
+                    <p class="text-center">{{ props.item.especial == 1 ? "Sim" : "Não" }}</p>
                 </template>
                 <template slot="column-desconto" slot-scope="props">
                     <p class="text-center">{{ props.item.porcentagem_desconto != null ? props.item.porcentagem_desconto + "%" : "" }}</p>
