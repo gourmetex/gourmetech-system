@@ -1,14 +1,14 @@
 <template>
     <div class="dishes-component">
         <div class="page-title">
-            <h1>Pratos</h1>
+            <h1>Produtos</h1>
         </div>  
-        <actionButtons add_text="ADICIONAR PRATO" exclude_text="EXCLUIR PRATO" edit_text="EDITAR PRATO" :disabledbuttons="disabledButtons" @add="addDish()" @exclude="excludeDish()" @edit="editDish()" />
+        <actionButtons add_text="ADICIONAR PRODUTO" exclude_text="EXCLUIR PRODUTO" edit_text="EDITAR PRODUTO" :disabledbuttons="disabledButtons" @add="addDish()" @exclude="excludeDish()" @edit="editDish()" />
         <div class="dishes-container">
             <div class="filter-container-header">
-                <h2>Lista de pratos</h2>
+                <h2>Lista de produtos</h2>
             </div>
-            <dataTable :dataTable="dishes" :rowsPerPage="7" searchText="prato" :loaded="contentLoaded">
+            <dataTable :dataTable="dishes" :rowsPerPage="7" searchText="produto" :loaded="contentLoaded">
                 <template slot="column-id" slot-scope="props">
                     <p class="clicable text-center" v-on:click="selectRow($event)">{{ props.item.id }}</p>
                 </template>
@@ -59,18 +59,18 @@ export default {
         },  
         addDish: function () {
             this.resetModalContents();
-            this.showModalFunction("Criar prato", "Criar", "Cancelar");
+            this.showModalFunction("Criar produto", "Criar", "Cancelar");
             this.showEditDishModalContent = true;
             this.editId = null;
         },
         excludeDish: function () {
             this.resetModalContents();
-            this.showModalFunction("Excluir prato", "Remover", "Cancelar");
+            this.showModalFunction("Excluir produto", "Remover", "Cancelar");
         }, 
         editDish: function () {
             this.resetModalContents();
 
-            this.showModalFunction("Editar prato", "Salvar", "Cancelar");
+            this.showModalFunction("Editar produto", "Salvar", "Cancelar");
             this.showEditDishModalContent = true;
         },
         returnDishes: function () {
