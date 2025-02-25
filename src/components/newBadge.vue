@@ -15,8 +15,9 @@ export default {
 <style scoped>
 .badge {
     margin: auto;
-    width: fit-content;
+    width: 100%;
     min-width: 70px;
+    max-width: fit-content;
     min-height: 30px;
     display: flex;
     align-items: center;

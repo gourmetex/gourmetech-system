@@ -65,6 +65,7 @@
   import inputSearch from "./inputSearch.vue";
   import { globalMethods } from "@/js/globalMethods";
   import loadingJson from "../assets/animations/loading-component.json";
+  import $ from 'jquery';
 
   export default {
     name: "dataTable",
@@ -195,6 +196,12 @@
         handler(newData) {
           this.filteredData = newData || [];
           this.currentPage = 1;
+
+          let texts = $("table p, table h3");
+
+          texts.each((index, item) => {
+            $(item).attr("title", $(item).text());
+          })
         },
         deep: true
       }
@@ -206,6 +213,14 @@
               loadingJson
           );
       });
+
+      setTimeout(() => {
+        let texts = $("table p, table h3");
+
+        texts.each((index, item) => {
+          $(item).attr("title", $(item).text());
+        })
+      }, 100)
 
       this.applyAlignmentClasses();
     },
@@ -234,6 +249,7 @@
   .table {
     width: 100%;
     border-collapse: collapse;
+    table-layout: fixed;
     margin: var(--space-6) 0 var(--space-4) 0;
     border-radius: var(--radius-sm);
     overflow: hidden;
@@ -302,6 +318,10 @@
       padding: 0.5rem;
       place-items: center;
       text-align: center;
+
+      & p {
+        text-align: center !important;
+      }
     }
   
     td::before {

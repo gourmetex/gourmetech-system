@@ -3,11 +3,11 @@
         <form class="add-order" id="informations-form" @submit.prevent="saveOrder()">
             <input type="hidden" id="submit_type" value="save">
             <div class="form-group-horizontal inputs-50">
-                <div class="form-group">
+                <div class="form-group" v-if="checkModulePermission('digital_menu')">
                     <label for="mesa">Mesa vinculada</label>
                     <input type="number" name="mesa" id="mesa" v-model="order.mesa">
                 </div>
-                <div class="form-group">
+                <div class="form-group" :style="checkModulePermission('digital_menu') ? '' : 'width: 100%'">
                     <label for="id_cliente">Nome do cliente</label>
                     <ajaxAutoComplete @select="setCustomer($event)" ajaxtype="clientes" :entityid="order.id_cliente" :entityname="order.nome_cliente" :required="true" />
                 </div>
@@ -61,12 +61,12 @@
                     <div class="payment-difference">
                         <h3>Desconto: {{ total_desconto }}</h3>
                         <h3 class="font-bold">Restante: {{ difference }}</h3>
-                        <h3 class="font-bold" v-if="have_delivery_module">Entrega: {{ delivery_amount }}</h3>
+                        <h3 class="font-bold" v-if="checkModulePermission('shipping')">Entrega: {{ delivery_amount }}</h3>
                     </div>
                 </div>
                 <h2 class="order-total">{{ order.total }}</h2>
             </div>
-            <div class="delivery" v-if="have_delivery_module">
+            <div class="delivery" v-if="checkModulePermission('shipping')">
                 <button class="btn btn-blue">Entrega</button>
                 <div class="delivery-content">
                     <div class="delivery-texts">
@@ -145,7 +145,6 @@ export default {
             quantity: null,
             order_total: null,
             observations: "",
-            have_delivery_module: false,
             delivery_amount: "R$ 0",
             card_payment: "R$ 0",
             cash_payment: "R$ 0",
@@ -501,6 +500,7 @@ export default {
 
 .delivery, .payment-inner {
     justify-content: flex-start;
+    margin: var(--space-5) 0;
 }
 
 .modal-body .custom-grid-container {

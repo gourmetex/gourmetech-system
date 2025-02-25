@@ -12,35 +12,32 @@
                 <button type="submit" class="btn btn-primary">Buscar</button>
             </form>
         </div>
-        <dataTable :dataTable="ingredients" :rowsPerPage="7" searchText="" :loaded="contentLoaded">
+        <dataTable :dataTable="ingredients_categories" :rowsPerPage="7" searchText="" :loaded="contentLoaded">
             <template slot="column-id" slot-scope="props">
                 <p class="clicable text-center" v-on:click="selectRow($event)">{{ props.item.id }}</p>
             </template>
             <template slot="column-nome" slot-scope="props">
                 <p>{{ props.item.nome }}</p>
             </template>
-            <template slot="column-categoria" slot-scope="props">
-                <p>{{ props.item.categoria }}</p>
-            </template>
             <template slot="column-unidade-de-medida" slot-scope="props">
                 <p>{{ props.item.unidade_medida }}</p>
             </template>
         </dataTable>
         <div class="edit-buttons">
-            <button type="button" class="rounded-btn btn-primary" v-on:click="createNewIngredient()">
+            <button type="button" class="rounded-btn btn-primary" v-on:click="createNewCategory()">
                 <span class="material-icons">add</span>
             </button>
             <div class="dynamic-edit-buttons">
-                <button type="button" class="rounded-btn btn-red" v-on:click="deleteIngredient()">
+                <button type="button" class="rounded-btn btn-red" v-on:click="deleteCategory()">
                     <span class="material-icons">delete</span>
                 </button>
-                <button type="button" class="rounded-btn btn-yellow" v-on:click="editIngredient()">
+                <button type="button" class="rounded-btn btn-yellow" v-on:click="editCategory()">
                     <span class="material-icons">edit</span>
                 </button>
             </div>
         </div>
-        <modal v-if="showModal" :modaltitle="modalTitle" :modalbutton1="modalButton1" :excludepath="'/products/ingredients/' + editId" :modalbutton2="modalButton2" :modalbutton3="modalButton3" @closeModal="closeModalFunction(); returnAllIngredients();">
-            <editIngredientModalContent v-if="showEditIngredientModalContent" :ingredientid="editId" @savedContent="closeModalFunction(); returnAllIngredients();"></editIngredientModalContent>
+        <modal v-if="showModal" :modaltitle="modalTitle" :modalbutton1="modalButton1" :excludepath="'/products/ingredients/categories/' + editId" :modalbutton2="modalButton2" :modalbutton3="modalButton3" @closeModal="closeModalFunction(); returnIngredientsCategories();">
+            <editIngredientCategoryModalContent v-if="showEditIngredientCategoryModalContent" :categoryid="editId" @savedContent="closeModalFunction(); returnIngredientsCategories();"></editIngredientCategoryModalContent>
         </modal>
     </div>
 </template>
@@ -48,7 +45,7 @@
 import dataTable from "../dataTable.vue";
 import { globalMethods } from "@/js/globalMethods";
 import modal from "../modal.vue";
-import editIngredientModalContent from "./editIngredientModalContent.vue";
+import editIngredientCategoryModalContent from "./editIngredientCategoryModalContent.vue";
 import api from "../../configs/api";
 import $ from 'jquery';
 
@@ -57,10 +54,8 @@ export default {
     mixins: [globalMethods],
     data() {
         return {
-            ingredients: [],
-            gridOptions: [],
             editId: null,
-            showEditIngredientModalContent: false,
+            showEditIngredientCategoryModalContent: false,
             filters: [],
             ingredients_categories: []
         }
@@ -72,40 +67,27 @@ export default {
                 return obj;
             }, {});
             this.filters = data;
-            this.returnAllIngredients();
+            this.returnIngredientsCategories();
         },
-        deleteIngredient: function () {
-            this.showModalFunction("Excluir componente", "Excluir", "Cancelar");
+        deleteCategory: function () {
+            this.showModalFunction("Excluir categoria", "Excluir", "Cancelar");
         },
-        createNewIngredient: function () {
-            this.showModalFunction("Cadastrar componente", "Salvar", "Cancelar");
-            this.showEditIngredientModalContent = true;
+        createNewCategory: function () {
+            this.showModalFunction("Cadastrar categoria", "Salvar", "Cancelar");
+            this.showEditIngredientCategoryModalContent = true;
             this.editId = null;
         },
-        editIngredient: function () {
-            this.showModalFunction("Editar componente", "Salvar", "Cancelar");
-            this.showEditIngredientModalContent = true;
+        editCategory: function () {
+            this.showModalFunction("Editar categoria", "Salvar", "Cancelar");
+            this.showEditIngredientCategoryModalContent = true;
         },
         returnIngredientsCategories: function () {
             let self = this;
 
-            api.get("/products/ingredient_categories").then((response) => {
-                self.ingredients_categories = response.data.returnObj;
-            }).catch((error) => {
-                console.log(error);
-            })
-        },  
-        returnAllIngredients: function () {
-            let self = this;
-
-            let data = {
-                filters: self.filters
-            }
-
             self.contentLoaded = false;
 
-            api.post("/products/ingredients", data).then((response) => {
-                self.ingredients = response.data.returnObj;
+            api.get("/products/ingredient_categories").then((response) => {
+                self.ingredients_categories = response.data.returnObj;
                 self.contentLoaded = true;
             }).catch((error) => {
                 console.log(error);
@@ -114,11 +96,10 @@ export default {
     },
     mounted: function () {
         this.returnIngredientsCategories();
-        this.returnAllIngredients();
     },
     components: {
         dataTable,
-        editIngredientModalContent,
+        editIngredientCategoryModalContent,
         modal
     }
 }

@@ -4,7 +4,7 @@
             <div class="form-group-horizontal">
                 <div class="form-group">
                     <label for="nome">Nome</label>
-                    <input type="text" name="nome" placeholder="Ex. X-tudo" v-model="dish.nome" required>
+                    <input type="text" name="nome" v-model="dish.nome" required>
                 </div>
                 <div class="form-group">
                     <label for="categoria">Categoria</label>
@@ -15,17 +15,18 @@
                 </div>
                 <div class="form-group">
                     <label for="preco">Preço</label>
-                    <input type="text" name="preco" id="preco" v-model="dish.preco" @input="inputMoneyCheck($event)" required>
+                    <input type="text" name="preco" id="preco" @input="inputMoneyCheck($event)" required>
                 </div>
             </div>
             <div class="form-group">
                 <label for="descricao">Descrição</label>
-                <input type="text" name="descricao" id="descricao" v-model="dish.descricao" maxlength="100" placeholder="Ex. Prato vegano" required>
+                <textarea name="descricao" id="descricao" v-model="dish.descricao" maxlength="5000"></textarea>
             </div>
             <input type="submit" id="submit-button" style="display: none;">
         </form>
+        <h3>Componentes do produto</h3>
         <div class="modal-edit-grid">
-            <dataTable :dataTable="dish.ingredientes" :rowsPerPage="3" searchText="" :loaded="contentLoaded">
+            <dataTable :dataTable="dish.ingredientes" :rowsPerPage="2" searchText="" :loaded="contentLoaded">
                 <template slot="column-id" slot-scope="props">
                     <p class="clicable text-center" v-on:click="selectRow($event)">{{ props.item.id }}</p>
                 </template>
@@ -89,7 +90,7 @@ export default {
             ingredients_list: [],
             dish: {
                 nome: "",
-                categoria: null,
+                categoria: "",
                 preco: null,
                 ingredientes: []
             }
@@ -174,7 +175,8 @@ export default {
             }, {});
 
             data["ingredientes"] = self.ingredients_list;
-            let path = "create_products";
+
+            let path = "create_product";
 
             if (self.dishid != null) {
                 path = "edit_product/" + self.dishid;
@@ -203,6 +205,7 @@ export default {
                 self.dish = response.data.returnObj;
                 self.contentLoaded = true;
                 self.fillSubmitIngredients();
+                $("#preco").val(self.dish.preco);
             }).catch((error) => {
                 console.log(error);
             })
@@ -210,7 +213,7 @@ export default {
         returnDishesCategories: function () {
             let self = this;
 
-            api.post("/products/categories").then((response) => {
+            api.post("/products/categories", {filters: {}}).then((response) => {
                 self.dishes_categories = response.data.returnObj;
             }).catch((error) => {
                 console.log(error);
@@ -237,4 +240,7 @@ export default {
 }
 </script>
 <style scoped>
+.add-dish {
+    margin-bottom: var(--space-3);
+}
 </style>

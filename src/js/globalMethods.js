@@ -75,6 +75,9 @@ export const globalMethods = {
             }, 400)
         },
         //Métodos autenticação
+        checkModulePermission: function (permission) {
+            return this.$root.menuOptions.some(modulo => modulo.codigo === permission);
+        },
         logoutUser: function () {
             let self = this;
 

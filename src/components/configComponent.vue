@@ -6,13 +6,13 @@
         <div class="config-content">
             <div class="config-menu">
                 <ul class="options-ul principal-options">
-                    <li v-for="(menu, index) in configMenus" class="config-option" :key="index" :id="'config-menu-' + index" v-on:click="selectConfigOption(index)">
+                    <li v-for="(menu, index) in filteredConfigMenus" class="config-option" :key="index" :id="'config-menu-' + index" v-on:click="selectConfigOption(index)">
                         <div class="menu-title">
                             <h3>{{ menu.name }}</h3>
                         </div>
                     </li>
                 </ul>
-                <ul class="sub-menu options-ul" :id="'sub-menu-' + index" v-for="(menu, index) in configMenus" :key="index">
+                <ul class="sub-menu options-ul" :id="'sub-menu-' + index" v-for="(menu, index) in filteredConfigMenus" :key="index">
                     <li v-for="(subMenu, index) in menu.subMenus" class="config-option" :key="index" :dataLink="subMenu.link" v-on:click="selectThisConfig($event)">
                         <h3>{{ subMenu.name }}</h3>
                     </li>
@@ -26,12 +26,14 @@
                 <rolesConfig v-if="showSections.rolesConfig"></rolesConfig>
                 <usersConfig v-if="showSections.usersConfig"></usersConfig>
                 <ingredientsConfig v-if="showSections.ingredientsConfig"></ingredientsConfig>
-                <productsCategories v-if="showSections.dishesCategories"></productsCategories>
+                <ingredientsCategoriesConfig v-if="showSections.ingredientsCategoriesConfig"></ingredientsCategoriesConfig>
+                <productsCategories v-if="showSections.productsCategories"></productsCategories>
                 <tablesConfig v-if="showSections.tablesConfig"></tablesConfig>
                 <financialConfig v-if="showSections.financialConfig"></financialConfig>
                 <reservationPreferences v-if="showSections.reservationPreferences" @cancel="resetConfigOptions"></reservationPreferences>
                 <shippingConfig v-if="showSections.shippingConfig" @cancel="resetConfigOptions"></shippingConfig>
                 <systemData v-if="showSections.systemData" @cancel="resetConfigOptions"></systemData>
+                <systemLinkedCompanies v-if="showSections.systemLinkedCompanies"></systemLinkedCompanies>
             </div>
         </div>
     </div>
@@ -42,12 +44,14 @@ import systemConfig from "./config/systemConfig.vue";
 import rolesConfig from "./config/rolesConfig.vue";
 import usersConfig from "./config/usersConfig.vue";
 import ingredientsConfig from "./config/ingredientsConfig.vue";
+import ingredientsCategoriesConfig from "./config/ingredientsCategoriesConfig.vue";
 import productsCategories from "./config/productsCategories.vue";
 import tablesConfig from "./config/tablesConfig.vue";
 import financialConfig from "./config/financialConfig.vue";
 import reservationPreferences from "./config/reservationPreferences.vue";
 import shippingConfig from "./config/shippingConfig.vue";
 import systemData from "./config/systemData.vue";
+import systemLinkedCompanies from "./config/systemLinkedCompanies.vue";
 
 export default {
     name: "configComponent",
@@ -57,6 +61,7 @@ export default {
                 {
                     id: 0,
                     name: "Categorias de produtos",
+                    modulo_requerido: "products",
                     subMenus: [
                         {
                             id: 0,
@@ -67,18 +72,25 @@ export default {
                 },
                 {
                     id: 1,
-                    name: "Tipos de ingredientes",
+                    name: "Componentes de produtos",
+                    modulo_requerido: "products",
                     subMenus: [
                         {
                             id: 0,
                             name: "Listar tipos",
                             link: "ingredientsConfig"
+                        },
+                        {
+                            id: 0,
+                            name: "Categorias",
+                            link: "ingredientsCategoriesConfig"
                         }
                     ]
                 },
                 {
                     id: 2,
                     name: "Usuários",
+                    modulo_requerido: "config",
                     subMenus: [
                         {
                             id: 0,
@@ -95,6 +107,7 @@ export default {
                 {
                     id: 3,
                     name: "Sistema",
+                    modulo_requerido: "config",
                     subMenus: [
                         {
                             id: 0,
@@ -105,12 +118,18 @@ export default {
                             id: 1,
                             name: "Personalização",
                             link: "systemConfig"
+                        },
+                        {
+                            id: 2,
+                            name: "Empresas vinculadas",
+                            link: "systemLinkedCompanies"
                         }
                     ]
                 },
                 {
                     id: 4,
                     name: "Mesas",
+                    modulo_requerido: "digital_menu",
                     subMenus: [
                         {
                             id: 0,
@@ -122,6 +141,7 @@ export default {
                 {
                     id: 5,
                     name: "Financeiro",
+                    modulo_requerido: "financial",
                     subMenus: [
                         {
                             id: 0,
@@ -133,6 +153,7 @@ export default {
                 {
                     id: 6,
                     name: "Reservas",
+                    modulo_requerido: "reservations",
                     subMenus: [
                         {
                             id: 0,
@@ -144,6 +165,7 @@ export default {
                 {
                     id: 7,
                     name: "Entregas",
+                    modulo_requerido: "shipping",
                     subMenus: [
                         {
                             id: 0,
@@ -158,18 +180,31 @@ export default {
                 rolesConfig: false,
                 usersConfig: false,
                 ingredientsConfig: false,
-                dishesCategories: false,
+                ingredientsCategoriesConfig: false,
+                productsCategories: false,
                 tablesConfig: false,
                 financialConfig: false,
                 reservationPreferences: false,
                 shippingConfig: false,
-                systemData: false
+                systemData: false,
+                systemLinkedCompanies: false
             }
         }
     },
     computed: {
         notShowingSubMenuContent() {
             return Object.values(this.showSections).every(property => !property);
+        },
+        filteredConfigMenus: function () {
+            let filteredMenus = [];
+
+            for (let i = 0; i < this.configMenus.length; i++) {
+                if (this.$root.menuOptions.some(modulo => modulo.codigo === this.configMenus[i].modulo_requerido)) {
+                    filteredMenus.push(this.configMenus[i]);
+                }
+            }
+
+            return filteredMenus;
         }
     },
     methods: {
@@ -220,7 +255,9 @@ export default {
         financialConfig,
         reservationPreferences,
         shippingConfig,
-        systemData
+        systemData,
+        ingredientsCategoriesConfig,
+        systemLinkedCompanies
     }
 }
 </script>

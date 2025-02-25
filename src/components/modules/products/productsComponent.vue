@@ -3,7 +3,7 @@
         <div class="page-title">
             <h1>Produtos</h1>
         </div>  
-        <actionButtons add_text="ADICIONAR PRODUTO" exclude_text="EXCLUIR PRODUTO" edit_text="EDITAR PRODUTO" :disabledbuttons="disabledButtons" @add="addDish()" @exclude="excludeDish()" @edit="editDish()" />
+        <actionButtons add_text="CRIAR PRODUTO" exclude_text="EXCLUIR PRODUTO" edit_text="EDITAR PRODUTO" :disabledbuttons="disabledButtons" @add="addDish()" @exclude="excludeDish()" @edit="editDish()" />
         <div class="dishes-container">
             <div class="filter-container-header">
                 <h2>Lista de produtos</h2>
@@ -16,7 +16,7 @@
                     <p>{{ props.item.nome }}</p>
                 </template>
                 <template slot="column-descrição" slot-scope="props">
-                    <p>{{ props.item.dishes }}</p>
+                    <p class="ellipsis" :title="props.item.descricao">{{ props.item.descricao }}</p>
                 </template>
                 <template slot="column-preço" slot-scope="props">
                     <p>{{ props.item.preco }}</p>

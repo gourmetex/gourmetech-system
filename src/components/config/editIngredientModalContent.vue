@@ -2,7 +2,7 @@
     <div class="edit-ingredient-modal-content">
         <form class="edit-ingredient" id="informations-form" @submit.prevent="saveRole()">
             <div class="form-group">
-                <label for="name">Nome do ingrediente</label>
+                <label for="name">Nome do componente</label>
                 <input type="text" name="name" id="name" v-model="ingredient.nome" required>
             </div>
             <div class="form-group">
@@ -10,13 +10,6 @@
                 <select name="category" id="category" v-model="ingredient.categoria" required>
                     <option value="">Escolha uma opção</option>
                     <option v-for="(category, index) in ingredients_categories" :key="index" :value="category.id">{{ category.nome }}</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="measurement">Unidade de medida</label>
-                <select name="measurement" id="measurement" v-model="ingredient.unidade_medida" required>
-                    <option value="">Escolha uma opção</option>
-                    <option v-for="(unity, index) in unity_measurement" :key="index" :value="unity.id">{{ unity.nome }}</option>
                 </select>
             </div>
             <input type="submit" id="submit-button" style="display: none;">
@@ -35,8 +28,7 @@ export default {
             ingredient: {
                 id: 0,
                 nome: "",
-                categoria: "",
-                unidade_medida: ""
+                categoria: ""
             },
             unity_measurement: [],
             ingredients_categories: [],
@@ -91,19 +83,9 @@ export default {
             }).catch((error) => {
                 console.log(error);
             })
-        },
-        returnUnitiesOfMeasurement: function () {
-            let self = this;
-
-            api.get("/products/unities_of_measurement").then((response) => {
-                self.unity_measurement = response.data.returnObj;
-            }).catch((error) => {
-                console.log(error);
-            })
         }
     },
     mounted: function () {
-        this.returnUnitiesOfMeasurement();
         this.returnIngredientsCategories();
         this.returnIngredient();
     }

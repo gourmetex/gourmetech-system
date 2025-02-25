@@ -15,7 +15,7 @@
                 <template slot="column-cliente" slot-scope="props">
                     <p>{{ props.item.cliente }}</p>
                 </template>
-                <template slot="column-delivery" slot-scope="props">
+                <template slot="column-delivery" slot-scope="props" v-if="checkModulePermission('shipping')">
                     <p>{{ props.item.delivery == 1 ? "Sim" : "Não" }}</p>
                 </template>
                 <template slot="column-valor-parcial" slot-scope="props">

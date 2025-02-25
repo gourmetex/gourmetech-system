@@ -10,10 +10,18 @@
                 <div class="filters">
                     <form id="filter-form" @submit.prevent="search()">
                         <div class="filter-field">
-                            <label for="categoria_conta">Tipo</label>
+                            <label for="categoria_conta">Categoria</label>
                             <select id="categoria_conta" name="categoria_conta">
-                                <option value="">* Selecione *</option>
+                                <option value="">* Qualquer *</option>
                                 <option v-for="(category, index) in debt_categories" :key="index" :value="category.id">{{ category.nome }}</option>
+                            </select>
+                        </div>
+                        <div class="filter-field">
+                            <label for="tipo_conta">Tipo</label>
+                            <select id="tipo_conta" name="ccc.tipo_conta">
+                                <option value="">* Qualquer *</option>
+                                <option value="0">Conta a pagar</option>
+                                <option value="1">Conta a receber</option>
                             </select>
                         </div>
                         <div class="filter-field">
@@ -38,8 +46,11 @@
                 <template slot="column-valor" slot-scope="props">
                     <p>{{ props.item.valor }}</p>
                 </template>
-                <template slot="column-tipo" slot-scope="props">
+                <template slot="column-categoria" slot-scope="props">
                     <newBadge class="text-center" :background="props.item.cor" :text="props.item.nome" />
+                </template>
+                <template slot="column-tipo" slot-scope="props">
+                    <p>{{ props.item.tipo }}</p>
                 </template>
                 <template slot="column-data" slot-scope="props">
                     <p class="text-center">{{ props.item.data_lancamento }}</p>

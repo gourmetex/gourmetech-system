@@ -25,7 +25,7 @@
         </header>
         <div class="lateral-menu">
             <ul>
-                <li v-for="(item, index) in $root.menuOptions" :key="index" class="menu-item" v-on:click="selectThisItem('menu-' + item.icone)" :id="'menu-' + item.icone" :class="checkCurrentPathname(item.link) ? 'li-active' : ''">
+                <li v-for="(item, index) in $root.menuOptions" :key="index" class="menu-item" v-on:click="selectThisItem(item.link)" :id="'menu' + item.link.replace(/\//g, '-')" :class="checkCurrentPathname(item.link) ? 'li-active' : ''">
                     <router-link :to="item.link">
                         <span class="material-icons">{{ item.icone }}</span>
                         <h3>{{ item.nome }}</h3>
@@ -48,6 +48,11 @@ export default {
             menuMovement: false
         }
     },
+    watch: {
+        $route() {
+            this.selectThisItem(window.location.pathname);
+        }
+    },
     methods: {
         goToProfile: function () {
             this.toggleProfileMenu();
@@ -63,7 +68,7 @@ export default {
         selectThisItem: function (elementId) {
             $(".menu-item").removeClass("li-active");
 
-            let targetElement = $("#" + elementId);
+            let targetElement = $("#menu" + elementId.replace(/\//g, '-'));
             targetElement.addClass("li-active");
             if (window.innerWidth <= 960) {
                 if (this.menuMovement) return;
@@ -142,6 +147,8 @@ export default {
     },
     mounted: function () {
         let self = this;
+
+        this.selectThisItem(window.location.pathname);
 
         $(window).on("resize", () => {
             let windowWidth = $(window).width();
