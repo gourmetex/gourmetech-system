@@ -66,7 +66,7 @@
                 </div>
                 <h2 class="order-total">{{ order.total }}</h2>
             </div>
-            <div class="delivery" v-if="checkModulePermission('shipping')">
+            <div class="delivery" v-if="checkModulePermission('shipping') && false">
                 <button class="btn btn-blue">Entrega</button>
                 <div class="delivery-content">
                     <div class="delivery-texts">

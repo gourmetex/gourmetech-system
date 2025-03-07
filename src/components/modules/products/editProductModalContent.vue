@@ -205,7 +205,7 @@ export default {
                 self.dish = response.data.returnObj;
                 self.contentLoaded = true;
                 self.fillSubmitIngredients();
-                $("#preco").val(self.dish.preco);
+                $("#preco").val(self.formatCurrency(self.dish.preco));
             }).catch((error) => {
                 console.log(error);
             })

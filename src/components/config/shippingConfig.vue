@@ -54,7 +54,7 @@ export default {
 
             api.get("/shipping/config").then((response) => {
                 self.config = response.data.returnObj;
-                $("#tax").val(self.config.tax);
+                $("#tax").val(self.formatCurrency(self.config.tax));
 
                 self.mapLoaded = true;
             }).catch((error) => {

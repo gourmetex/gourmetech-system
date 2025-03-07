@@ -111,7 +111,7 @@ export default {
 
             api.get("/users/return_user/" + self.userid).then((response) => {
                 self.user = response.data.returnObj;
-                $("#salary").val(self.user.salario);
+                $("#salary").val(self.formatCurrency(self.user.salario));
             }).catch((error) => {
                 console.log(error);
             })
