@@ -267,6 +267,11 @@ a, a:hover {
     margin-left: var(--space-3);
 }
 
+lottie-player#loading {
+    width: 150px;
+    margin: auto;
+}
+
 #register-form, #login-form {
     border: 1px solid var(--gray-2);
     padding: var(--space-6);

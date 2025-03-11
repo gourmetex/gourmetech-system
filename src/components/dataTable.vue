@@ -240,10 +240,6 @@
       width: 100%;
       display: grid;
       place-items: center;
-
-      & lottie-player {
-        width: 150px;
-      }
     }
 
   .table {

@@ -11,6 +11,7 @@
     "@lottiefiles/lottie-player": "^1.5.6",
     "animate.css": "^4.1.1",
     "axios": "^0.25.0",
+    "chart.js": "^4.4.8",
     "core-js": "^3.8.3",
     "inputmask": "^5.0.9",
     "jquery": "^3.6.0",
