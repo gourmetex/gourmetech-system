@@ -31,10 +31,11 @@
                             <input v-if="dateRange === 'semanal'" type="week" v-model="week" placeholder="Semana" required />
                         </div>
                         <button type="submit" class="btn btn-primary">Buscar</button>
+                        <button type="button" class="btn btn-gray" style="margin-left: var(--space-5);" v-on:click="exportToExcel">Exportar</button>
                     </form>
                 </div>
             </div>
-            <chartComponent v-if="!loading" :chartData="relatorio.dados" :chartType="relatorio.tipo" :chartTitle="relatorio.dados.datasets[0].label" />
+            <chartComponent v-if="!loading" :chartData="relatorio.dados" :chartType="relatorio.tipo" :chartReportType="relatorio.codigo" :chartTitle="relatorio.dados.datasets[0].label" />
         </div>
     </div>
 </template>
@@ -42,11 +43,13 @@
 import chartComponent from '@/components/chartComponent.vue';
 import loadingJson from "@/assets/animations/loading-component.json";
 import api from "@/configs/api";
+import * as XLSX from "xlsx";
 
 export default {
     name: "reportsComponent",
     data() {
         return {
+            reportType: "",
             relatoriosTipos: [
                 {
                     codigo: "faturamento",
@@ -57,6 +60,11 @@ export default {
                     codigo: "despesas",
                     title: "Relatório de despesas",
                     icon: "request_quote"
+                },
+                {
+                    codigo: "vendas",
+                    title: "Relatório de vendas",
+                    icon: "monetization_on"
                 }
             ],
             relatorio: {
@@ -81,24 +89,98 @@ export default {
 
             this.selecionaRelatorio(this.reportType);
         },
+        formatReportData: function (data) {
+            let formattedData;
+
+            if (this.relatorio.codigo == "faturamento" || this.relatorio.codigo == "despesas") {
+                formattedData = `R$ ${data.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}`;
+            } else {
+                formattedData = data;
+            }
+
+            return formattedData;
+        },
+        exportToExcel() {
+            if (!this.relatorio.dados) {
+                alert("Não há dados para exportar.");
+                return;
+            }
+
+            // Obtém os datasets e labels do gráfico
+            const labels = this.relatorio.dados.labels;
+            const datasets = this.relatorio.dados.datasets;
+
+            // Monta os dados para o Excel
+            let excelData = [];
+            const headerRow = ["          ", ...datasets.map(ds => ds.label)];
+            excelData.push(headerRow); // Cabeçalhos
+
+            labels.forEach((label, index) => {
+                let row = [label]; // Primeira coluna: rótulo (categoria)
+                datasets.forEach(dataset => {
+                    row.push(this.formatReportData(dataset.data[index]) || 0);
+                });
+                excelData.push(row);
+            });
+
+            // Cria a planilha
+            const ws = XLSX.utils.aoa_to_sheet(excelData);
+
+            // Aplica estilos aos cabeçalhos (negrito e alinhamento)
+            const range = XLSX.utils.decode_range(ws["!ref"]);
+            for (let col = range.s.c; col <= range.e.c; col++) {
+                const cellRef = XLSX.utils.encode_cell({ r: 0, c: col }); // Cabeçalhos na primeira linha
+                if (!ws[cellRef]) continue;
+                ws[cellRef].s = { 
+                    font: { bold: true }, // Negrito
+                    alignment: { horizontal: "center", vertical: "center" } // Alinhamento
+                };
+            }
+
+            // Ajuste de largura das colunas com base no conteúdo
+            ws["!cols"] = headerRow.map(header => ({ wch: header.length + 5 })); // Define largura baseada no tamanho do texto
+
+            // Aplica autofiltro para ordenação dos cabeçalhos
+            ws["!autofilter"] = { ref: XLSX.utils.encode_range(range) };
+
+            // Cria o workbook e adiciona a planilha
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Relatório");
+
+            // Salva o arquivo
+            XLSX.writeFile(wb, `${this.relatorio.title || "Relatorio"}.xlsx`);
+        },
         selecionaRelatorio: function (tipo) {
             let self = this;
+            let reportType;
+            let reportTitle;
 
             self.loading = true;
             self.reportType = tipo;
 
             switch (tipo) {
                 case "faturamento":
-                self.retornaRelatorio(tipo, this.dateRange, this.range).then((response) => {
-                    self.relatorio.dados = response;
-                    self.relatorio.tipo = "bar";
-                    self.relatorio.title = "Faturamento";
-
-                    self.loading = false;
-                })
-                    
+                    reportType = "bar";
+                    reportTitle = "Faturamento";
+                    break;
+                case "despesas":
+                    reportType = "bar";
+                    reportTitle = "Despesas";
+                    break;
+                case "vendas":
+                    reportType = "bar";
+                    reportTitle = "Vendas";
                     break;
             }
+
+            self.retornaRelatorio(tipo, this.dateRange, this.range).then((response) => {
+                self.relatorio.dados = response;
+                self.relatorio.tipo = reportType;
+                self.relatorio.codigo = self.reportType;
+                self.relatorio.title = reportTitle;
+
+                self.loading = false;
+            })
         },
         retornaRelatorio: function (type, competence, range) {
             let data = {

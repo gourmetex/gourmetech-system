@@ -19,11 +19,15 @@ export default {
       type: String,
       required: true,
     },
+    chartReportType: {
+      type: String,
+      required: true,
+    },
     chartTitle: {
       type: String,
       required: false,
       default: "",
-    },
+    }
   },
   data() {
     return {
@@ -37,6 +41,17 @@ export default {
     getCSSColor(variable) {
       return getComputedStyle(document.documentElement).getPropertyValue(variable).trim();
     },
+    returnChartFormattedType: function (value) {
+      let chartLabelType;
+
+      if (this.chartReportType == "faturamento" || this.chartReportType == "despesas") {
+        chartLabelType = `R$ ${value.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}`;
+      } else {
+        chartLabelType = value;
+      }
+
+      return chartLabelType;
+    },
     renderChart() {
       if (this.chartInstance) {
         this.chartInstance.destroy(); // Destrói a instância anterior
@@ -49,6 +64,8 @@ export default {
           }
         });
       }
+
+      let self = this;
 
       this.chartInstance = new Chart(this.$refs.canvas, {
         type: this.chartType, // 'bar' ou 'line'
@@ -71,7 +88,7 @@ export default {
                     callbacks: {
                         label: function (context) {
                             let value = context.raw || 0;
-                            return `R$ ${value.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}`;
+                            return self.returnChartFormattedType(value);
                         }
                     }
                 }
@@ -81,7 +98,7 @@ export default {
                     beginAtZero: true,
                     ticks: {
                         callback: function (value) {
-                            return `R$ ${value.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}`;
+                            return self.returnChartFormattedType(value);
                         }
                     }
                 }
