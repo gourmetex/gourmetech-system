@@ -14,6 +14,18 @@
                 <input type="date" name="data_lancamento" id="data_lancamento" required>
             </div>
             <div class="form-group">
+                <label for="data_vencimento">Data de vencimento</label>
+                <input type="date" name="data_vencimento" id="data_vencimento" required>
+            </div>
+            <div class="form-group">
+                <label for="status">Status</label>
+                <select name="status" id="status" required>
+                    <option value="">* Selecione *</option>
+                    <option value="pendente">Pendente</option>
+                    <option value="pago">Pago</option>
+                </select>
+            </div>
+            <div class="form-group">
                 <label for="categoria_conta">Categoria</label>
                 <select id="categoria_conta" name="categoria_conta" required>
                     <option value="">* Selecione *</option>

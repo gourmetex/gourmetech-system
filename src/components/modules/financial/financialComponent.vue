@@ -55,6 +55,15 @@
                 <template slot="column-data" slot-scope="props">
                     <p class="text-center">{{ props.item.data_lancamento }}</p>
                 </template>
+                <template slot="column-data-de-vencimento" slot-scope="props">
+                    <p class="text-center">{{ props.item.data_vencimento }}</p>
+                </template>
+                <template slot="column-data-de-pagamento" slot-scope="props">
+                    <p class="text-center">{{ props.item.data_pagamento }}</p>
+                </template>
+                <template slot="column-status" slot-scope="props">
+                    <newBadge class="text-center" :background="props.item.status == 'pendente' ? 'var(--yellow)' : props.item.status == 'pago' ? 'var(--green)' : 'var(--red)'" :text="capitalize(props.item.status)" />
+                </template>
             </dataTable>
         </div>
         <modal v-if="showModal" :modaltitle="modalTitle" :excludepath="'/financial/' + editId" :modalbutton1="modalButton1" :modalbutton2="modalButton2" :modalbutton3="modalButton3" @closeModal="closeModalFunction(); returnFinancial();">

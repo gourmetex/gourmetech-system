@@ -1,6 +1,8 @@
 import Vue from 'vue';
 import VueRouter from 'vue-router';
 
+import api from "../configs/api";
+
 Vue.use(VueRouter);
 
 import indexPage from '../pages/indexPage.vue';
@@ -119,8 +121,36 @@ router.beforeEach((to, from, next) => {
             }
         
             next();
+        } else {
+            checkIfUserIsAuthenticated().then((() => {
+                clearInterval(interval);
+            })).catch(() => {
+                return next('/login');
+            })
         }
     }, 100)   
 });
+
+function checkIfUserIsAuthenticated() {
+    return new Promise((resolve, reject) => {
+        let jwt = "Bearer " + self.getJwtInLocalStorage();
+                
+        if (jwt == "Bearer null") {
+            reject();
+        } else {
+            let data = {
+                token: jwt
+            }
+
+            api.post("/users/check_jwt", data)
+            .then(function () { 
+                resolve();
+            })
+            .catch(function () { 
+                reject();
+            })
+        }
+    })
+}
 
 export default router;
