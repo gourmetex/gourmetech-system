@@ -25,8 +25,25 @@
                             :value="companyItem.id"
                             v-model="company.empresa_vinculada"
                             name="empresa_vinculada"
+                            required
                         >
                         <label :for="'company-' + companyItem.id">{{ companyItem.nome }}</label>
+                    </div>
+                </div>
+            </div>
+            <div class="company-plan">
+                <h3 class="font-bold">Plano</h3>
+                <div v-for="(plan, index) in plans" :key="index">
+                    <div class="radio-group">
+                        <input 
+                            type="radio" 
+                            :id="'plan-' + plan.id" 
+                            :value="plan.id"
+                            v-model="company.plano"
+                            name="plan"
+                            required
+                        >
+                        <label :for="'plan-' + plan.id">{{ plan.nome }}</label>
                     </div>
                 </div>
             </div>
@@ -63,8 +80,10 @@ export default {
                 nome: "",
                 ativa: false,
                 email_requisitado: "",
-                empresa_vinculada: null
+                empresa_vinculada: null,
+                plano: 0
             },
+            plans: [],
             savingCompany: false,
             modules: [],
             activeModules: []
@@ -76,6 +95,13 @@ export default {
 
             api.get("/companies/modules").then((response) => {
                 self.modules = response.data.returnObj;
+            })
+        },
+        returnPlans: function () {
+            let self = this;
+
+            api.get("/companies/plans").then((response) => {
+                self.plans = response.data.returnObj;
             })
         },
         returnCompany: function () {
@@ -127,6 +153,7 @@ export default {
         }
 
         this.returnModules();
+        this.returnPlans();
         this.returnCompany();
     }
 }

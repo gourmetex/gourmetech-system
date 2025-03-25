@@ -26,7 +26,7 @@
                 @click="sortData(column)"
                 :class="column"
               >
-                <span style="text-transform: capitalize;">{{ column.replace(/-/g, " ") }}</span>
+                <span style="text-transform: capitalize;" :title='capitalize(column.replace(/-/g, " "))'>{{ column.replace(/-/g, " ") }}</span>
                 <span v-if="sortColumn === column">
                   {{ sortDirection === 'asc' ? ' ▲' : ' ▼' }}
                 </span>
@@ -240,6 +240,10 @@
       width: 100%;
       display: grid;
       place-items: center;
+
+      & #datatable-loading {
+        width: 200px;
+      }
     }
 
   .table {
@@ -256,6 +260,9 @@
     padding: var(--space-4);
     text-align: left;
     border-bottom: 1px solid var(--gray-high);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
   }
   
   .table tr:hover {
