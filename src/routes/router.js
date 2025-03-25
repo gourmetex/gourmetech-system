@@ -121,7 +121,7 @@ router.beforeEach((to, from, next) => {
             }
         
             next();
-        } else {
+        } else if (to.path != "/register" && to.path != "/login") {
             checkIfUserIsAuthenticated().then((() => {
                 clearInterval(interval);
             })).catch(() => {
