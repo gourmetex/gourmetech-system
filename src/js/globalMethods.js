@@ -348,16 +348,18 @@ export const globalMethods = {
         },
         //Métodos de formatação de valores ou strings
         formatCurrency: function (value) {
-            const numeroLimpo = value.toString().replace(/[^\d.]/g, ''); // Remove caracteres não numéricos, exceto ponto
+            const numeroLimpo = value.toString().replace(/[^\d.,]/g, ''); 
             const partes = numeroLimpo.replace(".", ",").split(',');
+            
+            let numeroRetorno;
 
             if (partes.length > 1) {
-                // Se houver parte decimal, formata separadamente
-                return `R$ ${partes[0].replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.')},${partes[1].slice(0, 2)}`;
+                numeroRetorno = `R$ ${partes[0].replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.')},${partes[1].slice(0, 2)}`;
             } else {
-                // Se não houver parte decimal, formata apenas a parte inteira
-                return `R$ ${partes[0].replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.')}`;
+                numeroRetorno = `R$ ${partes[0].replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.')}`;
             }
+            
+            return numeroRetorno;
         },
         formatTel: function (value) {
             let numberTemplate = "(00) 0 0000-0000";
