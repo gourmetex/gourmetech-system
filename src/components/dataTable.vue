@@ -274,6 +274,7 @@
     margin: var(--space-1) 0;
     font-size: var(--fontsize-sm);
     color: var(--black);
+    line-height: 118%;
   }
   
   .table th {

@@ -48,6 +48,10 @@
                 </div>
             </div>
         </div>
+        <div class="product-imagem-container">
+            <h3>Imagem do produto</h3>
+            <input type="file" name="product_image" id="product-image" accept=".jpg, .jpeg, .png">
+        </div>
         <div class="small-modal">
             <form class="add-dish" id="informations-form" @submit.prevent="submitAddIngredient()">
                 <div class="form-group">
@@ -169,26 +173,38 @@ export default {
 
             self.savingDish = true;
 
-            let data = $("#informations-form").serializeArray().reduce(function (obj, item) { // Pega todos os dados do formulário e coloca em um objeto.
-                obj[item.name] = item.value;
-                return obj;
-            }, {});
+            const imageInput = document.getElementById('product-image');
+            const file = imageInput?.files[0];
 
-            data["ingredientes"] = self.ingredients_list;
+            const formData = new FormData();
+
+            const fields = $("#informations-form").serializeArray();
+            fields.forEach(item => {
+                formData.append(item.name, item.value);
+            });
+
+            formData.append("ingredientes", JSON.stringify(self.ingredients_list));
+
+            if (file) {
+                formData.append("product_image", file);
+            }
 
             let path = "create_product";
-
             if (self.dishid != null) {
                 path = "edit_product/" + self.dishid;
             }
-            
-            api.post("/products/" + path, data).then(() => {
+
+            api.post("/products/" + path, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            }).then(() => {
                 self.$emit("savedContent", true);
             }).catch((error) => {
                 console.log(error);
             }).then(() => {
                 self.savingDish = false;
-            })
+            });
         },
         returnDish: function () {
             let self = this;
@@ -242,5 +258,11 @@ export default {
 <style scoped>
 .add-dish {
     margin-bottom: var(--space-3);
+}
+
+.product-imagem-container {
+    margin-top: var(--space-4);
+    display: grid;
+    gap: var(--space-3);
 }
 </style>
