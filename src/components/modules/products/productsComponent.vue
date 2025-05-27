@@ -15,6 +15,9 @@
                 <template slot="column-nome" slot-scope="props">
                     <p>{{ props.item.nome }}</p>
                 </template>
+                <template slot="column-imagem" slot-scope="props">
+                    <img :src="props.item.imagem">
+                </template>
                 <template slot="column-descrição" slot-scope="props">
                     <p class="ellipsis" :title="props.item.descricao">{{ props.item.descricao }}</p>
                 </template>

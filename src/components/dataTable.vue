@@ -276,6 +276,13 @@
     color: var(--black);
     line-height: 118%;
   }
+
+  .table td img {
+    object-fit: cover;
+    width: 100%;
+    border-radius: var(--radius-sm);
+    height: 100%;
+  }
   
   .table th {
     cursor: pointer;
