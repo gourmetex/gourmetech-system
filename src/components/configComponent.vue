@@ -45,7 +45,6 @@ import rolesConfig from "./config/rolesConfig.vue";
 import usersConfig from "./config/usersConfig.vue";
 import ingredientsConfig from "./config/ingredientsConfig.vue";
 import ingredientsCategoriesConfig from "./config/ingredientsCategoriesConfig.vue";
-import productsCategories from "./config/productsCategories.vue";
 import tablesConfig from "./config/tablesConfig.vue";
 import financialConfig from "./config/financialConfig.vue";
 import reservationPreferences from "./config/reservationPreferences.vue";
@@ -58,18 +57,6 @@ export default {
     data() {
         return {
             configMenus: [
-                {
-                    id: 0,
-                    name: "Categorias de produtos",
-                    modulo_requerido: "products",
-                    subMenus: [
-                        {
-                            id: 0,
-                            name: "Listar categorias",
-                            link: "productsCategories"
-                        }
-                    ]
-                },
                 {
                     id: 1,
                     name: "Componentes de produtos",
@@ -181,7 +168,6 @@ export default {
                 usersConfig: false,
                 ingredientsConfig: false,
                 ingredientsCategoriesConfig: false,
-                productsCategories: false,
                 tablesConfig: false,
                 financialConfig: false,
                 reservationPreferences: false,
@@ -250,7 +236,6 @@ export default {
         rolesConfig,
         usersConfig,
         ingredientsConfig,
-        productsCategories,
         tablesConfig,
         financialConfig,
         reservationPreferences,
