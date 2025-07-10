@@ -1,14 +1,29 @@
 <template>
     <div class="system-config">
         <div class="config-section">
-            <label>Logomarca</label>
-            <div class="image-container">
-                <form @submit.prevent="uploadPhoto(formData)" method="post" enctype="multipart/form-data">
-                    <img :src="$root.company.logo_url">
-                    <input type="file" name="photo" id="photo" @change.prevent="preSendPhoto($event)" title="Envie uma foto nos formatos PNG ou JPG">
-                    <button type="button" class="btn btn-primary" v-on:click="clickInInputFile()">Alterar</button>
-                    <input type="submit" id="submit-form" style="display: none;">
-                </form>
+            <div class="photo-container">
+                <div class="photo-section">
+                    <label>Logomarca</label>
+                    <div class="image-container">
+                        <form @submit.prevent="uploadPhoto(formData)" method="post" enctype="multipart/form-data">
+                            <img :src="$root.company.logo_url">
+                            <input type="file" name="photo" id="photo" @change.prevent="preSendPhoto($event)" title="Envie uma foto nos formatos PNG ou JPG">
+                            <button type="button" class="btn btn-primary" v-on:click="clickInInputFile()">Alterar</button>
+                            <input type="submit" id="submit-form" style="display: none;">
+                        </form>
+                    </div>
+                </div>
+                <div class="photo-section">
+                    <label>Icone</label>
+                    <div class="image-container">
+                        <form @submit.prevent="uploadPhoto(formData, true)" method="post" enctype="multipart/form-data">
+                            <img :src="$root.company.icone">
+                            <input type="file" name="icon" id="icon" @change.prevent="preSendPhoto($event, true)" title="Envie uma foto nos formatos PNG ou JPG">
+                            <button type="button" class="btn btn-primary" v-on:click="clickInInputFile(true)">Alterar</button>
+                            <input type="submit" id="submit-form-icon" style="display: none;">
+                        </form>
+                    </div>
+                </div>
             </div>
             <form @submit.prevent="saveTheme()" id="system-theme-form">
                 <div class="form-group">
@@ -59,7 +74,7 @@ export default {
         }
     },
     methods: {
-        preSendPhoto: function (event) {
+        preSendPhoto: function (event, icon = false) {
             let self = this;
             let file = event.target.files.item(0);
 
@@ -71,17 +86,22 @@ export default {
 
                 self.formData.set("company_image", file);
                 adress.readAsDataURL(file);
-                $("#submit-form").click();
+
+                if (icon) {
+                    $("#submit-form-icon").click();
+                } else {
+                    $("#submit-form").click();
+                }
             } else {
                 self.setResponse("Tipo de arquivo não suportado", "error");
             }
         },
-        uploadPhoto: function (formData) {
+        uploadPhoto: function (formData, icon = false) {
             let self = this;
 
             self.resetResponse();
 
-            api.patch("/companies/change_photo", formData)
+            api.patch("/companies/change_photo" + (icon ? "?icone=1" : ""), formData)
             .then(function () { 
                 location.reload();
             })
@@ -89,8 +109,12 @@ export default {
                 self.setResponse(error.response.data, "error");
             })
         },
-        clickInInputFile: function () {
-            $("#photo").click();
+        clickInInputFile: function (icon = false) {
+            if (icon) {
+                $("#icon").click();
+            } else {
+                $("#photo").click();
+            }
         },
         saveTheme: function () {
             let self = this;
@@ -133,6 +157,11 @@ export default {
 }
 </script>
 <style scoped>
+
+.photo-container {
+    display: flex;
+    gap: var(--space-6);
+}
 
 .system-config {
     width: 100%;
