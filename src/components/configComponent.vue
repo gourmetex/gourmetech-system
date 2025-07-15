@@ -44,7 +44,6 @@ import systemConfig from "./config/systemConfig.vue";
 import rolesConfig from "./config/rolesConfig.vue";
 import usersConfig from "./config/usersConfig.vue";
 import ingredientsConfig from "./config/ingredientsConfig.vue";
-import ingredientsCategoriesConfig from "./config/ingredientsCategoriesConfig.vue";
 import tablesConfig from "./config/tablesConfig.vue";
 import financialConfig from "./config/financialConfig.vue";
 import reservationPreferences from "./config/reservationPreferences.vue";
@@ -66,11 +65,6 @@ export default {
                             id: 0,
                             name: "Listar tipos",
                             link: "ingredientsConfig"
-                        },
-                        {
-                            id: 0,
-                            name: "Categorias",
-                            link: "ingredientsCategoriesConfig"
                         }
                     ]
                 },
@@ -167,7 +161,6 @@ export default {
                 rolesConfig: false,
                 usersConfig: false,
                 ingredientsConfig: false,
-                ingredientsCategoriesConfig: false,
                 tablesConfig: false,
                 financialConfig: false,
                 reservationPreferences: false,
@@ -241,7 +234,6 @@ export default {
         reservationPreferences,
         shippingConfig,
         systemData,
-        ingredientsCategoriesConfig,
         systemLinkedCompanies
     }
 }

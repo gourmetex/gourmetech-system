@@ -3,7 +3,7 @@
         <div class="page-title">
             <h1>Estoque</h1>
         </div>  
-        <actionButtons add_text="ADICIONAR ITEM" exclude_text="EXCLUIR ITEM" @add="addIngredientQuantity()" @exclude="excludeIngredientQuantity()" />
+        <actionButtons add_text="ADICIONAR ITEM" exclude_text="EXCLUIR ITEM" :disabledbuttons="disabledButtons" @add="addIngredientQuantity()" @exclude="excludeIngredientQuantity()" />
         <div class="stock-container">
             <div class="filter-container-header">
                 <h2>Itens do estoque</h2>
@@ -43,7 +43,7 @@
                 <template slot="column-categoria" slot-scope="props">
                     <p>{{ props.item.categoria }}</p>
                 </template>
-                <template slot="column-telefone" slot-scope="props">
+                <template slot="column-status" slot-scope="props">
                     <newBadge class="text-center" :background="props.item.status == 0 ? 'var(--red)' : 'var(--green-2)'" :text="props.item.status == 0 ? 'Vazio' : 'Normal'" />
                 </template>
                 <template slot="column-quantidade-em-estoque" slot-scope="props">
@@ -52,8 +52,8 @@
             </dataTable>
         </div>
         <modal v-if="showModal" :modaltitle="modalTitle" :modalbutton1="modalButton1" :modalbutton2="modalButton2" :modalbutton3="modalButton3" @closeModal="closeModalFunction(); returnStock();">
-            <addIngredientQuantityModalContent v-if="showAddIngredientQuantityModalContent" @savedContent="closeModalFunction(); returnStock();"></addIngredientQuantityModalContent>
-            <deleteIngredientQuantityModalContent v-if="showDeleteIngredientQuantityModalContent" @savedContent="closeModalFunction(); returnStock();"></deleteIngredientQuantityModalContent>
+            <addIngredientQuantityModalContent :ingredient="editId" v-if="showAddIngredientQuantityModalContent" @savedContent="closeModalFunction(); returnStock();"></addIngredientQuantityModalContent>
+            <deleteIngredientQuantityModalContent :ingredient="editId" v-if="showDeleteIngredientQuantityModalContent" @savedContent="closeModalFunction(); returnStock();"></deleteIngredientQuantityModalContent>
         </modal>
     </div>
 </template>
@@ -97,13 +97,11 @@ export default {
             this.resetModalContents();
             this.showModalFunction("Adicionar quantidade ", "Adicionar", "Cancelar");
             this.showAddIngredientQuantityModalContent = true;
-            this.descelectRows();
         },
         excludeIngredientQuantity: function () {
             this.resetModalContents();
             this.showModalFunction("Remover quantidade ", "Remover", "Cancelar");
             this.showDeleteIngredientQuantityModalContent = true;
-            this.descelectRows();
         },
         returnIngredientsCategories: function () {
             let self = this;
@@ -121,6 +119,7 @@ export default {
                 filters: self.filters
             }
 
+            this.descelectRows();
             self.contentLoaded = false;
 
             api.post("/stock/return_stock", data).then((response) => {
@@ -132,6 +131,7 @@ export default {
         }
     },
     mounted: function () {
+        this.disableActionsButtons(true, true, true);
         this.returnIngredientsCategories();
         this.returnStock();
     },

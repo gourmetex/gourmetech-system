@@ -12,6 +12,13 @@
                     <option v-for="(category, index) in ingredients_categories" :key="index" :value="category.id">{{ category.nome }}</option>
                 </select>
             </div>
+            <div class="form-group">
+                <label for="measurement" style="display: flex; align-items: center; gap: var(--space-2);">Unidade de medida <span class="material-icons" title="Por padrão a unidade de medida é vinculada à categoria.">info</span></label>
+                <select name="measurement" id="measurement" v-model="ingredient.unidade_medida" required>
+                    <option value="">Escolha uma opção</option>
+                    <option v-for="(unity, index) in unities_of_measurement" :key="index" :value="unity.id">{{ unity.nome }}</option>
+                </select>
+            </div>
             <input type="submit" id="submit-button" style="display: none;">
         </form>
     </div>
@@ -28,11 +35,17 @@ export default {
             ingredient: {
                 id: 0,
                 nome: "",
-                categoria: ""
+                categoria: "",
+                unidade_medida: ""
             },
-            unity_measurement: [],
+            unities_of_measurement: [],
             ingredients_categories: [],
             savingIngredient: false
+        }
+    },
+    watch: {
+        'ingredient.categoria': function () {
+            this.ingredient.unidade_medida = this.ingredients_categories.find((category) => { return category.id == this.ingredient.categoria }).unidade_medida_id;
         }
     },
     methods: {
@@ -64,6 +77,15 @@ export default {
                 self.savingIngredient = false;
             })
         },
+        returnUnitiesOfMeasurement: function () {
+            let self = this;
+
+            api.get("/products/unities_of_measurement").then((response) => {
+                self.unities_of_measurement = response.data.returnObj;
+            }).catch((error) => {
+                console.log(error);
+            })
+        }, 
         returnIngredient: function () {
             let self = this;
             
@@ -86,6 +108,7 @@ export default {
         }
     },
     mounted: function () {
+        this.returnUnitiesOfMeasurement();
         this.returnIngredientsCategories();
         this.returnIngredient();
     }

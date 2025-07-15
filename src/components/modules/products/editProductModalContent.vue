@@ -34,7 +34,7 @@
                     <p>{{ props.item.nome }}</p>
                 </template>
                 <template slot="column-quantidade" slot-scope="props">
-                    <p class="text-center">{{ props.item.quantidade }}</p>
+                    <p class="text-center">{{ props.item.quantidade }} ({{ props.item.unidade_medida }})</p>
                 </template>
             </dataTable>
             <div class="edit-buttons buttons-vertical">
