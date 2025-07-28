@@ -81,6 +81,10 @@ export default {
                 self.reorganizeDishesObservations();
             }).catch((error) => {
                 console.log(error);
+            }).then(() => {
+                setTimeout(() => {
+                    self.returnDishes();
+                }, 60 * 1000)
             })
         },
         reorganizeDishesObservations: function () {
