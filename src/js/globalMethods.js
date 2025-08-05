@@ -1,6 +1,7 @@
 import $ from 'jquery';
 import api from '../configs/api.js';
 import axios from 'axios';
+import moment from 'moment';
 
 export const globalMethods = {
     methods: {
@@ -396,6 +397,9 @@ export const globalMethods = {
         formatDateFromDb: function (date) {
             return date.replace(' ', 'T').slice(0, -3);
         },
+        formatDateFromNow: function (date) {
+            return moment(date).fromNow();
+        },
         capitalize: (str) => {
             if (!str) return "";
             return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
@@ -435,6 +439,9 @@ export const globalMethods = {
         cancel: function () {
             this.$emit("cancel");
         }
+    },
+    mounted: function () {
+        moment.locale("pt-br");
     },
     watch: {
         editId: function () {

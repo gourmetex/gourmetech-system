@@ -1,15 +1,18 @@
 <template>
     <div class="modal">
-        <div class="modal-container">
+        <div class="modal-container" :class="confirm ? 'small' : ''">
             <div class="modal-header">
                 <h2 class="font-bold">{{ modaltitle }}</h2>
                 <span class="material-icons" v-on:click="handleCloseModalContent()">close</span>
             </div>
             <div class="modal-body">
-                <div v-if="edit">
+                <div v-if="edit && !confirm">
                     <slot />
                 </div>
-                <div v-else>
+                <div v-if="confirm">
+                    <h2 class="text-center">{{ confirmtext }}</h2>
+                </div>
+                <div v-if="!edit && !confirm">
                     <excludeModalContent :excludepath="excludepath" @excludedContent="handleCloseModalContent()"></excludeModalContent>
                 </div>
             </div>
@@ -28,7 +31,7 @@ import excludeModalContent from "./excludeModalContent.vue";
 
 export default {
     name: "modalComponent",
-    props: ["modaltitle", "modalbutton1", "modalbutton2", "modalButton3", "excludepath"],
+    props: ["modaltitle", "modalbutton1", "modalbutton2", "modalButton3", "excludepath", "confirm", "confirmtext"],
     data() {
         return {
             edit: true
@@ -66,6 +69,11 @@ export default {
 
             $("#submit_type").val("save");
             $("#submit-button").click();
+
+            if (this.confirm) {
+                this.$emit("closeModal", true);
+                this.$emit("confirmCallback");
+            }
         },
         saveAndSubmitInformations: function () {
             let modalButton1 = $("#modal-submit-button");
@@ -137,6 +145,10 @@ export default {
     transition: opacity 0.4s, transform 0.4s;
     transform: translateY(-20vh);
     opacity: 0;
+
+    &.small {
+        max-height: 300px;
+    }
 }
 
 .modal-header, .modal-body, .modal-footer {

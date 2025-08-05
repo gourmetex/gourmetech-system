@@ -58,7 +58,7 @@ export default {
         }, 
         cancelOrder: function () {
             this.resetModalContents();
-            this.showModalFunction("Cancelar pedido", "Cancelar", "Cancelar");
+            this.showModalFunction("Cancelar pedido", "Cancelar", "Fechar");
         },
         addOrder: function () {
             this.resetModalContents();
