@@ -50,7 +50,8 @@
         </div>
         <div class="product-imagem-container">
             <h3>Imagem do produto</h3>
-            <input type="file" name="product_image" id="product-image" accept=".jpg, .jpeg, .png">
+            <input type="file" name="product_image" @change="readFile()" id="product-image" accept=".jpg, .jpeg, .png">
+            <img :src="dish.imagem">
         </div>
         <div class="small-modal">
             <form class="add-dish" id="informations-form" @submit.prevent="submitAddIngredient()">
@@ -96,7 +97,8 @@ export default {
                 nome: "",
                 categoria: "",
                 preco: null,
-                ingredientes: []
+                ingredientes: [],
+                imagem: ""
             }
         }
     },
@@ -162,6 +164,19 @@ export default {
         addIngredient: function () {
             this.openSmallModal();
         },
+        readFile: function () {
+            let self  = this;
+            const imageInput = document.getElementById('product-image');
+            const file = imageInput.files[0];
+
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                self.dish.imagem = e.target.result;
+            };
+
+            reader.readAsDataURL(file);
+        },
         saveDish: function () {
             let self = this;
             if (self.savingDish) return;
@@ -187,6 +202,8 @@ export default {
 
             if (file) {
                 formData.append("product_image", file);
+
+                this.readFile();
             }
 
             let path = "create_product";
@@ -264,5 +281,14 @@ export default {
     margin-top: var(--space-4);
     display: grid;
     gap: var(--space-3);
+
+    & img {
+        border-radius: var(--radius-md);
+        width: 50%;
+        object-fit: contain;
+        border: 1px solid var(--gray-3);
+        margin: auto;
+        margin-top: var(--space-4);
+    }
 }
 </style>

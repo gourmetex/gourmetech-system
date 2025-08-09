@@ -280,6 +280,7 @@
   .table td img {
     object-fit: cover;
     width: 100%;
+    max-width: 100px;
     border-radius: var(--radius-sm);
     height: 100%;
   }
