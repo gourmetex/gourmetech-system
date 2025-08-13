@@ -137,8 +137,14 @@ export default {
                 total: "R$ 0,00",
                 nome_cliente: "",
                 id_cliente: "",
-                cep_entrega: "",
-                mesa: ""
+                mesa: "",
+                zip_code: null, 
+                address: null, 
+                number: null, 
+                complement: null, 
+                address_name: null, 
+                state: null, 
+                city: null
             },
             dishes_list: [],
             selected_dish: [],
@@ -409,7 +415,13 @@ export default {
                 data["pagamento_pix"] = this.pix_payment;
                 data["pagamento_cartao"] = this.card_payment;
                 data["pagamento_dinheiro"] = this.cash_payment;
-                data["cep_entrega"] = parseInt(this.order.cep_entrega);
+                data["zip_code"] = this.order.zip_code;
+                data["address"] = this.order.address;
+                data["number"] = parseInt(this.order.number);
+                data["complement"] = this.order.complement;
+                data["address_name"] = this.order.address_name;
+                data["state"] = this.order.state;
+                data["city"] = this.order.city;
                 data["mesa"] = this.order.mesa == "" ? null : parseInt(this.order.mesa);
                 data["save_type"] = $("#submit_type").val();
                 data["cliente_nome"] = this.cliente_nome != null ? this.cliente_nome : $("#ajax-autocomplete-input").val();
