@@ -47,7 +47,7 @@ const routes = [
             { path: "orders", component: ordersComponent, meta: { modulo_requerido: 'orders' } },
             { path: "customers", component: customersComponent, meta: { modulo_requerido: 'customers' } },
             { path: "kitchen", component: kitchenComponent, meta: { modulo_requerido: 'kitchen' } },
-            { path: "printout", component: printOut, meta: { modulo_requerido: 'printout' } },
+            { path: "printout", component: printOut, meta: { modulo_requerido: 'digital_menu' } },
             { path: "digital_menu", component: digitalMenuComponent, meta: { modulo_requerido: 'digital_menu' } },
             { path: "financial", component: financialComponent, meta: { modulo_requerido: 'financial' } },
             { path: "whatsapp", component: whatsappComponent, meta: { modulo_requerido: 'whatsapp' } },
@@ -55,7 +55,7 @@ const routes = [
             { path: "shipping", component: shippingComponent, meta: { modulo_requerido: 'shipping' } },
             { path: "reports", component: reportsComponent, meta: { modulo_requerido: 'reports' } },
             { path: "reservations", component: reservationsComponent, meta: { modulo_requerido: 'reservations' } },
-            { path: "profile", component: profileComponent, meta: { modulo_requerido: 'profile' } }
+            { path: "profile", component: profileComponent, meta: { modulo_requerido: '' } }
         ]
     },
     {
