@@ -17,11 +17,25 @@
             </div>
             <div class="right-content">
                 <div class="notifications-container">
-                    <span class="material-icons">notifications</span>
-                    <span class="notifications-number">{{ $root.user.status.notifications }}</span>
+                    <span class="material-icons" v-on:click="handleToggleNotifications()">notifications</span>
+                    <span class="notifications-number" v-on:click="handleToggleNotifications()" v-show="notificationsCount > 0">{{ notificationsCount }}</span>
+                    <div class="notifications" v-if="toggleNotifications">
+                        <lottie-player id="notifications-loading" background="transparent" speed="1" loop autoplay v-if="loadingNotifications"></lottie-player>
+                        <p class="notifications-empty" v-if="!loadingNotifications && !first && notifications.length == 0">Está vazio</p>
+                        <ul v-if="!loadingNotifications && !first && notifications.length > 0">
+                            <li v-for="notification in notifications" :class="notification.lido_em ? 'lida' : ''" :key="notification.id">
+                                <p>{{ notification.titulo }}</p>
+                                <div class="notification-informations">
+                                    <span>{{ notification.descricao }}</span>
+                                    <span>{{ formatDateFromNow(notification.criado_em) }}</span>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
                 <span class="material-icons">help</span>
             </div>
+            <div class="notifications-wrapper" v-if="toggleNotifications" v-on:click="handleToggleNotifications()"></div>
         </header>
         <div class="lateral-menu">
             <ul>
@@ -39,21 +53,72 @@
 <script>
 import $ from 'jquery';
 import { globalMethods } from '@/js/globalMethods';
+import api from "../configs/api";
+import loadingJson from "../assets/animations/loading-component.json";
+import moment from 'moment';
 
 export default {
     name: "headerComponent",
     mixins: [globalMethods],
     data() {
         return {
-            menuMovement: false
+            menuMovement: false,
+            toggleNotifications: false,
+            notifications: [],
+            loadingNotifications: false,
+            lastNotificationsCount: 0,
+            notificationsCount: 0,
+            first: true
         }
     },
     watch: {
         $route() {
             this.selectThisItem(window.location.pathname);
+        },
+        toggleNotifications: function () {
+            if (this.toggleNotifications) {
+                this.returnNotifications();
+            } else {
+                this.resetNotifications();
+            }
+        },
+        '$root.user': {
+            handler() {
+                this.lastNotificationsCount = this.$root.user.status.notifications;
+                this.notificationsCount = this.$root.user.status.notifications;
+            },
+            deep: true,
+            immediate: true
         }
     },
     methods: {
+        resetNotifications: function () {
+            this.notifications.forEach((item) => {
+                item.lido_em = moment().format("YYYY-MM-DD HH:mm:ss");
+            })
+
+            this.notificationsCount = 0;
+        },
+        returnNotifications: function () {
+            if ((this.lastNotificationsCount != this.$root.user.status.notifications) || this.first) {
+                this.loadingNotifications = true;
+                this.first = false;
+                this.lastNotificationsCount = this.$root.user.status.notifications;
+                this.notificationsCount = this.$root.user.status.notifications;
+
+                let self = this;
+
+                api.get("/users/notifications").then((response) => {
+                    self.notifications = response.data.returnObj;
+                    self.loadingNotifications = false;
+                })
+            } else {
+                this.resetNotifications();
+            }
+        },
+        handleToggleNotifications: function () {
+            this.toggleNotifications = !this.toggleNotifications;
+        },
         goToProfile: function () {
             this.toggleProfileMenu();
             this.$router.push("/home/profile");
@@ -146,6 +211,16 @@ export default {
         }
     },
     mounted: function () {
+        const player = document.getElementById("notifications-loading");
+
+        if (player) {
+            player.addEventListener("rendered", () => {
+                player.load(
+                    loadingJson
+                );
+            });
+        }
+
         let self = this;
 
         this.selectThisItem(window.location.pathname);
@@ -213,6 +288,7 @@ header {
     position: relative;
     cursor: pointer;
     margin-right: var(--space-4);
+    z-index: 3;
 }
 
     .notifications-container span:first-child, .right-content > span, .responsive-lateral-menu-toggle {
@@ -220,7 +296,7 @@ header {
         cursor: pointer;
     }
 
-    .notifications-container span:last-child {
+    .notifications-container .notifications-number {
         position: absolute;
         left: -3px;
         bottom: -3px;
@@ -232,6 +308,56 @@ header {
         align-items: center;
         justify-content: center;
     }
+
+.notifications {
+    position: absolute;
+    top: 150%;
+    right: 0;
+    box-shadow: var(--boxshadow-default);
+    background: var(--background-color);
+    color: var(--label-color);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--cor-destaque);
+    z-index: 3;
+    overflow-y: auto;
+    max-height: 400px;
+
+    & ul li {
+        padding: var(--space-4);
+        background: rgba(0, 0, 0, 0.3);
+
+        &.lida {
+            opacity: 0.7;
+        }
+
+        &:hover {
+            background: var(--cor-destaque);
+        }
+    }
+
+    & p {
+        font-size: var(--fontsize-sm);
+        color: var(--label-color);
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    & .notification-informations {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+
+        & span {
+            font-size: var(--fontsize-xs);
+            color: var(--label-color);
+            white-space: nowrap;
+
+            &:last-child {
+                font-weight: 600;
+            }
+        }
+    }
+}
 
 .lateral-menu {
     position: absolute;
@@ -278,7 +404,7 @@ header {
                 background: var(--cor-destaque);
             }
 
-.lateral-menu-wrapper {
+.lateral-menu-wrapper, .notifications-wrapper {
     position: fixed;
     top: 80px;
     left: 260px;
@@ -287,6 +413,14 @@ header {
     background: transparent;
     display: none;
     z-index: 2;
+}
+
+.notifications-wrapper {
+    display: block;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
 }
 
 .menu-item span {

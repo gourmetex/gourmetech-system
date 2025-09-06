@@ -635,13 +635,13 @@ label {
     margin: var(--space-3) 0;
 }
 
-.radio-group {
-    margin: var(--space-3) 0;
+.radio-group, .checkbox-group {
+    margin: var(--space-1) 0;
     display: flex;
     align-items: center;
 }
 
-    .radio-group input {
+    .radio-group input, .checkbox-group input {
         margin-right: var(--space-3);
     }
 

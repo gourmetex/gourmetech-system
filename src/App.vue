@@ -12,6 +12,11 @@ import { globalMethods } from '@/js/globalMethods';
 
 export default {
   name: 'App',
+  data() {
+    return {
+      userRoot: {}
+    }
+  },
   mixins: [globalMethods],
   mounted: function () {
     this.returnMenuOptions();

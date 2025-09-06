@@ -180,7 +180,12 @@ export const globalMethods = {
                 let self = this;
 
                 api.get("/users/return_user").then((response) => {
-                    self.$root.user = response.data.returnObj;
+                    self.$set(self.$root, 'user', response.data.returnObj);
+
+                    setTimeout(() => {
+                        self.requireUser();
+                    }, 30 * 1000);
+
                     resolve();
                 })
             })

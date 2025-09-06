@@ -13,6 +13,24 @@
                     <option value="1">Admin</option>
                 </select>
             </div>
+            <div class="form-group">
+                <label>Notificações</label>
+                <div
+                    class="checkbox-group"
+                    v-for="notification in role.notifications"
+                    :key="notification.id"
+                    >
+                    <input
+                        type="checkbox"
+                        :id="'notification-' + notification.id"
+                        :value="notification.id"
+                        v-model="notification.enabled"
+                    />
+                    <label :for="'notification-' + notification.id">
+                        {{ notification.nome }}
+                    </label>
+                </div>
+            </div>
             <input type="submit" id="submit-button" style="display: none;">
         </form>
     </div>
@@ -29,7 +47,8 @@ export default {
             role: {
                 id: 0,
                 role: "",
-                permission: ""
+                permission: "",
+                notifications: []
             },
             savingRole: false
         }
@@ -48,6 +67,7 @@ export default {
             }, {});
 
             data["id"] = self.roleid;
+            data["notifications"] = self.role.notifications.filter(notification => notification.enabled);
 
             let path = "create_role";
 

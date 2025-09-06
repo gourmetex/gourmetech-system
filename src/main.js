@@ -57,6 +57,9 @@ Vue.use(VueGoogleMaps, {
 });
 
 new Vue({
+  data: {
+    user: null
+  },
   router,
   render: h => h(App),
 }).$mount('#app')
