@@ -33,6 +33,8 @@ export const globalMethods = {
             this.modalButton2 = modalButton2;
             this.modalButton3 = modalButton3;
             this.showModal = true;
+
+            $(".inner-page-system").css("overflow-y", "hidden");
         },
         closeModalFunction: function () {
             this.closeModalContent();
@@ -49,6 +51,7 @@ export const globalMethods = {
 
                 this.reloadGrid = false;
                 this.descelectRows();
+                $(".inner-page-system").css("overflow-y", "auto");
             }, 400);
         },
         closeModalContent: function () {

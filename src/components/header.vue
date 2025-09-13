@@ -22,15 +22,35 @@
                     <div class="notifications" v-if="toggleNotifications">
                         <lottie-player id="notifications-loading" background="transparent" speed="1" loop autoplay v-if="loadingNotifications"></lottie-player>
                         <p class="notifications-empty" v-if="!loadingNotifications && !first && notifications.length == 0">Está vazio</p>
-                        <ul v-if="!loadingNotifications && !first && notifications.length > 0">
-                            <li v-for="notification in notifications" :class="notification.lido_em ? 'lida' : ''" :key="notification.id">
-                                <p>{{ notification.titulo }}</p>
-                                <div class="notification-informations">
-                                    <span>{{ notification.descricao }}</span>
-                                    <span>{{ formatDateFromNow(notification.criado_em) }}</span>
-                                </div>
-                            </li>
-                        </ul>
+                        <div class="notification-types">
+                            <div class="type" v-on:click="onlyUnseen = false" :class="{'selected-type': !onlyUnseen}"> <!-- v-on:click="notificationTypeFilter = type.tipo" :class="{'selected-type': notificationTypeFilter == type.tipo}" -->
+                                <span>Todas</span>
+                            </div>
+                            <div class="type" v-on:click="onlyUnseen = true" :class="{'selected-type': onlyUnseen}">
+                                <span>Não lidas</span>
+                            </div>
+                            <span class="material-icons type-filter-button" v-on:click="showNotificationTypes = !showNotificationTypes">more_vert</span>
+                            <div class="type-filter" v-if="showNotificationTypes">
+                                <ul>
+                                    <li v-for="(item, index) in notificationTypes" :class="{'selected-type': notificationTypeFilter == item.tipo}" :key="index" v-on:click="handleClickNotificationType(item.tipo)">
+                                        {{ item.tipo_nome }} {{ item.qtd > 0 ? `(${item.qtd})` : "" }}
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="type-filter-wrapper" v-if="showNotificationTypes" v-on:click="showNotificationTypes = !showNotificationTypes"></div>
+                        </div>
+                        <div class="notifications-inner" @scroll="checkScroll" ref="notificationsContainer">
+                            <ul v-if="!loadingNotifications && !first && filteredNotifications.length > 0">
+                                <li v-for="notification in filteredNotifications" :class="notification.lido_em ? 'lida' : ''" :key="notification.id">
+                                    <p>{{ notification.titulo }}</p>
+                                    <div class="notification-informations">
+                                        <span>{{ notification.descricao }}</span>
+                                        <span>{{ formatDateFromNow(notification.criado_em) }}</span>
+                                    </div>
+                                </li>
+                            </ul>
+                            <span v-else class="empty-notifications">Nenhuma notificação encontrada</span>
+                        </div>
                     </div>
                 </div>
                 <span class="material-icons">help</span>
@@ -68,7 +88,27 @@ export default {
             loadingNotifications: false,
             lastNotificationsCount: 0,
             notificationsCount: 0,
-            first: true
+            first: true,
+            notificationTypes: [],
+            notificationTypeFilter: "",
+            onlyUnseen: false,
+            showNotificationTypes: false,
+            limit: 15,
+            offset: 0,
+            hasMoreNotifications: true,
+            isFetching: false
+        }
+    },
+    computed: {
+        filteredNotifications: function () {
+            
+            let filtered = JSON.parse(JSON.stringify(this.notifications)).filter((notification) => {
+                return notification.tipo.indexOf(this.notificationTypeFilter) != -1 &&
+                        ((this.onlyUnseen && notification.lido_em == null) || 
+                        (!this.onlyUnseen && (notification.lido_em != null || notification.lido_em == null)))
+            });
+
+            return filtered;
         }
     },
     watch: {
@@ -92,6 +132,21 @@ export default {
         }
     },
     methods: {
+        checkScroll() {
+            const container = this.$refs.notificationsContainer;
+            if (container.scrollHeight - container.scrollTop <= container.clientHeight + 100) {
+                this.returnNotifications(true);
+            }
+        },
+        handleClickNotificationType: function (type) {
+            if (this.notificationTypeFilter == type) {
+                this.notificationTypeFilter = "";
+                return;
+            }
+
+            this.notificationTypeFilter = type;
+            this.showNotificationTypes = !this.showNotificationTypes;
+        },
         resetNotifications: function () {
             this.notifications.forEach((item) => {
                 item.lido_em = moment().format("YYYY-MM-DD HH:mm:ss");
@@ -99,25 +154,80 @@ export default {
 
             this.notificationsCount = 0;
         },
-        returnNotifications: function () {
-            if ((this.lastNotificationsCount != this.$root.user.status.notifications) || this.first) {
-                this.loadingNotifications = true;
-                this.first = false;
-                this.lastNotificationsCount = this.$root.user.status.notifications;
-                this.notificationsCount = this.$root.user.status.notifications;
-
-                let self = this;
-
-                api.get("/users/notifications").then((response) => {
-                    self.notifications = response.data.returnObj;
-                    self.loadingNotifications = false;
-                })
-            } else {
-                this.resetNotifications();
+        returnNotifications: function (loadMore = false) {
+            if (this.isFetching || (!this.hasMoreNotifications && loadMore)) {
+                return;
             }
+
+            let self = this;
+            let currentOffset = loadMore ? this.offset : 0;
+
+            this.isFetching = true;
+
+            this.loadingNotifications = true;
+            this.first = false;
+            this.lastNotificationsCount = this.$root.user.status.notifications;
+            this.notificationsCount = this.$root.user.status.notifications;
+
+            api.post("/users/get_notifications", { 
+                offset: currentOffset
+            }).then((response) => {
+                const newNotifications = response.data.returnObj;
+
+                if (loadMore) {
+                    self.notifications = [...self.notifications, ...newNotifications];
+                } else {
+                    self.notifications = newNotifications;
+                }
+
+                self.offset = self.notifications.length;
+                self.hasMoreNotifications = newNotifications.length === self.limit;
+
+                const uniqueTypesMap = self.notifications.reduce((map, notification) => {
+                    if (!map[notification.tipo]) {
+                        map[notification.tipo] = {
+                            tipo_nome: notification.tipo_nome,
+                            tipo: notification.tipo,
+                            qtd: 0 
+                        };
+                    }
+
+                    if (!notification.lido_em) {
+                        map[notification.tipo].qtd++;
+                    }
+
+                    return map;
+                }, {});
+
+                let notificationTypesArray = Object.values(uniqueTypesMap);
+
+                const orderMap = {
+                    venda: 0,
+                    cliente: 1,
+                    produto: 2,
+                    entrega: 3,
+                    reserva: 4,
+                    estoque_inserir: 5,
+                    estoque_remover: 6
+                };
+
+                notificationTypesArray.sort((a, b) => {
+                    const aIndex = orderMap[a.tipo] ?? Infinity;
+                    const bIndex = orderMap[b.tipo] ?? Infinity;
+                    return aIndex - bIndex;
+                });
+
+                self.notificationTypes = notificationTypesArray;
+                self.loadingNotifications = false;
+                self.isFetching = false;
+            })
         },
         handleToggleNotifications: function () {
             this.toggleNotifications = !this.toggleNotifications;
+            
+            if (this.toggleNotifications) {
+                this.resetNotifications();
+            }
         },
         goToProfile: function () {
             this.toggleProfileMenu();
@@ -319,19 +429,27 @@ header {
     border-radius: var(--radius-md);
     border: 1px solid var(--cor-destaque);
     z-index: 3;
-    overflow-y: auto;
-    max-height: 400px;
+    overflow: hidden;
+    width: 350px;
+    height: 90dvh;
+    display: flex;
+    flex-direction: column;
 
-    & ul li {
-        padding: var(--space-4);
-        background: rgba(0, 0, 0, 0.3);
+    & ul {
+        width: 100%;
+        list-style: none;
 
-        &.lida {
-            opacity: 0.7;
-        }
+        & li {
+            padding: var(--space-4);
+            background: rgba(0, 0, 0, 0.3);
 
-        &:hover {
-            background: var(--cor-destaque);
+            &.lida {
+                opacity: 0.7;
+            }
+
+            &:hover {
+                background: var(--cor-destaque);
+            }
         }
     }
 
@@ -357,6 +475,14 @@ header {
             }
         }
     }
+}
+
+.notifications-inner {
+    flex-grow: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .lateral-menu {
@@ -474,6 +600,77 @@ header {
     top: 0;
     left: 0;
     display: none;
+}
+
+.notification-types {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    padding: var(--space-3);
+    gap: var(--space-3);
+    position: sticky;
+    top: 0;
+    left: 0;
+    background: var(--background-color);
+    position: relative;
+}
+
+.type-filter-button {
+    position: absolute;
+    right: var(--space-3);
+    top: 16px;
+}
+
+.type-filter {
+    position: absolute;
+    right: var(--space-3);
+    top: 46px;
+    z-index: 3;
+    max-height: 80dvh;    
+    border-radius: var(--radius-md);
+    overflow-y: auto;
+
+    & li {
+        background: white !important;
+        color: var(--black) !important; 
+
+        &:hover, &.selected-type {
+            background: rgb(204, 204, 204) !important;
+        }
+    }
+}
+
+.type-filter-wrapper {
+    position: fixed;
+    z-index: 2;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+}
+
+    .type {
+        padding: var(--space-3);
+        border-radius: var(--radius-md);
+    }
+
+    .type.selected-type {
+        background: var(--cor-destaque);
+    }
+
+        .type span {
+            font-size: var(--fontsize-sm) !important;
+        }
+
+        .type.selected-type span {
+            font-weight: bold;
+        }
+
+.empty-notifications {
+    text-align: center;
+    font-size: var(--fontsize-sm) !important;
+    margin-top: var(--space-6);
 }
 
 @media (max-width: 768px) {
