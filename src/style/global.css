@@ -645,6 +645,23 @@ label {
         margin-right: var(--space-3);
     }
 
+.dual-input {
+    display: grid;
+    grid-template-columns: 79% 18.5%;
+    gap: var(--space-5);
+
+    & input {
+        min-width: initial !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .dual-input {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+}
+
 .form-horizontal, .form-group-horizontal {
     display: flex;
     align-items: center;
