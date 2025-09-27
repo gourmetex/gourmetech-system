@@ -2,34 +2,33 @@
     <div class="reservations-component">
         <div class="page-title">
             <h1>Reservas</h1>
-        </div> 
-        <actionButtons add_text="ADICIONAR RESERVA" exclude_text="EXCLUIR RESERVA" edit_text="EDITAR RESERVA" :disabledbuttons="disabledButtons" @add="createReservation()" @exclude="deleteReservation()" @edit="editReservation()" />
+        </div>
+        <actionButtons add_text="ADICIONAR RESERVA" exclude_text="EXCLUIR RESERVA" edit_text="EDITAR RESERVA"
+            :disabledbuttons="disabledButtons" @add="createReservation()" @exclude="deleteReservation()"
+            @edit="editReservation()" />
         <div class="reservations-container">
-            <dataTable :dataTable="reservationsList" :rowsPerPage="7" searchText="item" :loaded="contentLoaded">
-                <template slot="column-id" slot-scope="props">
-                    <p class="clicable text-center" v-on:click="selectRow($event)">{{ props.item.id }}</p>
-                </template>
-                <template slot="column-nome" slot-scope="props">
-                    <p>{{ props.item.nome }}</p>
-                </template>
-                <template slot="column-data-e-hora" slot-scope="props">
-                    <p>{{ props.item.data_reserva }}</p>
-                </template>
-                <template slot="column-quantidade-de-pessoas" slot-scope="props">
-                    <p class="text-center">{{ props.item.quantidade_pessoas }}</p>
-                </template>
-                <template slot="column-status" slot-scope="props">
-                    <p>{{ props.item.status }}</p>
-                </template>
-                <template slot="column-tipo" slot-scope="props">
-                    <button class="btn btn-primary rounded-btn small" v-on:click="openReservations(props.item.id)" title="Abrir mesa">
-                        <span class="material-icons" style="color: var(--white); font-size: var(--fontsize-sm);">open_in_new</span>
+            <dataTable :dataobj="reservationsList" rowsperpage="7" searchText="item" :loaded="contentLoaded">
+                <grid-column prop="id" label="ID" align="center" v-slot="props">
+                    <p class="clicable text-center" @click="selectRow($event)">{{ props.item.id }}</p>
+                </grid-column>
+                <grid-column prop="nome" label="Nome"></grid-column>
+                <grid-column prop="data_reserva" label="Data e Hora"></grid-column>
+                <grid-column prop="quantidade_pessoas" label="Qtd. Pessoas" align="center"></grid-column>
+                <grid-column prop="status" label="Status"></grid-column>
+                <grid-column prop="tipo" label="Ações" align="center" v-slot="props">
+                    <button class="btn btn-primary rounded-btn small" @click="openReservations(props.item.id)"
+                        title="Abrir mesa">
+                        <span class="material-icons"
+                            style="color: var(--white); font-size: var(--fontsize-sm);">open_in_new</span>
                     </button>
-                </template>
+                </grid-column>
             </dataTable>
         </div>
-        <modal v-if="showModal" :modaltitle="modalTitle" :modalbutton1="modalButton1" :excludepath="'/reservations/' + editId" :modalbutton2="modalButton2" :modalButton3="modalButton3" @closeModal="closeModalFunction(); returnReservations();">
-            <editReservationModalContent v-if="showEditReservationModalContent" :reservationid="editId" @savedContent="closeModalFunction(); returnReservations();"></editReservationModalContent>
+        <modal v-if="showModal" :modaltitle="modalTitle" :modalbutton1="modalButton1"
+            :excludepath="'/reservations/' + editId" :modalbutton2="modalButton2" :modalButton3="modalButton3"
+            @closeModal="closeModalFunction(); returnReservations();">
+            <editReservationModalContent v-if="showEditReservationModalContent" :reservationid="editId"
+                @savedContent="closeModalFunction(); returnReservations();"></editReservationModalContent>
         </modal>
     </div>
 </template>
@@ -60,7 +59,7 @@ export default {
         },
         resetModalContents: function () {
             this.showEditReservationModalContent = false;
-        }, 
+        },
         createReservation: function () {
             this.resetModalContents();
             this.showModalFunction("Adicionar reserva", "Adicionar", "Cancelar");
@@ -99,5 +98,4 @@ export default {
     }
 }
 </script>
-<style scoped>
-</style>
+<style scoped></style>

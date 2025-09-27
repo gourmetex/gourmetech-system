@@ -2,6 +2,9 @@ import Vue from 'vue';
 import router from '../src/routes/router.js';
 import App from './App.vue';
 import * as VueGoogleMaps from 'vue2-google-maps';
+import { GridColumn } from './components/dataTable.vue'; 
+
+Vue.component('grid-column', GridColumn);
 
 // This callback runs before every route change, including on page load.
 router.beforeEach((to, from, next) => {

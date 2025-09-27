@@ -2,8 +2,10 @@
     <div class="financial-component">
         <div class="page-title">
             <h1>Financeiro</h1>
-        </div>  
-        <actionButtons add_text="LANÇAR CONTA A RECEBER" exclude_text="EXCLUIR CONTA" edit_text="LANÇAR CONTA A PAGAR" :disabledbuttons="disabledButtons" add_icon="attach_money" edit_icon="money_off" @add="addAccountReceivable()" @exclude="deleteDebt()" @edit="addPayableAccount()" />
+        </div>
+        <actionButtons add_text="LANÇAR CONTA A RECEBER" exclude_text="EXCLUIR CONTA" edit_text="LANÇAR CONTA A PAGAR"
+            :disabledbuttons="disabledButtons" add_icon="attach_money" edit_icon="money_off"
+            @add="addAccountReceivable()" @exclude="deleteDebt()" @edit="addPayableAccount()" />
         <div class="financial-container">
             <div class="filter-container-header">
                 <h2>Contas</h2>
@@ -13,7 +15,8 @@
                             <label for="categoria_conta">Categoria</label>
                             <select id="categoria_conta" name="categoria_conta">
                                 <option value="">* Qualquer *</option>
-                                <option v-for="(category, index) in debt_categories" :key="index" :value="category.id">{{ category.nome }}</option>
+                                <option v-for="(category, index) in debt_categories" :key="index" :value="category.id">
+                                    {{ category.nome }}</option>
                             </select>
                         </div>
                         <div class="filter-field">
@@ -36,39 +39,33 @@
                     </form>
                 </div>
             </div>
-            <dataTable :dataTable="debts" :rowsPerPage="7" searchText="" :loaded="contentLoaded">
-                <template slot="column-id" slot-scope="props">
-                    <p class="clicable text-center" v-on:click="selectRow($event)">{{ props.item.id }}</p>
-                </template>
-                <template slot="column-discriminacao" slot-scope="props">
-                    <p>{{ props.item.discriminacao }}</p>
-                </template>
-                <template slot="column-valor" slot-scope="props">
-                    <p>{{ props.item.valor }}</p>
-                </template>
-                <template slot="column-categoria" slot-scope="props">
-                    <newBadge class="text-center" :background="props.item.cor" :text="props.item.nome" />
-                </template>
-                <template slot="column-tipo" slot-scope="props">
-                    <p>{{ props.item.tipo }}</p>
-                </template>
-                <template slot="column-data" slot-scope="props">
-                    <p class="text-center">{{ props.item.data_lancamento }}</p>
-                </template>
-                <template slot="column-data-de-vencimento" slot-scope="props">
-                    <p class="text-center">{{ props.item.data_vencimento }}</p>
-                </template>
-                <template slot="column-data-de-pagamento" slot-scope="props">
-                    <p class="text-center">{{ props.item.data_pagamento }}</p>
-                </template>
-                <template slot="column-status" slot-scope="props">
-                    <newBadge class="text-center" :background="props.item.status == 'pendente' ? 'var(--yellow)' : props.item.status == 'pago' ? 'var(--green)' : 'var(--red)'" :text="capitalize(props.item.status)" />
-                </template>
+            <dataTable :dataobj="debts" rowsperpage="7" searchText="" :loaded="contentLoaded">
+                <grid-column prop="id" label="ID" align="center" v-slot="props">
+                    <p class="clicable text-center" @click="selectRow($event)">{{ props.item.id }}</p>
+                </grid-column>
+                <grid-column prop="discriminacao" label="Discriminação"></grid-column>
+                <grid-column prop="valor" label="Valor"></grid-column>
+                <grid-column prop="categoria" label="Categoria" align="center" v-slot="props">
+                    <newBadge :background="props.item.cor" :text="props.item.nome" class="text-center" />
+                </grid-column>
+                <grid-column prop="tipo" label="Tipo"></grid-column>
+                <grid-column prop="data_lancamento" label="Data" align="center"></grid-column>
+                <grid-column prop="data_vencimento" label="Data de Vencimento" align="center"></grid-column>
+                <grid-column prop="data_pagamento" label="Data de Pagamento" align="center"></grid-column>
+                <grid-column prop="status" label="Status" align="center" v-slot="props">
+                    <newBadge
+                        :background="props.item.status == 'pendente' ? 'var(--yellow)' : props.item.status == 'pago' ? 'var(--green)' : 'var(--red)'"
+                        :text="capitalize(props.item.status)" class="text-center" />
+                </grid-column>
             </dataTable>
         </div>
-        <modal v-if="showModal" :modaltitle="modalTitle" :excludepath="'/financial/' + editId" :modalbutton1="modalButton1" :modalbutton2="modalButton2" :modalbutton3="modalButton3" @closeModal="closeModalFunction(); returnFinancial();">
-            <postAccountReceivableModalContent v-if="showPostAccountReceivableModalContent" @savedContent="closeModalFunction(); returnFinancial();"></postAccountReceivableModalContent>
-            <postPayableAccountModalContent v-if="showPostPayableAccountModalContent" @savedContent="closeModalFunction(); returnFinancial();"></postPayableAccountModalContent>
+        <modal v-if="showModal" :modaltitle="modalTitle" :excludepath="'/financial/' + editId"
+            :modalbutton1="modalButton1" :modalbutton2="modalButton2" :modalbutton3="modalButton3"
+            @closeModal="closeModalFunction(); returnFinancial();">
+            <postAccountReceivableModalContent v-if="showPostAccountReceivableModalContent"
+                @savedContent="closeModalFunction(); returnFinancial();"></postAccountReceivableModalContent>
+            <postPayableAccountModalContent v-if="showPostPayableAccountModalContent"
+                @savedContent="closeModalFunction(); returnFinancial();"></postPayableAccountModalContent>
         </modal>
     </div>
 </template>
@@ -114,7 +111,7 @@ export default {
                 } else {
                     obj[item.name] = parseInt(item.value);
                 }
-                
+
                 return obj;
             }, {});
             this.filters = data;
@@ -123,7 +120,7 @@ export default {
         resetModalContents: function () {
             this.showPostAccountReceivableModalContent = false;
             this.showPostPayableAccountModalContent = false;
-        },  
+        },
         addAccountReceivable: function () {
             this.resetModalContents();
             this.showModalFunction("Lançar conta a receber", "Lançar", "Cancelar");
@@ -139,7 +136,7 @@ export default {
             this.showModalFunction("Lançar conta a pagar", "Lançar", "Cancelar");
             this.showPostPayableAccountModalContent = true;
             this.descelectRows();
-        }, 
+        },
         returnFinancial: function () {
             let self = this;
 
@@ -181,5 +178,4 @@ export default {
     }
 }
 </script>
-<style scoped>
-</style>
+<style scoped></style>

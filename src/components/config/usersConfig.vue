@@ -20,16 +20,12 @@
                 <button type="submit" class="btn btn-primary">Buscar</button>
             </form>
         </div>
-        <dataTable :dataTable="users" :rowsPerPage="7" searchText="" :loaded="contentLoaded">
-            <template slot="column-id" slot-scope="props">
-                <p class="clicable text-center" v-on:click="selectRow($event)">{{ props.item.id }}</p>
-            </template>
-            <template slot="column-nome" slot-scope="props">
-                <p>{{ props.item.nome }}</p>
-            </template>
-            <template slot="column-cargo" slot-scope="props">
-                <p>{{ props.item.cargo }}</p>
-            </template>
+        <dataTable :dataobj="users" rowsperpage="7" searchText="" :loaded="contentLoaded">
+            <grid-column prop="id" label="ID" align="center" v-slot="props">
+                <p class="clicable text-center" @click="selectRow($event)">{{ props.item.id }}</p>
+            </grid-column>
+            <grid-column prop="nome" label="Nome"></grid-column>
+            <grid-column prop="cargo" label="Cargo"></grid-column>
         </dataTable>
         <div class="edit-buttons">
             <button type="button" class="rounded-btn btn-primary" v-on:click="createNewUser()">
@@ -44,8 +40,11 @@
                 </button>
             </div>
         </div>
-        <modal v-if="showModal" :modaltitle="modalTitle" :modalbutton1="modalButton1" :excludepath="'/users/' + editId" :modalbutton2="modalButton2" :modalbutton3="modalButton3" @closeModal="closeModalFunction(); returnAllUsers();">
-            <editUsersModalContent v-if="showEditUsersModalContent" :userid="editId" :companyroles="roles" @savedContent="closeModalFunction(); returnAllUsers();"></editUsersModalContent>
+        <modal v-if="showModal" :modaltitle="modalTitle" :modalbutton1="modalButton1" :excludepath="'/users/' + editId"
+            :modalbutton2="modalButton2" :modalbutton3="modalButton3"
+            @closeModal="closeModalFunction(); returnAllUsers();">
+            <editUsersModalContent v-if="showEditUsersModalContent" :userid="editId" :companyroles="roles"
+                @savedContent="closeModalFunction(); returnAllUsers();"></editUsersModalContent>
         </modal>
     </div>
 </template>
@@ -130,5 +129,4 @@ export default {
     }
 }
 </script>
-<style scoped>
-</style>
+<style scoped></style>

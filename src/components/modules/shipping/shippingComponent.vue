@@ -2,34 +2,35 @@
     <div class="shipping-component">
         <div class="page-title">
             <h1>Entregas</h1>
-        </div> 
-        <actionButtons add_text="FINALIZAR ENTREGA" exclude_text="CANCELAR ENTREGA" :disabledbuttons="disabledButtons" @add="finishShipping()" @exclude="cancelShipping()" />
+        </div>
+        <actionButtons add_text="FINALIZAR ENTREGA" exclude_text="CANCELAR ENTREGA" :disabledbuttons="disabledButtons"
+            @add="finishShipping()" @exclude="cancelShipping()" />
         <div class="dishes-container">
             <div class="filter-container-header">
                 <h2>Lista de entregas</h2>
             </div>
-            <dataTable :dataTable="shippings" :rowsPerPage="7" searchText="entrega" :loaded="contentLoaded">
-                <template slot="column-id" slot-scope="props">
-                    <p class="clicable text-center" v-on:click="selectRow($event)">{{ props.item.id }}</p>
-                </template>
-                <template slot="column-nº-comanda" slot-scope="props">
-                    <p>{{ props.item.comanda }}</p>
-                </template>
-                <template slot="column-cliente" slot-scope="props">
-                    <p>{{ props.item.nome_cliente }}</p>
-                </template>
-                <template slot="column-data-criação" slot-scope="props">
+            <dataTable :dataobj="shippings" rowsperpage="7" searchText="entrega" :loaded="contentLoaded">
+                <grid-column prop="id" label="ID" align="center" v-slot="props">
+                    <p class="clicable text-center" @click="selectRow($event)">{{ props.item.id }}</p>
+                </grid-column>
+                <grid-column prop="comanda" label="Nº Comanda"></grid-column>
+                <grid-column prop="nome_cliente" label="Cliente"></grid-column>
+                <grid-column prop="data_criacao" label="Data Criação" v-slot="props">
                     <p>{{ formatDateFromNow(props.item.data_criacao) }}</p>
-                </template>
-                <template slot="column-valor-total" slot-scope="props">
+                </grid-column>
+                <grid-column prop="valor_total" label="Valor Total" v-slot="props">
                     <p>{{ formatCurrency(props.item.valor_total) }}</p>
-                </template>
-                <template slot="column-status" slot-scope="props">
-                    <newBadge class="text-center" :background="props.item.status == 'pendente' ? 'var(--yellow)' : props.item.status == 'cancelado' ? 'var(--red)' : 'var(--green)'" :text="capitalize(props.item.status)" />
-                </template>
+                </grid-column>
+                <grid-column prop="status" label="Status" align="center" v-slot="props">
+                    <newBadge
+                        :background="props.item.status == 'pendente' ? 'var(--yellow)' : props.item.status == 'cancelado' ? 'var(--red)' : 'var(--green)'"
+                        :text="capitalize(props.item.status)" class="text-center" />
+                </grid-column>
             </dataTable>
         </div>
-        <modal v-if="showModal" :modaltitle="modalTitle" :modalbutton1="modalButton1" :confirm="true" @confirmCallback="confirmCallback()" :confirmtext="confirmText" :modalbutton2="modalButton2" :modalButton3="modalButton3" @closeModal="closeModalFunction(); returnShippings();"></modal>
+        <modal v-if="showModal" :modaltitle="modalTitle" :modalbutton1="modalButton1" :confirm="true"
+            @confirmCallback="confirmCallback()" :confirmtext="confirmText" :modalbutton2="modalButton2"
+            :modalButton3="modalButton3" @closeModal="closeModalFunction(); returnShippings();"></modal>
     </div>
 </template>
 <script>
@@ -48,7 +49,7 @@ export default {
             shippings: [],
             gridOptions: [],
             confirmText: "",
-            confirmCallback: () => {}
+            confirmCallback: () => { }
         }
     },
     methods: {
@@ -98,5 +99,4 @@ export default {
     }
 }
 </script>
-<style scoped>
-</style>
+<style scoped></style>

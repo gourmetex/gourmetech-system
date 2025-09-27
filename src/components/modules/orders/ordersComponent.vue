@@ -8,25 +8,17 @@
             <div class="filter-container-header">
                 <h2>Lista de pedidos</h2>
             </div>
-            <dataTable :dataTable="orders" :rowsPerPage="7" searchText="pedido" :loaded="contentLoaded">
-                <template slot="column-nº-comanda" slot-scope="props">
-                    <p class="clicable text-center" v-on:click="selectRow($event)">{{ props.item.comanda }}</p>
-                </template>
-                <template slot="column-cliente" slot-scope="props">
-                    <p>{{ props.item.cliente }}</p>
-                </template>
-                <template slot="column-delivery" slot-scope="props" v-if="checkModulePermission('shipping')">
-                    <p>{{ props.item.delivery == 1 ? "Sim" : "Não" }}</p>
-                </template>
-                <template slot="column-valor-parcial" slot-scope="props">
-                    <p>{{ props.item.valor_parcial }}</p>
-                </template>
-                <template slot="column-valor-final" slot-scope="props">
-                    <p>{{ props.item.valor_final }}</p>
-                </template>
-                <template slot="column-status-do-pedido" slot-scope="props">
-                    <p>{{ props.item.status }}</p>
-                </template>
+            <dataTable :dataobj="orders" rowsperpage="7" searchText="pedido" :loaded="contentLoaded">
+                <grid-column prop="comanda" label="Nº Comanda" align="center" v-slot="props"> 
+                    <p class="clicable" v-on:click="selectRow($event)">{{ props.item.comanda }}</p>
+                </grid-column>
+                <grid-column prop="cliente" label="Cliente"></grid-column>
+                <grid-column prop="delivery" label="Delivery" v-slot="props" v-if="checkModulePermission('shipping')"> 
+                    {{ props.item.delivery == 1 ? "Sim" : "Não" }}
+                </grid-column>
+                <grid-column prop="valor_parcial" label="Valor Parcial"></grid-column>
+                <grid-column prop="valor_final" label="Valor Final"></grid-column>
+                <grid-column prop="status" label="Status do pedido"></grid-column>
             </dataTable>
         </div>
         <modal v-if="showModal" :modaltitle="modalTitle" :modalbutton1="modalButton1" :excludepath="'/orders/' + editId" :modalbutton2="modalButton2" :modalButton3="modalButton3" @closeModal="closeModalFunction(); returnOrders();">
@@ -78,7 +70,7 @@ export default {
 
             api.get("/orders").then((response) => {
                 self.orders = response.data.returnObj;
-                self.contentLoaded = true;
+                //self.contentLoaded = true;
                 self.editId = null;
             }).catch((error) => {
                 console.log(error);

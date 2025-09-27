@@ -6,25 +6,20 @@
                     <label for="categoria">Categoria</label>
                     <select id="categoria" name="categoria">
                         <option value="">* Selecione *</option>
-                        <option v-for="(category, index) in ingredients_categories" :key="index" :value="category.id">{{ category.nome }}</option>
+                        <option v-for="(category, index) in ingredients_categories" :key="index" :value="category.id">{{
+                            category.nome }}</option>
                     </select>
                 </div>
                 <button type="submit" class="btn btn-primary">Buscar</button>
             </form>
         </div>
-        <dataTable :dataTable="ingredients" :rowsPerPage="7" searchText="" :loaded="contentLoaded">
-            <template slot="column-id" slot-scope="props">
-                <p class="clicable text-center" v-on:click="selectRow($event)">{{ props.item.id }}</p>
-            </template>
-            <template slot="column-nome" slot-scope="props">
-                <p>{{ props.item.nome }}</p>
-            </template>
-            <template slot="column-categoria" slot-scope="props">
-                <p>{{ props.item.categoria }}</p>
-            </template>
-            <template slot="column-unidade-de-medida" slot-scope="props">
-                <p>{{ props.item.unidade_medida }}</p>
-            </template>
+        <dataTable :dataobj="ingredients" rowsperpage="7" searchText="">
+            <grid-column prop="id" label="ID" align="center" v-slot="props">
+                <p class="clicable text-center" @click="selectRow($event)">{{ props.item.id }}</p>
+            </grid-column>
+            <grid-column prop="nome" label="Nome"></grid-column>
+            <grid-column prop="categoria" label="Categoria"></grid-column>
+            <grid-column prop="unidade_medida" label="Unidade de Medida"></grid-column>
         </dataTable>
         <div class="edit-buttons">
             <button type="button" class="rounded-btn btn-primary" v-on:click="createNewIngredient()">
@@ -39,8 +34,11 @@
                 </button>
             </div>
         </div>
-        <modal v-if="showModal" :modaltitle="modalTitle" :modalbutton1="modalButton1" :excludepath="'/products/ingredients/' + editId" :modalbutton2="modalButton2" :modalbutton3="modalButton3" @closeModal="closeModalFunction(); returnAllIngredients();">
-            <editIngredientModalContent v-if="showEditIngredientModalContent" :ingredientid="editId" @savedContent="closeModalFunction(); returnAllIngredients();"></editIngredientModalContent>
+        <modal v-if="showModal" :modaltitle="modalTitle" :modalbutton1="modalButton1"
+            :excludepath="'/products/ingredients/' + editId" :modalbutton2="modalButton2" :modalbutton3="modalButton3"
+            @closeModal="closeModalFunction(); returnAllIngredients();">
+            <editIngredientModalContent v-if="showEditIngredientModalContent" :ingredientid="editId"
+                @savedContent="closeModalFunction(); returnAllIngredients();"></editIngredientModalContent>
         </modal>
     </div>
 </template>
@@ -94,7 +92,7 @@ export default {
             }).catch((error) => {
                 console.log(error);
             })
-        },  
+        },
         returnAllIngredients: function () {
             let self = this;
 
@@ -123,5 +121,4 @@ export default {
     }
 }
 </script>
-<style scoped>
-</style>
+<style scoped></style>

@@ -1,15 +1,13 @@
 <template>
     <div class="financial">
-        <dataTable :dataTable="debtCategories" :rowsPerPage="7" searchText="item" :loaded="contentLoaded">
-            <template slot="column-id" slot-scope="props">
-                <p class="clicable text-center" v-on:click="selectRow($event)">{{ props.item.id }}</p>
-            </template>
-            <template slot="column-nome" slot-scope="props">
-                <p>{{ props.item.nome }}</p>
-            </template>
-            <template slot="column-tipo" slot-scope="props">
+        <dataTable :dataobj="debtCategories" rowsperpage="7" searchText="item">
+            <grid-column prop="id" label="ID" align="center" v-slot="props">
+                <p class="clicable text-center" @click="selectRow($event)">{{ props.item.id }}</p>
+            </grid-column>
+            <grid-column prop="nome" label="Nome"></grid-column>
+            <grid-column prop="tipo" label="Tipo" align="center" v-slot="props">
                 <newBadge class="text-center" :background="props.item.cor" :text="props.item.tipo_conta" />
-            </template>
+            </grid-column>
         </dataTable>
         <div class="edit-buttons">
             <button type="button" class="rounded-btn btn-primary" v-on:click="createNewDebtCategory()">
@@ -24,8 +22,11 @@
                 </button>
             </div>
         </div>
-        <modal v-if="showModal" :modaltitle="modalTitle" :modalbutton1="modalButton1" :excludepath="'/financial/debt_categories/' + editId" :modalbutton2="modalButton2" :modalbutton3="modalButton3" @closeModal="closeModalFunction(); returnDebtCategories();">
-            <editDebtCategoryModalContent v-if="showEditDebtCategoryModalContent" :debtid="editId" @savedContent="closeModalFunction(); returnDebtCategories();"></editDebtCategoryModalContent>
+        <modal v-if="showModal" :modaltitle="modalTitle" :modalbutton1="modalButton1"
+            :excludepath="'/financial/debt_categories/' + editId" :modalbutton2="modalButton2"
+            :modalbutton3="modalButton3" @closeModal="closeModalFunction(); returnDebtCategories();">
+            <editDebtCategoryModalContent v-if="showEditDebtCategoryModalContent" :debtid="editId"
+                @savedContent="closeModalFunction(); returnDebtCategories();"></editDebtCategoryModalContent>
         </modal>
     </div>
 </template>
@@ -84,5 +85,4 @@ export default {
     }
 }
 </script>
-<style scoped>
-</style>
+<style scoped></style>

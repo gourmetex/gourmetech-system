@@ -2,38 +2,38 @@
     <div class="dishes-component">
         <div class="page-title">
             <h1>Produtos</h1>
-        </div>  
-        <actionButtons add_text="CRIAR PRODUTO" exclude_text="EXCLUIR PRODUTO" edit_text="EDITAR PRODUTO" :disabledbuttons="disabledButtons" @add="addDish()" @exclude="excludeDish()" @edit="editDish()" />
+        </div>
+        <actionButtons add_text="CRIAR PRODUTO" exclude_text="EXCLUIR PRODUTO" edit_text="EDITAR PRODUTO"
+            :disabledbuttons="disabledButtons" @add="addDish()" @exclude="excludeDish()" @edit="editDish()" />
         <div class="dishes-container">
             <div class="filter-container-header">
                 <h2>Lista de produtos</h2>
             </div>
-            <dataTable :dataTable="dishes" :rowsPerPage="7" searchText="produto" :loaded="contentLoaded">
-                <template slot="column-id" slot-scope="props">
-                    <p class="clicable text-center" v-on:click="selectRow($event)">{{ props.item.id }}</p>
-                </template>
-                <template slot="column-nome" slot-scope="props">
-                    <p>{{ props.item.nome }}</p>
-                </template>
-                <template slot="column-imagem" slot-scope="props">
+            <dataTable :dataobj="dishes" rowsperpage="7" searchText="produto" :loaded="contentLoaded">
+                <grid-column prop="id" label="ID" align="center" v-slot="props">
+                    <p class="clicable text-center" @click="selectRow($event)">{{ props.item.id }}</p>
+                </grid-column>
+                <grid-column prop="nome" label="Nome"></grid-column>
+                <grid-column prop="imagem" label="Imagem" align="center" v-slot="props">
                     <img :src="props.item.imagem">
-                </template>
-                <template slot="column-descrição" slot-scope="props">
+                </grid-column>
+                <grid-column prop="descricao" label="Descrição" v-slot="props">
                     <p class="ellipsis" :title="props.item.descricao">{{ props.item.descricao }}</p>
-                </template>
-                <template slot="column-preço" slot-scope="props">
-                    <p>{{ props.item.preco }}</p>
-                </template>
-                <template slot="column-categoria" slot-scope="props">
-                    <newBadge class="text-center" :background="props.item.cor" :text="props.item.nome_categoria" />
-                </template>
-                <template slot="column-disponível" slot-scope="props">
+                </grid-column>
+                <grid-column prop="preco" label="Preço"></grid-column>
+                <grid-column prop="categoria" label="Categoria" align="center" v-slot="props">
+                    <newBadge :background="props.item.cor" :text="props.item.nome_categoria" class="text-center" />
+                </grid-column>
+                <grid-column prop="disponivel" label="Disponível" align="center" v-slot="props">
                     <p class="text-center">{{ props.item.disponivel == 1 ? "Sim" : "Não" }}</p>
-                </template>                
+                </grid-column>
             </dataTable>
         </div>
-        <modal v-if="showModal" :modaltitle="modalTitle" :modalbutton1="modalButton1" :excludepath="'/products/' + editId" :modalbutton2="modalButton2" :modalbutton3="modalButton3" @closeModal="closeModalFunction(); returnDishes();">
-            <editProductModalContent v-if="showEditDishModalContent" :dishid="editId" @savedContent="closeModalFunction(); returnDishes();"></editProductModalContent>
+        <modal v-if="showModal" :modaltitle="modalTitle" :modalbutton1="modalButton1"
+            :excludepath="'/products/' + editId" :modalbutton2="modalButton2" :modalbutton3="modalButton3"
+            @closeModal="closeModalFunction(); returnDishes();">
+            <editProductModalContent v-if="showEditDishModalContent" :dishid="editId"
+                @savedContent="closeModalFunction(); returnDishes();"></editProductModalContent>
         </modal>
     </div>
 </template>
@@ -59,7 +59,7 @@ export default {
     methods: {
         resetModalContents: function () {
             this.showEditDishModalContent = false;
-        },  
+        },
         addDish: function () {
             this.resetModalContents();
             this.showModalFunction("Criar produto", "Criar", "Cancelar");
@@ -69,7 +69,7 @@ export default {
         excludeDish: function () {
             this.resetModalContents();
             this.showModalFunction("Excluir produto", "Remover", "Cancelar");
-        }, 
+        },
         editDish: function () {
             this.resetModalContents();
 
@@ -102,5 +102,4 @@ export default {
     }
 }
 </script>
-<style scoped>
-</style>
+<style scoped></style>

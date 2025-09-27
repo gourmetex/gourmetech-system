@@ -9,7 +9,8 @@
                 </div>
                 <div class="form-group" :style="checkModulePermission('digital_menu') ? '' : 'width: 100%'">
                     <label for="id_cliente">Nome do cliente</label>
-                    <ajaxAutoComplete @select="setCustomer($event)" ajaxtype="clientes" :entityid="order.id_cliente" :entityname="order.nome_cliente" :required="true" />
+                    <ajaxAutoComplete @select="setCustomer($event)" ajaxtype="clientes" :entityid="order.id_cliente"
+                        :entityname="order.nome_cliente" :required="true" />
                 </div>
             </div>
             <input type="submit" id="submit-button" style="display: none;">
@@ -17,25 +18,15 @@
         <div class="order-dishes-container">
             <h3>Itens do pedido</h3>
             <div class="modal-edit-grid">
-                <dataTable :dataTable="order.dishes" :rowsPerPage="2" searchText="" :loaded="contentLoaded">
-                    <template slot="column-cód-do-item" slot-scope="props">
-                        <p class="clicable text-center" v-on:click="selectRow($event)">{{ props.item.id }}</p>
-                    </template>
-                    <template slot="column-nome-do-item" slot-scope="props">
-                        <p>{{ props.item.nome }}</p>
-                    </template>
-                    <template slot="column-qtd" slot-scope="props">
-                        <p class="text-center">{{ props.item.quantidade }}</p>
-                    </template>
-                    <template slot="column-obs" slot-scope="props">
-                        <p>{{ props.item.observacoes }}</p>
-                    </template>
-                    <template slot="column-valor-do-item" slot-scope="props">
-                        <p>{{ props.item.preco }}</p>
-                    </template>
-                    <template slot="column-status" slot-scope="props">
-                        <p>{{ props.item.status }}</p>
-                    </template>
+                <dataTable :dataobj="order.dishes" rowsperpage="2" searchText="" :loaded="contentLoaded">
+                    <grid-column prop="id" label="Cód. do Item" align="center" v-slot="props">
+                        <p class="clicable text-center" @click="selectRow($event)">{{ props.item.id }}</p>
+                    </grid-column>
+                    <grid-column prop="nome" label="Nome do Item"></grid-column>
+                    <grid-column prop="quantidade" label="Qtd" align="center"></grid-column>
+                    <grid-column prop="observacoes" label="OBS"></grid-column>
+                    <grid-column prop="preco" label="Valor do Item"></grid-column>
+                    <grid-column prop="status" label="Status"></grid-column>
                 </dataTable>
                 <div class="edit-buttons buttons-vertical">
                     <button type="button" class="rounded-btn btn-primary" v-on:click="addDish()">
@@ -61,7 +52,8 @@
                     <div class="payment-difference">
                         <h3>Desconto: {{ total_desconto }}</h3>
                         <h3 class="font-bold">Restante: {{ difference }}</h3>
-                        <h3 class="font-bold" v-if="checkModulePermission('shipping')">Entrega: {{ delivery_amount }}</h3>
+                        <h3 class="font-bold" v-if="checkModulePermission('shipping')">Entrega: {{ delivery_amount }}
+                        </h3>
                     </div>
                 </div>
                 <h2 class="order-total">{{ order.total }}</h2>
@@ -82,7 +74,8 @@
                     <label for="item">Item</label>
                     <select name="item" id="item" required>
                         <option value="">* Selecione *</option>
-                        <option :value="item.id" v-for="(item, index) in dishes_list" :key="index">{{ item.nome }} {{ item.disponivel == 1 ? "" : "(Indisponível)" }}</option>
+                        <option :value="item.id" v-for="(item, index) in dishes_list" :key="index">{{ item.nome }} {{
+                            item.disponivel == 1 ? "" : "(Indisponível)" }}</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -138,12 +131,12 @@ export default {
                 nome_cliente: "",
                 id_cliente: "",
                 mesa: "",
-                zip_code: null, 
-                address: null, 
-                number: null, 
-                complement: null, 
-                address_name: null, 
-                state: null, 
+                zip_code: null,
+                address: null,
+                number: null,
+                complement: null,
+                address_name: null,
+                state: null,
                 city: null
             },
             dishes_list: [],
@@ -185,7 +178,7 @@ export default {
         },
         amount_payed: function () {
             var valor = this.amount_payed.replace(/\D/g, '');
-            
+
             var valorNumerico = parseInt(valor) / 100;
 
             var valorFormatado = valorNumerico.toLocaleString('pt-BR', {
@@ -219,7 +212,7 @@ export default {
         },
         excludeDish: function () {
             let self = this;
-            
+
             let excludedDish = self.order.dishes.find(obj => obj.id == self.editId);
 
             self.order.dishes = self.order.dishes.filter(obj => obj.id !== self.editId);
@@ -240,7 +233,7 @@ export default {
 
             this.selectThisDish();
             this.resetResponse();
-            
+
             if (this.quantity == 0 || this.selected_dish.disponivel != 1) {
                 this.disposeSelectedDishAndCloseSmallModal();
                 return;
@@ -248,7 +241,7 @@ export default {
 
             let sameDish = this.order.dishes.filter(dish => dish.id == this.selected_dish.id);
             let dishObservations = sameDish.length > 0 ? sameDish[0].observacoes : null;
-            
+
             if (dishObservations != null && dishObservations.trim() != "") {
                 dishObservations += ", " + this.observations;
             } else {
@@ -261,7 +254,7 @@ export default {
                 }
             }
 
-            let gridDishObservations = this.groupObservations(dishObservations); 
+            let gridDishObservations = this.groupObservations(dishObservations);
 
             let newDishGrid = {
                 id: this.selected_dish.id,
@@ -319,13 +312,13 @@ export default {
             this.quantity = null;
 
             this.closeSmallModal();
-        },  
+        },
         submitAddPayment: function () {
             let metodoPagamento = $("#metodo_pagamento").val();
             let amountPayed = this.amount_payed;
 
             switch (metodoPagamento) {
-                case "dinheiro": 
+                case "dinheiro":
                     this.cash_payment = amountPayed;
                     break;
                 case "cartao":
@@ -359,7 +352,7 @@ export default {
             this.resetResponse();
 
             let validTable = false;
-            
+
             if (self.order.mesa != null) {
                 promises.push(
                     api.get("/tables/valid_table/" + self.order.mesa).then((response) => {
@@ -375,7 +368,7 @@ export default {
                     })
                 )
             }
-            
+
             let sameTable = self.frozen_table == self.order.mesa ? true : false;
 
             Promise.all(promises).then(() => {
@@ -458,13 +451,13 @@ export default {
                 self.contentLoaded = true;
                 self.order.dishes = [];
                 return;
-            } 
+            }
 
             self.contentLoaded = false;
 
             api.get("/orders/" + self.orderid).then((response) => {
                 self.contentLoaded = true;
-                
+
                 self.order = response.data.returnObj;
 
                 self.order_total = self.order.total == null ? 0.0 : self.formatDecimalValues(self.order.total);
@@ -491,8 +484,8 @@ export default {
     },
     mounted: function () {
         this.returnAllDishes();
-        this.returnOrder();   
-        
+        this.returnOrder();
+
         if (this.payment == false) {
             $("#mesa").attr("required", "required");
         }
@@ -504,13 +497,16 @@ export default {
 }
 </script>
 <style scoped>
-.payment, .payment-inner, .delivery {
+.payment,
+.payment-inner,
+.delivery {
     display: flex;
     align-items: center;
     justify-content: space-between;
 }
 
-.delivery, .payment-inner {
+.delivery,
+.payment-inner {
     justify-content: flex-start;
     margin: var(--space-5) 0;
 }
@@ -518,7 +514,10 @@ export default {
 .modal-body .custom-grid-container {
     max-height: 160px;
 }
-.delivery-content, .payment-list, .payment-difference {
+
+.delivery-content,
+.payment-list,
+.payment-difference {
     margin: 0 var(--space-5);
 }
 </style>

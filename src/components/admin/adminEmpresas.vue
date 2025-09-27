@@ -4,25 +4,28 @@
             <h2>Empresas</h2>
             <button type="button" class="btn btn-primary" v-on:click="editCompany()">Cadastrar empresa</button>
         </div>
-        
         <div class="empresas-list">
-            <dataTable :dataTable="companies" :rowsPerPage="7" searchText="item" :loaded="contentLoaded">
-                <template slot="column-id" slot-scope="props">
-                    <p class="clicable text-center" v-on:click="editCompany(props.item.id)">{{ props.item.id }}</p>
-                </template>
-                <template slot="column-nome" slot-scope="props">
-                    <p>{{ props.item.nome }}</p>
-                </template>
-                <template slot="column-status" slot-scope="props">
-                    <newBadge class="text-center" :background="props.item.ativa == 1 ? 'var(--green-2)' : 'var(--red)'" :text="props.item.ativa == 1 ? 'Ativa' : 'Inativa'" />
-                </template>
-                <template slot="column-membos" slot-scope="props">
-                    <p class="text-center">{{ props.item.membros }}</p>
-                </template>
+            <dataTable :dataobj="companies" rowsperpage="7" searchText="item">
+                <grid-column prop="id" label="ID" align="center">
+                    <template v-slot="props">
+                        <p class="clicable text-center" @click="editCompany(props.item.id)">{{ props.item.id }}</p>
+                    </template>
+                </grid-column>
+                <grid-column prop="nome" label="Nome"></grid-column>
+                <grid-column prop="ativa" label="Status" align="center">
+                    <template v-slot="props">
+                        <newBadge class="text-center"
+                            :background="props.item.ativa == 1 ? 'var(--green-2)' : 'var(--red)'"
+                            :text="props.item.ativa == 1 ? 'Ativa' : 'Inativa'" />
+                    </template>
+                </grid-column>
+                <grid-column prop="membros" label="Membros" align="center"></grid-column>
             </dataTable>
         </div>
-        <modal v-if="showModal" :modaltitle="modalTitle" :modalbutton1="modalButton1" :modalbutton2="modalButton2" :modalbutton3="modalButton3" @closeModal="closeModalFunction()">
-            <editCompanyModalContent v-if="showEditCompanieModalContent" :companies="companies" :companyid="companyId" @savedContent="closeModalFunction()"></editCompanyModalContent>
+        <modal v-if="showModal" :modaltitle="modalTitle" :modalbutton1="modalButton1" :modalbutton2="modalButton2"
+            :modalbutton3="modalButton3" @closeModal="closeModalFunction()">
+            <editCompanyModalContent v-if="showEditCompanieModalContent" :companies="companies" :companyid="companyId"
+                @savedContent="closeModalFunction()"></editCompanyModalContent>
         </modal>
     </div>
 </template>
@@ -94,7 +97,7 @@ export default {
     align-items: center;
 }
 
-    .companies-header button {
-        margin-left: var(--space-6);
-    }
+.companies-header button {
+    margin-left: var(--space-6);
+}
 </style>

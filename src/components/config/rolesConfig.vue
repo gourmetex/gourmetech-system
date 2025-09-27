@@ -21,16 +21,14 @@
                 <button type="submit" class="btn btn-primary">Buscar</button>
             </form>
         </div>
-        <dataTable :dataTable="roles" :rowsPerPage="7" searchText="" :loaded="contentLoaded">
-            <template slot="column-id" slot-scope="props">
-                <p class="clicable text-center" v-on:click="selectRow($event)">{{ props.item.id }}</p>
-            </template>
-            <template slot="column-nome" slot-scope="props">
-                <p>{{ props.item.nome }}</p>
-            </template>
-            <template slot="column-permissão" slot-scope="props">
+        <dataTable :dataobj="roles" rowsperpage="7" searchText="">
+            <grid-column prop="id" label="ID" align="center" v-slot="props">
+                <p class="clicable text-center" @click="selectRow($event)">{{ props.item.id }}</p>
+            </grid-column>
+            <grid-column prop="nome" label="Nome"></grid-column>
+            <grid-column prop="permissao" label="Permissão" v-slot="props">
                 <p>{{ props.item.permissao == 1 ? "Master" : "Padrão" }}</p>
-            </template>
+            </grid-column>
         </dataTable>
         <div class="edit-buttons">
             <button type="button" class="rounded-btn btn-primary" v-on:click="createNewRole()">
@@ -45,8 +43,11 @@
                 </button>
             </div>
         </div>
-        <modal v-if="showModal" :modaltitle="modalTitle" :modalbutton1="modalButton1" :excludepath="'/companies/roles/' + editId" :modalbutton2="modalButton2" :modalbutton3="modalButton3" @closeModal="closeModalFunction(); returnAllRoles();">
-            <editRoleModalContent v-if="showEditRoleModalContent" :roleid="editId" @savedContent="closeModalFunction(); returnAllRoles();"></editRoleModalContent>
+        <modal v-if="showModal" :modaltitle="modalTitle" :modalbutton1="modalButton1"
+            :excludepath="'/companies/roles/' + editId" :modalbutton2="modalButton2" :modalbutton3="modalButton3"
+            @closeModal="closeModalFunction(); returnAllRoles();">
+            <editRoleModalContent v-if="showEditRoleModalContent" :roleid="editId"
+                @savedContent="closeModalFunction(); returnAllRoles();"></editRoleModalContent>
         </modal>
     </div>
 </template>
@@ -117,5 +118,4 @@ export default {
     }
 }
 </script>
-<style scoped>
-</style>
+<style scoped></style>

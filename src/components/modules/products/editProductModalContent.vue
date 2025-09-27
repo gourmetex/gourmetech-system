@@ -10,7 +10,8 @@
                     <label for="categoria">Categoria</label>
                     <select id="categoria" name="categoria" v-model="dish.categoria" required>
                         <option value="">* Selecione *</option>
-                        <option v-for="(category, index) in dishes_categories" :key="index" :value="category.id">{{ category.nome }}</option>
+                        <option v-for="(category, index) in dishes_categories" :key="index" :value="category.id">{{
+                            category.nome }}</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -26,16 +27,14 @@
         </form>
         <h3>Componentes do produto</h3>
         <div class="modal-edit-grid">
-            <dataTable :dataTable="dish.ingredientes" :rowsPerPage="2" searchText="" :loaded="contentLoaded">
-                <template slot="column-id" slot-scope="props">
-                    <p class="clicable text-center" v-on:click="selectRow($event)">{{ props.item.id }}</p>
-                </template>
-                <template slot="column-nome" slot-scope="props">
-                    <p>{{ props.item.nome }}</p>
-                </template>
-                <template slot="column-quantidade" slot-scope="props">
+            <dataTable :dataobj="dish.ingredientes" rowsperpage="2" searchText="" :loaded="contentLoaded">
+                <grid-column prop="id" label="ID" align="center" v-slot="props">
+                    <p class="clicable text-center" @click="selectRow($event)">{{ props.item.id }}</p>
+                </grid-column>
+                <grid-column prop="nome" label="Nome"></grid-column>
+                <grid-column prop="quantidade" label="Quantidade" align="center" v-slot="props">
                     <p class="text-center">{{ props.item.quantidade }} ({{ props.item.unidade_medida }})</p>
-                </template>
+                </grid-column>
             </dataTable>
             <div class="edit-buttons buttons-vertical">
                 <button type="button" class="rounded-btn btn-primary" v-on:click="addIngredient()">
@@ -59,12 +58,15 @@
                     <label for="ingredient">Item</label>
                     <select id="ingredient" name="ingredient" @change="selectThisIngredient()" required>
                         <option value="">* Selecione *</option>
-                        <option v-for="(item, index) in ingredients" :key="index" :value="item.id">{{ item.nome }}</option>
+                        <option v-for="(item, index) in ingredients" :key="index" :value="item.id">{{ item.nome }}
+                        </option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="quantity">Quantidade {{ selected_ingredient_measure_unit != "" ? `(${selected_ingredient_measure_unit})` : "" }}</label>
-                    <input type="text" name="quantity" id="quantity" required v-model="quantity" @keypress="formatDecimalValues(quantity)">
+                    <label for="quantity">Quantidade {{ selected_ingredient_measure_unit != "" ?
+                        `(${selected_ingredient_measure_unit})` : "" }}</label>
+                    <input type="text" name="quantity" id="quantity" required v-model="quantity"
+                        @keypress="formatDecimalValues(quantity)">
                 </div>
                 <button type="submit" class="btn btn-primary w-100">Salvar</button>
             </form>
@@ -106,11 +108,11 @@ export default {
         deleteIngredient: function () {
             let self = this;
 
-            if (self.dish.ingredientes.length == 1) { 
-                this.editId = null; 
+            if (self.dish.ingredientes.length == 1) {
+                this.editId = null;
                 return;
             }
-            
+
             self.dish.ingredientes = self.dish.ingredientes.filter((obj) => { return obj.id !== self.editId });
             self.ingredients_list = self.ingredients_list.filter((obj) => { return obj.id !== self.editId });
         },
@@ -165,13 +167,13 @@ export default {
             this.openSmallModal();
         },
         readFile: function () {
-            let self  = this;
+            let self = this;
             const imageInput = document.getElementById('product-image');
             const file = imageInput.files[0];
 
             const reader = new FileReader();
 
-            reader.onload = function(e) {
+            reader.onload = function (e) {
                 self.dish.imagem = e.target.result;
             };
 
@@ -230,7 +232,7 @@ export default {
                 self.contentLoaded = true;
                 self.dish.ingredientes = [];
                 return;
-            } 
+            }
 
             self.contentLoaded = false;
 
@@ -246,7 +248,7 @@ export default {
         returnDishesCategories: function () {
             let self = this;
 
-            api.post("/products/categories", {filters: {}}).then((response) => {
+            api.post("/products/categories", { filters: {} }).then((response) => {
                 self.dishes_categories = response.data.returnObj;
             }).catch((error) => {
                 console.log(error);
@@ -265,7 +267,7 @@ export default {
     mounted: function () {
         this.returnAllIngredients();
         this.returnDishesCategories();
-        this.returnDish();        
+        this.returnDish();
     },
     components: {
         dataTable

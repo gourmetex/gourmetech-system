@@ -1,20 +1,15 @@
 <template>
     <div class="system-child-companies config-page">
-        <dataTable :dataTable="linked_companies" :rowsPerPage="7" searchText="" :loaded="contentLoaded">
-            <template slot="column-id" slot-scope="props">
-                <p class="text-center">{{ props.item.id }}</p>
-            </template>
-            <template slot="column-nome" slot-scope="props">
-                <p>{{ props.item.nome }}</p>
-            </template>
-            <template slot="column-endereço" slot-scope="props">
-                <p>{{ props.item.endereco }}</p>
-            </template>
-            <template slot="column-ações" slot-scope="props">
-                <button type="button" class="rounded-btn" title="Visualizar faturamento" v-on:click="goToReport(props.item.id)">
+        <dataTable :dataobj="linked_companies" :loaded="loaded" rowsperpage="7" searchText="">
+            <grid-column prop="id" label="ID" align="center"></grid-column>
+            <grid-column prop="nome" label="Nome"></grid-column>
+            <grid-column prop="endereco" label="Endereço"></grid-column>
+            <grid-column prop="ações" label="Ações" v-slot="props" align="center">
+                <button type="button" class="rounded-btn" title="Visualizar faturamento"
+                    @click="goToReport(props.item.id)">
                     <span class="material-icons">insights</span>
                 </button>
-            </template>
+            </grid-column>
         </dataTable>
     </div>
 </template>
@@ -28,7 +23,8 @@ export default {
     mixins: [globalMethods],
     data() {
         return {
-            linked_companies: []
+            linked_companies: [],
+            loaded: false
         }
     },
     methods: {
@@ -38,9 +34,11 @@ export default {
         returnLinkedCompanies: function () {
             let self = this;
 
+            self.loaded = false;
+
             api.get("/companies/return_linked_companies").then((response) => {
                 self.linked_companies = response.data.returnObj;
-                self.contentLoaded = true;
+                self.loaded = true;
             }).catch((error) => {
                 self.setResponse(error.response.data, "error");
             })
@@ -54,5 +52,4 @@ export default {
     }
 }
 </script>
-<style scoped>
-</style>
+<style scoped></style>

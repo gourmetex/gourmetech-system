@@ -2,12 +2,13 @@
     <div class="stock-component">
         <div class="page-title">
             <h1>Estoque</h1>
-        </div>  
-        <actionButtons add_text="ADICIONAR ITEM" exclude_text="EXCLUIR ITEM" :disabledbuttons="disabledButtons" @add="addIngredientQuantity()" @exclude="excludeIngredientQuantity()" />
+        </div>
+        <actionButtons add_text="ADICIONAR ITEM" exclude_text="EXCLUIR ITEM" :disabledbuttons="disabledButtons"
+            @add="addIngredientQuantity()" @exclude="excludeIngredientQuantity()" />
         <div class="stock-container">
             <div class="filter-container-header">
                 <h2>Itens do estoque</h2>
-            
+
                 <div class="filters">
                     <form id="filter-form" @submit.prevent="search()">
                         <div class="filter-field">
@@ -18,7 +19,8 @@
                             <label for="categoria">Categoria</label>
                             <select id="categoria" name="categoria">
                                 <option value="">Qualquer</option>
-                                <option v-for="(category, index) in ingredients_categories" :key="index" :value="category.nome">{{ category.nome }}</option>
+                                <option v-for="(category, index) in ingredients_categories" :key="index"
+                                    :value="category.nome">{{ category.nome }}</option>
                             </select>
                         </div>
                         <div class="filter-field">
@@ -33,27 +35,25 @@
                     </form>
                 </div>
             </div>
-            <dataTable :dataTable="items" :rowsPerPage="7" searchText="" :loaded="contentLoaded">
-                <template slot="column-id" slot-scope="props">
-                    <p class="clicable text-center" v-on:click="selectRow($event)">{{ props.item.id }}</p>
-                </template>
-                <template slot="column-nome" slot-scope="props">
-                    <p>{{ props.item.nome }}</p>
-                </template>
-                <template slot="column-categoria" slot-scope="props">
-                    <p>{{ props.item.categoria }}</p>
-                </template>
-                <template slot="column-status" slot-scope="props">
-                    <newBadge class="text-center" :background="props.item.status == 0 ? 'var(--red)' : 'var(--green-2)'" :text="props.item.status == 0 ? 'Vazio' : 'Normal'" />
-                </template>
-                <template slot="column-quantidade-em-estoque" slot-scope="props">
-                    <p class="text-center">{{ props.item.quantidade_em_estoque }}</p>
-                </template>
+            <dataTable :dataobj="items" rowsperpage="7" searchText="" :loaded="contentLoaded">
+                <grid-column prop="id" label="ID" align="center" v-slot="props">
+                    <p class="clicable text-center" @click="selectRow($event)">{{ props.item.id }}</p>
+                </grid-column>
+                <grid-column prop="nome" label="Nome"></grid-column>
+                <grid-column prop="categoria" label="Categoria"></grid-column>
+                <grid-column prop="status" label="Status" align="center" v-slot="props">
+                    <newBadge :background="props.item.status == 0 ? 'var(--red)' : 'var(--green-2)'"
+                        :text="props.item.status == 0 ? 'Vazio' : 'Normal'" class="text-center" />
+                </grid-column>
+                <grid-column prop="quantidade_em_estoque" label="Quantidade em Estoque" align="center"></grid-column>
             </dataTable>
         </div>
-        <modal v-if="showModal" :modaltitle="modalTitle" :modalbutton1="modalButton1" :modalbutton2="modalButton2" :modalbutton3="modalButton3" @closeModal="closeModalFunction(); returnStock();">
-            <addIngredientQuantityModalContent :ingredient="editId" v-if="showAddIngredientQuantityModalContent" @savedContent="closeModalFunction(); returnStock();"></addIngredientQuantityModalContent>
-            <deleteIngredientQuantityModalContent :ingredient="editId" v-if="showDeleteIngredientQuantityModalContent" @savedContent="closeModalFunction(); returnStock();"></deleteIngredientQuantityModalContent>
+        <modal v-if="showModal" :modaltitle="modalTitle" :modalbutton1="modalButton1" :modalbutton2="modalButton2"
+            :modalbutton3="modalButton3" @closeModal="closeModalFunction(); returnStock();">
+            <addIngredientQuantityModalContent :ingredient="editId" v-if="showAddIngredientQuantityModalContent"
+                @savedContent="closeModalFunction(); returnStock();"></addIngredientQuantityModalContent>
+            <deleteIngredientQuantityModalContent :ingredient="editId" v-if="showDeleteIngredientQuantityModalContent"
+                @savedContent="closeModalFunction(); returnStock();"></deleteIngredientQuantityModalContent>
         </modal>
     </div>
 </template>
@@ -92,7 +92,7 @@ export default {
         resetModalContents: function () {
             this.showAddIngredientQuantityModalContent = false;
             this.showDeleteIngredientQuantityModalContent = false;
-        },  
+        },
         addIngredientQuantity: function () {
             this.resetModalContents();
             this.showModalFunction("Adicionar quantidade ", "Adicionar", "Cancelar");
@@ -111,7 +111,7 @@ export default {
             }).catch((error) => {
                 console.log(error);
             })
-        },  
+        },
         returnStock: function () {
             let self = this;
 
@@ -145,5 +145,4 @@ export default {
     }
 }
 </script>
-<style scoped>
-</style>
+<style scoped></style>

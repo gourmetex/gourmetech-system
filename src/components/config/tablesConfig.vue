@@ -9,13 +9,11 @@
                 <button type="submit" class="btn btn-primary">Buscar</button>
             </form>
         </div>
-        <dataTable :dataTable="tables" :rowsPerPage="7" searchText="" :loaded="contentLoaded">
-            <template slot="column-número" slot-scope="props">
-                <p class="clicable text-center" v-on:click="selectRow($event)">{{ props.item.id }}</p>
-            </template>
-            <template slot="column-descrição" slot-scope="props">
-                <p>{{ props.item.descricao }}</p>
-            </template>
+        <dataTable :dataobj="tables" rowsperpage="7" searchText="" :loaded="contentLoaded">
+            <grid-column prop="id" label="Número" align="center" v-slot="props">
+                <p class="clicable text-center" @click="selectRow($event)">{{ props.item.id }}</p>
+            </grid-column>
+            <grid-column prop="descricao" label="Descrição"></grid-column>
         </dataTable>
         <div class="edit-buttons">
             <button type="button" class="rounded-btn btn-primary" v-on:click="createNewTable()">
@@ -30,8 +28,11 @@
                 </button>
             </div>
         </div>
-        <modal v-if="showModal" :modaltitle="modalTitle" :modalbutton1="modalButton1" :excludepath="'/tables/' + editId" :modalbutton2="modalButton2" :modalbutton3="modalButton3" @closeModal="closeModalFunction(); returnAllTables();">
-            <editTablesModalContent v-if="showEditTablesModalContent" :tableid="editId" @savedContent="closeModalFunction(); returnAllTables();"></editTablesModalContent>
+        <modal v-if="showModal" :modaltitle="modalTitle" :modalbutton1="modalButton1" :excludepath="'/tables/' + editId"
+            :modalbutton2="modalButton2" :modalbutton3="modalButton3"
+            @closeModal="closeModalFunction(); returnAllTables();">
+            <editTablesModalContent v-if="showEditTablesModalContent" :tableid="editId"
+                @savedContent="closeModalFunction(); returnAllTables();"></editTablesModalContent>
         </modal>
     </div>
 </template>
@@ -103,5 +104,4 @@ export default {
     }
 }
 </script>
-<style scoped>
-</style>
+<style scoped></style>

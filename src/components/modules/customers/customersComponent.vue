@@ -2,8 +2,10 @@
     <div class="customers-component">
         <div class="page-title">
             <h1>CLIENTES</h1>
-        </div>  
-        <actionButtons add_text="ADICIONAR CLIENTE" exclude_text="EXCLUIR CLIENTE" edit_text="EDITAR CLIENTE" :disabledbuttons="disabledButtons" @add="addCustomer()" @exclude="excludeCustomer()" @edit="editCustomer()" />
+        </div>
+        <actionButtons add_text="ADICIONAR CLIENTE" exclude_text="EXCLUIR CLIENTE" edit_text="EDITAR CLIENTE"
+            :disabledbuttons="disabledButtons" @add="addCustomer()" @exclude="excludeCustomer()"
+            @edit="editCustomer()" />
         <div class="dishes-container">
             <div class="filter-container-header">
                 <h2>Lista de clientes</h2>
@@ -17,29 +19,28 @@
                     </form>
                 </div>
             </div>
-            <dataTable :dataTable="customers" :rowsPerPage="7" searchText="cliente" :loaded="contentLoaded">
-                <template slot="column-id" slot-scope="props">
-                    <p class="clicable text-center" v-on:click="selectRow($event)">{{ props.item.id }}</p>
-                </template>
-                <template slot="column-nome" slot-scope="props">
-                    <p>{{ props.item.nome }}</p>
-                </template>
-                <template slot="column-email" slot-scope="props">
-                    <p>{{ props.item.email }}</p>
-                </template>
-                <template slot="column-telefone" slot-scope="props">
-                    <p>{{ props.item.telefone }}</p>
-                </template>
-                <template slot="column-especial" slot-scope="props">
+            <dataTable :dataobj="customers" rowsperpage="7" searchText="cliente" :loaded="contentLoaded">
+                <grid-column prop="id" label="ID" align="center" v-slot="props">
+                    <p class="clicable text-center" @click="selectRow($event)">{{ props.item.id }}</p>
+                </grid-column>
+                <grid-column prop="nome" label="Nome"></grid-column>
+                <grid-column prop="email" label="Email"></grid-column>
+                <grid-column prop="telefone" label="Telefone"></grid-column>
+                <grid-column prop="especial" label="Especial" align="center" v-slot="props">
                     <p class="text-center">{{ props.item.especial == 1 ? "Sim" : "Não" }}</p>
-                </template>
-                <template slot="column-desconto" slot-scope="props">
-                    <p class="text-center">{{ props.item.porcentagem_desconto != null ? props.item.porcentagem_desconto + "%" : "" }}</p>
-                </template>
+                </grid-column>
+                <grid-column prop="porcentagem_desconto" label="Desconto" align="center" v-slot="props">
+                    <p class="text-center">
+                        {{ props.item.porcentagem_desconto != null ? props.item.porcentagem_desconto + "%" : "" }}
+                    </p>
+                </grid-column>
             </dataTable>
         </div>
-        <modal v-if="showModal" :modaltitle="modalTitle" :modalbutton1="modalButton1" :excludepath="'/customers/' + editId" :modalbutton2="modalButton2" :modalbutton3="modalButton3" @closeModal="closeModalFunction(); returnCustomers();">
-            <editCustomerModalContent v-if="showEditCustomerModalContent" :customerid="editId" @savedContent="closeModalFunction(); returnCustomers();"></editCustomerModalContent>
+        <modal v-if="showModal" :modaltitle="modalTitle" :modalbutton1="modalButton1"
+            :excludepath="'/customers/' + editId" :modalbutton2="modalButton2" :modalbutton3="modalButton3"
+            @closeModal="closeModalFunction(); returnCustomers();">
+            <editCustomerModalContent v-if="showEditCustomerModalContent" :customerid="editId"
+                @savedContent="closeModalFunction(); returnCustomers();"></editCustomerModalContent>
         </modal>
     </div>
 </template>
@@ -74,7 +75,7 @@ export default {
         },
         resetModalContents: function () {
             this.showEditCustomerModalContent = false;
-        },  
+        },
         addCustomer: function () {
             this.resetModalContents();
             this.showModalFunction("Adicionar cliente", "Salvar", "Cancelar");
@@ -84,7 +85,7 @@ export default {
         excludeCustomer: function () {
             this.resetModalContents();
             this.showModalFunction("Excluir cliente", "Excluir", "Cancelar");
-        }, 
+        },
         editCustomer: function () {
             this.resetModalContents();
             this.showModalFunction("Editar cliente", "Salvar", "Cancelar");
@@ -119,5 +120,4 @@ export default {
     }
 }
 </script>
-<style scoped>
-</style>
+<style scoped></style>
