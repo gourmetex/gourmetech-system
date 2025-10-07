@@ -2,11 +2,12 @@
     <div class="reports-component">
         <div class="page-title">
             <h1>Relatórios</h1>
-        </div> 
+        </div>
         <div class="relatorios-tipos">
-            <div class="relatorio-tipo" v-for="(relatorio, index) in relatoriosTipos" :key="index" v-on:click="selecionaRelatorio(relatorio.codigo)">
-                <i class="material-icons">{{relatorio.icon}}</i>
-                <h3>{{relatorio.title}}</h3>
+            <div class="relatorio-tipo" v-for="(relatorio, index) in relatoriosTipos" :key="index"
+                v-on:click="selecionaRelatorio(relatorio.codigo)">
+                <i class="material-icons">{{ relatorio.icon }}</i>
+                <h3>{{ relatorio.title }}</h3>
             </div>
         </div>
         <h2 v-if="!loading && relatorio.dados == null" class="text-center">Selecione um relatório</h2>
@@ -27,15 +28,19 @@
                         </div>
                         <div class="filter-field">
                             <label>Competência</label>
-                            <input v-if="dateRange === 'anual'" type="number" v-model="year" placeholder="Ano" required />
-                            <input v-if="dateRange === 'semanal'" type="week" v-model="week" placeholder="Semana" required />
+                            <input v-if="dateRange === 'anual'" type="number" v-model="year" placeholder="Ano"
+                                required />
+                            <input v-if="dateRange === 'semanal'" type="week" v-model="week" placeholder="Semana"
+                                required />
                         </div>
                         <button type="submit" class="btn btn-primary">Buscar</button>
-                        <button type="button" class="btn btn-gray" style="margin-left: var(--space-5);" v-on:click="exportToExcel">Exportar</button>
+                        <button type="button" class="btn btn-gray" style="margin-left: var(--space-5);"
+                            v-on:click="exportToExcel">Exportar</button>
                     </form>
                 </div>
             </div>
-            <chartComponent v-if="!loading" :chartData="relatorio.dados" :chartType="relatorio.tipo" :chartReportType="relatorio.codigo" :chartTitle="relatorio.dados.datasets[0].label" />
+            <chartComponent v-if="!loading" :chartData="relatorio.dados" :chartType="relatorio.tipo"
+                :chartReportType="relatorio.codigo" :chartTitle="relatorio.dados.datasets[0].label" />
         </div>
     </div>
 </template>
@@ -74,7 +79,7 @@ export default {
             },
             loading: false,
             dateRange: "anual",
-            year: new Date().getFullYear(), 
+            year: new Date().getFullYear(),
             week: null,
             range: null
         }
@@ -131,7 +136,7 @@ export default {
             for (let col = range.s.c; col <= range.e.c; col++) {
                 const cellRef = XLSX.utils.encode_cell({ r: 0, c: col }); // Cabeçalhos na primeira linha
                 if (!ws[cellRef]) continue;
-                ws[cellRef].s = { 
+                ws[cellRef].s = {
                     font: { bold: true }, // Negrito
                     alignment: { horizontal: "center", vertical: "center" } // Alinhamento
                 };
@@ -217,7 +222,8 @@ export default {
     margin: auto;
 }
 
-.relatorios-tipos, .relatorio-tipo {
+.relatorios-tipos,
+.relatorio-tipo {
     display: flex;
     gap: var(--space-3);
 }

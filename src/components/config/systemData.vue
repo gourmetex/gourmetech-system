@@ -10,6 +10,10 @@
                 <input type="text" name="endereco" id="address" maxlength="45">
             </div>
             <div class="form-group">
+                <label for="numero">Número</label>
+                <input type="number" name="numero" id="numero">
+            </div>
+            <div class="form-group">
                 <label for="complement">Complemento</label>
                 <input type="text" name="complemento" id="complement" maxlength="50">
             </div>
@@ -63,6 +67,7 @@ export default {
         $("#address").val(this.$root.company.endereco);
         $("#complement").val(this.$root.company.complemento);
         $("#cep").val(this.$root.company.cep);
+        $("#numero").val(this.$root.company.numero);
     }
 }
 </script>

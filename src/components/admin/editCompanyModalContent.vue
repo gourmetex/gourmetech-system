@@ -11,6 +11,20 @@
                 <input type="text" name="cnpj" id="cnpj" placeholder="00.000.000/0000-00" @keypress="formatarCNPJ" required>
             </div>
             <div class="form-group">
+                <label for="telefone">Telefone</label>
+                <input type="tel" name="telefone" id="telefone" placeholder="(99) 9 9999-9999" @keypress="inputTelCheck" required>
+            </div>
+            <div class="form-group">
+                <label for="tipo_empresa">Tipo empresa</label>
+                <select name="tipo_empresa" id="tipo_empresa" v-model="company.tipo_empresa" required> 
+                    <option value="" selected>Selecione uma opção</option>
+                    <option value="MEI">MEI (Microempreendedor Individual)</option>
+                    <option value="LIMITED">LTDA (Sociedade Limitada)</option>
+                    <option value="INDIVIDUAL">EI (Empresário Individual)</option>
+                    <option value="ASSOCIATION">Associação (Sem fins lucrativos)</option>
+                </select>
+            </div>
+            <div class="form-group">
                 <label for="main-user">Usuário admin</label>
                 <input type="email" name="main_user_email" id="main-user" v-model="company.email_requisitado" placeholder="example@domain.com" required>
             </div>
@@ -18,8 +32,7 @@
                 <input type="checkbox" name="active" id="active" v-model="company.ativa">
                 <label for="active">Empresa ativa?</label>
             </div>
-            <p class="response big">{{ response }}</p>
-            <div class="companies-to-bind section">
+            <div class="companies-to-bind section" v-if="company.plano != 5">
                 <h3 class="font-bold">Vincular à empresa</h3>
                 <div v-for="(companyItem, index) in companies" :key="index">
                     <div class="radio-group" v-if="companyItem.id != company.id">
@@ -85,6 +98,9 @@
                     </div>
                 </h3>
             </div>
+            <div class="form-group">
+                <p class="response big">{{ response }}</p>
+            </div>
             <input type="submit" id="submit-button" style="display: none;">
         </form>
     </div>
@@ -107,6 +123,7 @@ export default {
             company: {
                 id: null,
                 nome: "",
+                telefone: "",
                 ativa: false,
                 email_requisitado: "",
                 empresa_vinculada: null,
@@ -170,6 +187,7 @@ export default {
                 self.activeModules = self.company.active_modules;
 
                 document.getElementById("cnpj").value = self.company.cnpj;
+                document.getElementById("telefone").value = self.company.telefone;
 
                 let contaCorrente = self.company.conta;
                 

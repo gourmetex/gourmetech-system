@@ -13,7 +13,7 @@
                 <button type="submit" class="btn btn-primary">Buscar</button>
             </form>
         </div>
-        <dataTable :dataobj="ingredients" rowsperpage="7" searchText="">
+        <dataTable :dataobj="ingredients" :loaded="loaded" rowsperpage="7" searchText="">
             <grid-column prop="id" label="ID" align="center" v-slot="props">
                 <p class="clicable text-center" @click="selectRow($event)">{{ props.item.id }}</p>
             </grid-column>
@@ -60,7 +60,8 @@ export default {
             editId: null,
             showEditIngredientModalContent: false,
             filters: [],
-            ingredients_categories: []
+            ingredients_categories: [],
+            loaded: false
         }
     },
     methods: {
@@ -87,8 +88,11 @@ export default {
         returnIngredientsCategories: function () {
             let self = this;
 
+            self.loaded = false;
+
             api.get("/products/ingredient_categories").then((response) => {
                 self.ingredients_categories = response.data.returnObj;
+                self.loading = true;
             }).catch((error) => {
                 console.log(error);
             })
@@ -100,11 +104,11 @@ export default {
                 filters: self.filters
             }
 
-            self.contentLoaded = false;
+            self.loaded = false;
 
             api.post("/products/ingredients", data).then((response) => {
                 self.ingredients = response.data.returnObj;
-                self.contentLoaded = true;
+                self.loaded = true;
             }).catch((error) => {
                 console.log(error);
             })

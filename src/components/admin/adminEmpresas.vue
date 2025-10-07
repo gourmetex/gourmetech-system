@@ -20,6 +20,7 @@
                     </template>
                 </grid-column>
                 <grid-column prop="membros" label="Membros" align="center"></grid-column>
+                <grid-column prop="asaas_wallet_id" label="Asaas Wallet Id" width="1/5"></grid-column>
             </dataTable>
         </div>
         <modal v-if="showModal" :modaltitle="modalTitle" :modalbutton1="modalButton1" :modalbutton2="modalButton2"

@@ -18,6 +18,8 @@ export const globalMethods = {
                 $("#modal-save-submit-button").removeAttr("disabled").removeClass("btn-loading");
             }
 
+            $(".response")[0].scrollIntoView({ behavior: "smooth" });
+
             this.response = message;
         },
         resetResponse: function () {
