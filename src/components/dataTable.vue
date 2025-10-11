@@ -89,12 +89,12 @@
         </div>
         <div class="pagination" v-if="rowsperpage > 0">
           <button @click="prevPage" class="btn rounded-btn small" type="button" :disabled="currentPage === 1">
-            <i class="fas fa-angle-left"></i>
+            <span class="material-icons">keyboard_arrow_left</span>
           </button>
           <span>Página <strong>{{ currentPage }}</strong> de
             {{ totalPages }}</span>
           <button @click="nextPage" class="btn rounded-btn small" type="button" :disabled="currentPage === totalPages">
-            <i class="fas fa-angle-right"></i>
+            <span class="material-icons">keyboard_arrow_right</span>
           </button>
         </div>
       </div>

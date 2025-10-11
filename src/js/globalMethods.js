@@ -18,9 +18,11 @@ export const globalMethods = {
                 $("#modal-save-submit-button").removeAttr("disabled").removeClass("btn-loading");
             }
 
-            $(".response")[0].scrollIntoView({ behavior: "smooth" });
-
             this.response = message;
+
+            this.$nextTick(() => {
+                $(".response")[0].scrollIntoView({ behavior: "smooth" });
+            })
         },
         resetResponse: function () {
             let response = $(".response");
@@ -101,7 +103,7 @@ export const globalMethods = {
             localStorage.removeItem("gourmetech_jwt");
             this.$root.menuOptions = [];
         },
-        checkAndSetJwt: function() {
+        checkAndSetJwt: function () {
             let interval = setInterval(() => {
                 let jwt = this.getJwtInLocalStorage();
                 if (jwt != null) {
@@ -116,7 +118,7 @@ export const globalMethods = {
                 let self = this;
                 let pathName = window.location.href;
                 let jwt = "Bearer " + self.getJwtInLocalStorage();
-                
+
                 if (jwt == "Bearer null") {
                     if (pathName.indexOf("/home") != -1) {
                         self.$router.push("/login");
@@ -128,29 +130,29 @@ export const globalMethods = {
                     }
 
                     api.post("/users/check_jwt", data) // Se ja estiver logado no sistema e acessar a página de login, é checkado a valia do token JWT e então redirecionado para a index.
-                    .then(function (res) { 
-                        self.setJwtInLocalStorage(res.data.returnObj.newToken); // Setando o novo jwt que foi resetado
+                        .then(function (res) {
+                            self.setJwtInLocalStorage(res.data.returnObj.newToken); // Setando o novo jwt que foi resetado
 
-                        if (pathName.indexOf("/login") != -1) { // Se o usuário estiver logado e entrar em login, o mesmo é logado novamente e direcionado para a index.
-                            let loginForm = $("#login-form");
-                            loginForm.find("input").attr("disabled", "disabled");
-                            loginForm.find("button").attr("disabled", "disabled").addClass("btn-loading");
+                            if (pathName.indexOf("/login") != -1) { // Se o usuário estiver logado e entrar em login, o mesmo é logado novamente e direcionado para a index.
+                                let loginForm = $("#login-form");
+                                loginForm.find("input").attr("disabled", "disabled");
+                                loginForm.find("button").attr("disabled", "disabled").addClass("btn-loading");
 
-                            setTimeout(() => {
-                                self.$router.push("/home");
-                            }, 1000);
-                        }
-                        resolve();
-                    })
-                    .catch(function () { // Caso contrário ele é deslogado e enviado para login.
-                        self.logoutUser();
-                        return;
-                    })
-                    .then(function () { // Chamada recursiva da função se o usuario estiver na home
-                        if (pathName.indexOf("/home") != -1) {
-                            setTimeout(self.checkIfUserIsAuthenticated, 10 * 1000);
-                        }
-                    })
+                                setTimeout(() => {
+                                    self.$router.push("/home");
+                                }, 1000);
+                            }
+                            resolve();
+                        })
+                        .catch(function () { // Caso contrário ele é deslogado e enviado para login.
+                            self.logoutUser();
+                            return;
+                        })
+                        .then(function () { // Chamada recursiva da função se o usuario estiver na home
+                            if (pathName.indexOf("/home") != -1) {
+                                setTimeout(self.checkIfUserIsAuthenticated, 10 * 1000);
+                            }
+                        })
                 }
             })
         },
@@ -162,7 +164,7 @@ export const globalMethods = {
             if (!jwt || (self.$root.menuOptions != undefined && self.$root.menuOptions.length != 0)) return;
 
             return new Promise((resolve) => {
-                api.get("/users/return_menus", {headers: {Authorization: "Bearer " + jwt}}).then((response) => {
+                api.get("/users/return_menus", { headers: { Authorization: "Bearer " + jwt } }).then((response) => {
                     self.$root.menuOptions = response.data.returnObj;
                     resolve();
                 }).catch((error) => {
@@ -173,7 +175,7 @@ export const globalMethods = {
         requireCompany: function (company_id) {
             return new Promise((resolve) => {
                 let self = this;
-                
+
                 api.get("/companies/" + company_id + "/return_company").then((response) => {
                     self.$root.company = response.data.returnObj;
                     resolve();
@@ -209,28 +211,28 @@ export const globalMethods = {
         searchCEP: function (cep) {
             return new Promise((resolve, reject) => {
                 cep = cep.replace(/\D/g, '');
-                
+
                 axios.get(`/api/ws/${cep}/json/`)
-                .then(response => {
-                    const data = response.data;
+                    .then(response => {
+                        const data = response.data;
 
-                    if (!data.erro) {
-                        let address = `${data.logradouro}, ${data.bairro}, ${data.localidade} - ${data.uf}`;
+                        if (!data.erro) {
+                            let address = `${data.logradouro}, ${data.bairro}, ${data.localidade} - ${data.uf}`;
 
-                        resolve(address);
-                    } else {
-                        alert('CEP não encontrado!')
-                    }
-                })
-                .catch((erro) => {
-                    reject(erro);
-                })
+                            resolve(address);
+                        } else {
+                            alert('CEP não encontrado!')
+                        }
+                    })
+                    .catch((erro) => {
+                        reject(erro);
+                    })
             })
         },
         //Metodos manipulação objetos
         selectRow: function (event) {
             this.descelectRows();
-            
+
             let id = $(event.target).html();
             let parent = $(event.target).parent().parent();
 
@@ -252,7 +254,7 @@ export const globalMethods = {
             if (row.hasClass("row-selected")) {
                 this.descelectRows();
             } else {
-                row.addClass("row-selected");                
+                row.addClass("row-selected");
             }
         },
         descelectRows: function () {
@@ -262,9 +264,25 @@ export const globalMethods = {
             this.editId = null;
             this.hideEditButtons();
         },
+        formatCpfCnpj(event) {
+            let numericValue = event.target.value.replace(/\D/g, '');
+
+            if (numericValue.length <= 11) {
+                event.target.value = numericValue
+                    .replace(/(\d{3})(\d)/, '$1.$2')
+                    .replace(/(\d{3})(\d)/, '$1.$2')
+                    .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+            } else {
+                event.target.value = numericValue
+                    .replace(/^(\d{2})(\d)/, '$1.$2')
+                    .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
+                    .replace(/\.(\d{3})(\d)/, '.$1/$2')
+                    .replace(/(\d{4})(\d)/, '$1-$2');
+            }
+        },
         inputMoneyCheck: function (event) {
             var valor = event.target.value.replace(/\D/g, '');
-            
+
             // Transforma em número decimal com duas casas
             var valorNumerico = parseInt(valor) / 100;
 
@@ -287,7 +305,7 @@ export const globalMethods = {
         },
         disableActionsButtons: function (addButton = true, excludeButton = true, editButton = true) {
             this.disabledButtons = [];
-            
+
             if (addButton) {
                 this.disabledButtons.push(1);
             }
@@ -308,14 +326,14 @@ export const globalMethods = {
 
             // Divide a string em itens baseados na vírgula e remove espaços em branco extras
             let itens = input.split(',')
-                       .map(item => item.trim())
-                       .filter(item => item !== "");
+                .map(item => item.trim())
+                .filter(item => item !== "");
 
             // Se não houver itens válidos, retorna vazio
             if (itens.length === 0) {
                 return "";
             }
-            
+
             itens = itens.flatMap(item => {
                 const parts = item.split(' '); // Divide a string inteira em partes baseadas em espaços
                 const count = parseInt(parts[0], 10); // Tenta converter o primeiro elemento em um número
@@ -325,7 +343,7 @@ export const globalMethods = {
                 }
                 return [item];
             });
-            
+
             // Contador para armazenar a frequência de cada item
             const contador = {};
 
@@ -359,9 +377,9 @@ export const globalMethods = {
         },
         //Métodos de formatação de valores ou strings
         formatCurrency: function (value) {
-            const numeroLimpo = value.toString().replace(/[^\d.,]/g, ''); 
+            const numeroLimpo = value.toString().replace(/[^\d.,]/g, '');
             const partes = numeroLimpo.replace(".", ",").split(',');
-            
+
             let numeroRetorno;
 
             if (partes.length > 1) {
@@ -369,7 +387,7 @@ export const globalMethods = {
             } else {
                 numeroRetorno = `R$ ${partes[0].replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.')}`;
             }
-            
+
             return numeroRetorno;
         },
         formatTel: function (value) {

@@ -248,6 +248,10 @@ a, a:hover {
         min-height: 30px;
         max-width: 30px;
         max-height: 30px;
+
+        & span {
+            font-size: var(--fontsize-md);
+        }
     }
 }
 

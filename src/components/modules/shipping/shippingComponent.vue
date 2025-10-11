@@ -29,8 +29,8 @@
             </dataTable>
         </div>
         <modal v-if="showModal" :modaltitle="modalTitle" :modalbutton1="modalButton1" :confirm="true"
-            @confirmCallback="confirmCallback()" :confirmtext="confirmText" :modalbutton2="modalButton2"
-            :modalButton3="modalButton3" @closeModal="closeModalFunction(); returnShippings();"></modal>
+            @confirmCallback="confirmCallback(); returnShippings();" :confirmtext="confirmText" :modalbutton2="modalButton2"
+            :modalButton3="modalButton3" @closeModal="closeModalFunction();"></modal>
     </div>
 </template>
 <script>

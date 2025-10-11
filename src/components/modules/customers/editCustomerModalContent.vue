@@ -13,6 +13,10 @@
                 <label for="telefone">Telefone</label>
                 <input type="text" name="telefone" id="telefone" v-model="customer.telefone" @focusout="inputTelCheck($event)" required>
             </div>
+            <div class="form-group">
+                <label for="cpfCnpj">CPF/CNPJ</label>
+                <input type="text" name="cpfCnpj" id="cpfCnpj" @keypress="formatCpfCnpj($event)" required>
+            </div>
             <div class="radio-group">
                 <input type="checkbox" id="especial" v-model="customer.especial">
                 <label for="especial">Cliente especial</label>
@@ -41,6 +45,7 @@ export default {
                 nome: "",
                 email: "",
                 telefone: "",
+                cpfCnpj: "",
                 especial: false,
                 porcentagem_desconto: null
             },
@@ -57,8 +62,9 @@ export default {
 
             api.get("/customers/" + self.customerid).then((response) => {
                 self.customer = response.data.returnObj;
+                $("#cpfCnpj").val(self.customer.cpfCnpj);
             }).catch((error) => {
-                console.log(error);
+                self.setResponse(error.response.data, "error");
             })
         },
         saveCustomer: function () {
@@ -84,7 +90,7 @@ export default {
             api.post("/customers/" + path, data).then(() => {
                 self.$emit("savedContent", true);
             }).catch((error) => {
-                console.log(error);
+                self.setResponse(error.response.data, "error");
             }).then(() => {
                 self.savingCustomer = false;
             })

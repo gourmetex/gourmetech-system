@@ -429,7 +429,7 @@ export default {
                 api.post("/orders/" + path, data).then(() => {
                     self.$emit("savedContent", true);
                 }).catch((error) => {
-                    console.log(error);
+                    self.setResponse(error.response.data, "error");
                 }).then(() => {
                     self.savingOrder = false;
                 })

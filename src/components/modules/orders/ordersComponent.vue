@@ -70,10 +70,14 @@ export default {
 
             api.get("/orders").then((response) => {
                 self.orders = response.data.returnObj;
-                //self.contentLoaded = true;
+                self.contentLoaded = true;
                 self.editId = null;
+
+                setTimeout(() => {
+                    this.returnOrders();
+                }, 60 * 1000)
             }).catch((error) => {
-                console.log(error);
+                self.setResponse(error.response.data, "error");
             })
         }
     },
