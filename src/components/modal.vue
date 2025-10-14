@@ -112,7 +112,7 @@ export default {
 <style scoped>
 
 .modal, .modal-overlay {
-    position: absolute;
+    position: fixed;
     top: 0;
     left: 0;
     width: 100%;
@@ -148,6 +148,12 @@ export default {
 
     &.small {
         max-height: 300px;
+    }
+}
+
+@media (min-width: 961px) {
+    .modal-container {
+        margin-left: 260px;
     }
 }
 
