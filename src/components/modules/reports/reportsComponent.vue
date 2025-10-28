@@ -199,6 +199,17 @@ export default {
                     resolve(response.data.returnObj);
                 })
             })
+        },
+        checkUrl: function () {
+            let query = this.$route.query;
+
+            if (query?.competence && query?.range && query?.type) {
+                this.dateRange = query.competence;
+                this.range = query.range;
+                this.week = this.range;
+
+                this.selecionaRelatorio(query.type);
+            }
         }
     },
     mounted: function () {
@@ -210,6 +221,8 @@ export default {
         });
 
         this.range = this.year;
+
+        this.checkUrl();
     },
     components: {
         chartComponent

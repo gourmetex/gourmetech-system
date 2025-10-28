@@ -1,26 +1,47 @@
 <template>
     <div class="home">
-        <h1>{{ today }}</h1>
+        <div class="desktop-header">
+            <div class="user">
+                <div class="user-informations">
+                    <h1>Olá, {{ $root.user.nome }}</h1>
+                    <span>{{ today }}</span>
+                </div>
+            </div>
+        </div>
         <div class="parent">
             <div class="div1">
-                <div class="desktop-chart">
-                    <lottie-player background="transparent" speed="1" loop autoplay v-show="loadingFaturamento"></lottie-player>
-                    <chartComponent v-if="!loadingFaturamento" :chartData="faturamento.dados" :chartType="faturamento.tipo"
-                        :chartReportType="faturamento.codigo" :chartTitle="faturamento.dados.datasets[0].label" />
+                <div class="desktop-chart" @click="goToChart('faturamento')" style="cursor: pointer;">
+                    <lottie-player background="transparent" speed="1" loop autoplay
+                        v-show="loadingFaturamento"></lottie-player>
+                    <chartComponent v-if="!loadingFaturamento" :chartData="faturamento.dados"
+                        :chartType="faturamento.tipo" :chartReportType="faturamento.codigo"
+                        :chartTitle="faturamento.dados.datasets[0].label" />
                 </div>
             </div>
             <div class="div2">
-                <div class="desktop-chart">
-                    <lottie-player background="transparent" speed="1" loop autoplay v-show="loadingDespesas"></lottie-player>
+                <div class="desktop-chart" @click="goToChart('despesas')" style="cursor: pointer;">
+                    <lottie-player background="transparent" speed="1" loop autoplay
+                        v-show="loadingDespesas"></lottie-player>
                     <chartComponent v-if="!loadingDespesas" :chartData="despesas.dados" :chartType="despesas.tipo"
                         :chartReportType="despesas.codigo" :chartTitle="despesas.dados.datasets[0].label" />
                 </div>
             </div>
             <div class="div3">
-                <div class="desktop-chart">
-                    <lottie-player background="transparent" speed="1" loop autoplay v-show="loadingVendas"></lottie-player>
+                <div class="desktop-chart" @click="goToChart('vendas')" style="cursor: pointer;">
+                    <lottie-player background="transparent" speed="1" loop autoplay
+                        v-show="loadingVendas"></lottie-player>
                     <chartComponent v-if="!loadingVendas" :chartData="vendas.dados" :chartType="vendas.tipo"
                         :chartReportType="vendas.codigo" :chartTitle="vendas.dados.datasets[0].label" />
+                </div>
+                <div class="desktop-chart">
+                    <label>Produtos mais vendidos (Semanal)</label>
+                    <dataTable :dataobj="produtos_vendidos" rowsperpage="7" :loaded="!loadingProdutosVendidos">
+                        <grid-column prop="nome" label="Nome"></grid-column>
+                        <grid-column prop="quantidade_vendida" label="Qtd. Vendida" />
+                        <grid-column prop="total_faturado" label="Faturamento" v-slot="props">
+                            {{ formatCurrency(props.item.total_faturado) }}
+                        </grid-column>
+                    </dataTable>
                 </div>
             </div>
         </div>
@@ -32,6 +53,7 @@ import chartComponent from '@/components/chartComponent.vue';
 import loadingJson from "@/assets/animations/loading-component.json";
 import api from "@/configs/api";
 import { globalMethods } from "@/js/globalMethods";
+import dataTable from "./dataTable.vue";
 
 export default {
     name: "homeComponent",
@@ -39,28 +61,34 @@ export default {
     data() {
         return {
             today: null,
+            produtos_vendidos: [],
             faturamento: {
                 title: "Faturamento",
                 dados: null,
-                tipo: "bar"
+                tipo: "bar",
+                codigo: ""
             },
             despesas: {
                 title: "Despesas",
                 dados: null,
-                tipo: "bar"
+                tipo: "bar",
+                codigo: ""
             },
             vendas: {
                 title: "Vendas",
                 dados: null,
-                tipo: "bar"
+                tipo: "bar",
+                codigo: ""
             },
             loadingFaturamento: true,
             loadingDespesas: true,
-            loadingVendas: true
+            loadingVendas: true,
+            loadingProdutosVendidos: true
         }
     },
     components: {
-        chartComponent
+        chartComponent,
+        dataTable
     },
     methods: {
         returnToday: function () {
@@ -79,7 +107,7 @@ export default {
             let relatorio = {
                 dados: response.data.returnObj,
                 tipo: "bar",
-                codigo: self.reportType,
+                codigo: "bar",
                 title: this.capitalize(type)
             }
 
@@ -97,6 +125,9 @@ export default {
             const semanaFormatada = String(semana).padStart(2, '0');
 
             return `${ano}-W${semanaFormatada}`;
+        },
+        goToChart: function (tipo) {
+            this.$router.push("/home/reports?type=" + tipo + "&competence=semanal&range=" + this.getNumeroDaSemanaISO())
         }
     },
     mounted: async function () {
@@ -116,14 +147,17 @@ export default {
             });
         })
 
-        this.faturamento = {...await this.retornaRelatorio("faturamento", "semanal", semanaAtual)};
+        this.faturamento = { ...await this.retornaRelatorio("faturamento", "semanal", semanaAtual) };
         this.loadingFaturamento = false;
 
-        this.despesas = {...await this.retornaRelatorio("despesas", "semanal", semanaAtual)};
+        this.despesas = { ...await this.retornaRelatorio("despesas", "semanal", semanaAtual) };
         this.loadingDespesas = false;
 
-        this.vendas = {...await this.retornaRelatorio("vendas", "semanal", semanaAtual)};
+        this.vendas = { ...await this.retornaRelatorio("vendas", "semanal", semanaAtual) };
         this.loadingVendas = false;
+        
+        this.produtos_vendidos = await this.retornaRelatorio("produtos_vendidos", "semanal", semanaAtual).dados || [];
+        this.loadingProdutosVendidos = false;
     }
 }
 </script>
@@ -153,8 +187,7 @@ export default {
 .div2,
 .div3 {
     display: grid;
-    place-items: center;
-    border: 1px solid red;
+    gap: var(--space-3);
 }
 
 .div1 {
@@ -169,10 +202,16 @@ export default {
     grid-area: 1 / 4 / 5 / 6;
 }
 
+.desktop-chart {
+    width: 100%;
+    height: fit-content;
+}
+
 @media (max-width: 768px) {
     .parent {
         grid-template-columns: 1fr;
         grid-template-rows: unset;
+        padding: var(--space-6) 0;
     }
 
     .div1,
@@ -180,6 +219,7 @@ export default {
     .div3 {
         width: 100%;
         grid-area: unset;
+        gap: var(--space-6);
     }
 }
 </style>
