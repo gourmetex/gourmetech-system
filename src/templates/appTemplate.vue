@@ -85,8 +85,8 @@ export default {
             pageContent.css("left", "0").css("width", "100vw");
         },
         contractContent: function () {
-            let pageContent = $(".inner-page-system");
-            pageContent.css("left", "260px").css("width", "calc(100vw - 260px)");
+            //let pageContent = $(".inner-page-system");
+            //pageContent.css("left", "260px").css("width", "calc(100vw - 260px)");
         },
         initSystemRequests: function () {
             let self = this;

@@ -53,7 +53,7 @@
                         </div>
                     </div>
                 </div>
-                <span class="material-icons">help</span>
+                <span class="material-icons" v-if="false">help</span>
             </div>
             <div class="notifications-wrapper" v-if="toggleNotifications" v-on:click="handleToggleNotifications()"></div>
         </header>
@@ -231,7 +231,17 @@ export default {
         },
         goToProfile: function () {
             this.toggleProfileMenu();
+            this.closeLateralMenuIfIsResponsive();
+
             this.$router.push("/home/profile");
+        },
+        closeLateralMenuIfIsResponsive() {
+            if (window.innerWidth <= 960) {
+                if (this.menuMovement) return;
+
+                this.$emit("toggleMenu", false);
+                this.hideLateralMenu();
+            }
         },
         checkCurrentPathname: function (linkToCheck) {
             let pathname = window.location.pathname;
@@ -240,13 +250,13 @@ export default {
             }
             return false;
         },
-        selectThisItem: function (elementId) {
+        selectThisItem: function (elementId, close = false) {
             $(".menu-item").removeClass("li-active");
 
             let targetElement = $("#menu" + elementId.replace(/\//g, '-'));
             targetElement.addClass("li-active");
             if (window.innerWidth <= 960) {
-                if (this.menuMovement) return;
+                if (this.menuMovement || close) return;
 
                 this.toggleLateralMenu();
             }
@@ -333,11 +343,11 @@ export default {
 
         let self = this;
 
-        this.selectThisItem(window.location.pathname);
+        this.selectThisItem(window.location.pathname, true);
 
         $(window).on("resize", () => {
             let windowWidth = $(window).width();
-            
+
             if (windowWidth <= 960) {
                 if (this.menuMovement) return;
 
@@ -397,7 +407,6 @@ header {
     justify-content: center;
     position: relative;
     cursor: pointer;
-    margin-right: var(--space-4);
     z-index: 3;
 }
 
@@ -493,7 +502,7 @@ header {
     height: calc(100vh - 80px);
     transition: transform 0.4s;
     overflow: hidden;
-    z-index: 1;
+    z-index: 3;
 }
 
     .lateral-menu h3 {
