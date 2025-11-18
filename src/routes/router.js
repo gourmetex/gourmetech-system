@@ -17,6 +17,7 @@ import stockComponent from "../components/modules/stock/stockComponent.vue";
 import ordersComponent from "../components/modules/orders/ordersComponent.vue";
 import customersComponent from "../components/modules/customers/customersComponent.vue";
 import kitchenComponent from "../components/modules/kitchen/kitchenComponent.vue";
+import salesComponent from "../components/modules/sales/salesComponent.vue";
 import printOut from "../components/printOut.vue";
 import digitalMenuComponent from "../components/modules/digital_menu/digitalMenuComponent.vue";
 import financialComponent from "../components/modules/financial/financialComponent.vue";
@@ -55,7 +56,8 @@ const routes = [
             { path: "shipping", component: shippingComponent, meta: { modulo_requerido: 'shipping' } },
             { path: "reports", component: reportsComponent, meta: { modulo_requerido: 'reports' } },
             { path: "reservations", component: reservationsComponent, meta: { modulo_requerido: 'reservations' } },
-            { path: "profile", component: profileComponent, meta: { modulo_requerido: '' } }
+            { path: "profile", component: profileComponent, meta: { modulo_requerido: '' } },
+            { path: "sales", component: salesComponent, meta: { modulo_requerido: "sales" } }
         ]
     },
     {

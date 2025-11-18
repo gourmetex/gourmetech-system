@@ -381,7 +381,7 @@ header {
     justify-content: space-between;
     padding: var(--space-4);
     border-bottom: 1px solid var(--cor-destaque);
-    z-index: 2;
+    z-index: 4;
 }
 
 .left-content, .right-content {
