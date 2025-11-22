@@ -8,11 +8,12 @@
                 </div>
                 <div class="form-group">
                     <label for="categoria">Categoria</label>
-                    <select id="categoria" name="categoria" v-model="dish.categoria" required>
-                        <option value="">* Selecione *</option>
-                        <option v-for="(category, index) in dishes_categories" :key="index" :value="category.id">{{
-                            category.nome }}</option>
-                    </select>
+                    <SearchableSelect 
+                        :options="dishes_categories" 
+                        v-model="dish.categoria"
+                        name="categoria" 
+                        placeholder="Selecione a categoria..."
+                    />
                 </div>
                 <div class="form-group">
                     <label for="preco">Preço</label>
@@ -80,6 +81,7 @@ import api from "../../../configs/api";
 import { globalMethods } from "@/js/globalMethods";
 import $ from 'jquery';
 import dataTable from "../../dataTable.vue";
+import SearchableSelect from '../../SearchableSelect.vue';
 
 export default {
     name: "editDishModalContent",
@@ -270,7 +272,8 @@ export default {
         this.returnDish();
     },
     components: {
-        dataTable
+        dataTable,
+        SearchableSelect
     }
 }
 </script>

@@ -7,10 +7,12 @@
             </div>
             <div class="form-group">
                 <label for="category">Categoria</label>
-                <select name="category" id="category" v-model="ingredient.categoria" required>
-                    <option value="">Escolha uma opção</option>
-                    <option v-for="(category, index) in ingredients_categories" :key="index" :value="category.id">{{ category.nome }}</option>
-                </select>
+                <SearchableSelect 
+                    :options="ingredients_categories" 
+                    v-model="ingredient.categoria"
+                    name="category" 
+                    placeholder="Selecione a categoria..."
+                />
             </div>
             <div class="form-group">
                 <label for="measurement" style="display: flex; align-items: center; gap: var(--space-2);">Unidade de medida <span class="material-icons" title="Por padrão a unidade de medida é vinculada à categoria.">info</span></label>
@@ -25,11 +27,15 @@
 </template>
 <script>
 import api from "../../configs/api";
+import SearchableSelect from '../SearchableSelect.vue';
 import $ from 'jquery';
 
 export default {
     name: "editIngredientModalContent",
     props: ["ingredientid"],
+    components: {
+        SearchableSelect 
+    },
     data() {
         return {
             ingredient: {
@@ -45,7 +51,13 @@ export default {
     },
     watch: {
         'ingredient.categoria': function () {
-            this.ingredient.unidade_medida = this.ingredients_categories.find((category) => { return category.id == this.ingredient.categoria }).unidade_medida_id;
+            const selectedCategory = this.ingredients_categories.find((category) => { 
+                return category.id == this.ingredient.categoria 
+            });
+            
+            if (selectedCategory) {
+                this.ingredient.unidade_medida = selectedCategory.unidade_medida_id;
+            }
         }
     },
     methods: {

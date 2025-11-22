@@ -7,7 +7,7 @@
             </div>
             <div class="form-group">
                 <label for="descricao">Descrição</label>
-                <textarea name="descricao" v-model="sale.descricao" required></textarea>
+                <textarea name="descricao" v-model="sale.descricao"></textarea>
             </div>
             <div class="form-group">
                 <label for="produto">Produto</label>
@@ -27,6 +27,15 @@
             <div class="form-group">
                 <label for="porcentagem_desconto">Porcentagem de desconto</label>
                 <input type="number" name="porcentagem_desconto" id="porcentagem_desconto" v-model="sale.porcentagem_desconto" min="1" max="100" required>
+            </div>
+            <div class="radio-group">
+                <input 
+                    type="checkbox" 
+                    id="ativa"
+                    v-model="sale.ativa"
+                    name="ativa"
+                >
+                <label for="ativa">Ativa</label>
             </div>
             <input type="submit" id="submit-button" style="display: none;">
         </form>

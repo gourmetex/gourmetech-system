@@ -33,6 +33,10 @@
                 <grid-column prop="preco_produto" label="Valor Un." v-slot="props" align="right">{{ formatCurrency(props.item.preco_produto) }}</grid-column>
                 <grid-column prop="dia_semana" label="Dia da semana" v-slot="props">{{ returnWeekDay(props.item.dia_semana) }}</grid-column>
                 <grid-column prop="porcentagem_desconto" label="Desconto" v-slot="props" align="center">{{ props.item.porcentagem_desconto }}%</grid-column>
+                <grid-column prop="ativa" label="Ativa" align="center" v-slot="props">
+                    <newBadge :background="props.item.ativa == 1 ? 'var(--green-2)' : 'var(--red)'"
+                        :text="props.item.ativa == 1 ? 'Sim' : 'Não'" class="text-center" />
+                </grid-column>
             </dataTable>
         </div>
         <modal v-if="showModal" :modaltitle="modalTitle" :modalbutton1="modalButton1"
@@ -49,6 +53,7 @@ import dataTable from "../../dataTable.vue";
 import { globalMethods } from "@/js/globalMethods";
 import modal from "../../modal.vue";
 import editSaleModalContent from "./editSaleModalContent.vue";
+import newBadge from "../../newBadge.vue";
 import api from "../../../configs/api";
 import $ from 'jquery';
 
@@ -128,7 +133,8 @@ export default {
         actionButtons,
         dataTable,
         modal,
-        editSaleModalContent
+        editSaleModalContent,
+        newBadge
     }
 }
 </script>
