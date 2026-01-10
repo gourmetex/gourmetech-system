@@ -73,7 +73,7 @@
             </form>
         </div>
         <div class="small-modal-wrapper" v-on:click="closeSmallModal()"></div>
-        <p class="response big">{{ response }}</p>
+        <p class="response big error">{{ response }}</p>
     </div>
 </template>
 <script>
@@ -185,6 +185,8 @@ export default {
             let self = this;
             if (self.savingDish) return;
 
+            this.response = "";
+
             if (this.ingredients_list.length == 0) {
                 this.setResponse("O produto não pode estar vazio", "error");
                 return;
@@ -198,6 +200,14 @@ export default {
             const formData = new FormData();
 
             const fields = $("#informations-form").serializeArray();
+
+            let precoField = fields.find(obj => obj.name == "preco");
+
+            if (this.formatDecimalValues(precoField.value) < 5) {
+                this.setResponse("O preço mínimo do produto é R$ 5,00", "error");
+                return;
+            }
+
             fields.forEach(item => {
                 formData.append(item.name, item.value);
             });
@@ -222,6 +232,7 @@ export default {
             }).then(() => {
                 self.$emit("savedContent", true);
             }).catch((error) => {
+                this.setResponse("Ocorreu um erro ao salvar o produto", "error");
                 console.log(error);
             }).then(() => {
                 self.savingDish = false;
