@@ -18,33 +18,40 @@
             <div class="right-content">
                 <div class="notifications-container">
                     <span class="material-icons" v-on:click="handleToggleNotifications()">notifications</span>
-                    <span class="notifications-number" v-on:click="handleToggleNotifications()" v-show="notificationsCount > 0">{{ notificationsCount }}</span>
+                    <span class="notifications-number" v-on:click="handleToggleNotifications()"
+                        v-show="notificationsCount > 0">{{ notificationsCount }}</span>
                     <div class="notifications" v-if="toggleNotifications">
-                        <lottie-player id="notifications-loading" background="transparent" speed="1" loop autoplay v-if="loadingNotifications"></lottie-player>
-                        <p class="notifications-empty" v-if="!loadingNotifications && !first && notifications.length == 0">Está vazio</p>
+                        <lottie-player id="notifications-loading" background="transparent" speed="1" loop autoplay
+                            v-if="loadingNotifications"></lottie-player>
                         <div class="notification-types">
-                            <div class="type" v-on:click="onlyUnseen = false" :class="{'selected-type': !onlyUnseen}"> <!-- v-on:click="notificationTypeFilter = type.tipo" :class="{'selected-type': notificationTypeFilter == type.tipo}" -->
+                            <div class="type" v-on:click="onlyUnseen = false" :class="{ 'selected-type': !onlyUnseen }">
+                                <!-- v-on:click="notificationTypeFilter = type.tipo" :class="{'selected-type': notificationTypeFilter == type.tipo}" -->
                                 <span>Todas</span>
                             </div>
-                            <div class="type" v-on:click="onlyUnseen = true" :class="{'selected-type': onlyUnseen}">
+                            <div class="type" v-on:click="onlyUnseen = true" :class="{ 'selected-type': onlyUnseen }">
                                 <span>Não lidas</span>
                             </div>
-                            <span class="material-icons type-filter-button" v-on:click="showNotificationTypes = !showNotificationTypes">more_vert</span>
+                            <span class="material-icons type-filter-button"
+                                v-on:click="showNotificationTypes = !showNotificationTypes">more_vert</span>
                             <div class="type-filter" v-if="showNotificationTypes">
                                 <ul>
-                                    <li v-for="(item, index) in notificationTypes" :class="{'selected-type': notificationTypeFilter == item.tipo}" :key="index" v-on:click="handleClickNotificationType(item.tipo)">
+                                    <li v-for="(item, index) in notificationTypes"
+                                        :class="{ 'selected-type': notificationTypeFilter == item.tipo }" :key="index"
+                                        v-on:click="handleClickNotificationType(item.tipo)">
                                         {{ item.tipo_nome }} {{ item.qtd > 0 ? `(${item.qtd})` : "" }}
                                     </li>
                                 </ul>
                             </div>
-                            <div class="type-filter-wrapper" v-if="showNotificationTypes" v-on:click="showNotificationTypes = !showNotificationTypes"></div>
+                            <div class="type-filter-wrapper" v-if="showNotificationTypes"
+                                v-on:click="showNotificationTypes = !showNotificationTypes"></div>
                         </div>
                         <div class="notifications-inner" @scroll="checkScroll" ref="notificationsContainer">
                             <ul v-if="!loadingNotifications && !first && filteredNotifications.length > 0">
-                                <li v-for="notification in filteredNotifications" :class="notification.lido_em ? 'lida' : ''" :key="notification.id">
+                                <li v-for="notification in filteredNotifications"
+                                    :class="notification.lido_em ? 'lida' : ''" :key="notification.id">
                                     <p>{{ notification.titulo }}</p>
                                     <div class="notification-informations">
-                                        <span>{{ notification.descricao }}</span>
+                                        <span :title="notification.descricao">{{ notification.descricao }}</span>
                                         <span>{{ formatDateFromNow(notification.criado_em) }}</span>
                                     </div>
                                 </li>
@@ -55,16 +62,19 @@
                 </div>
                 <span class="material-icons" v-if="false">help</span>
             </div>
-            <div class="notifications-wrapper" v-if="toggleNotifications" v-on:click="handleToggleNotifications()"></div>
+            <div class="notifications-wrapper" v-if="toggleNotifications" v-on:click="handleToggleNotifications()">
+            </div>
         </header>
         <div class="lateral-menu">
             <ul>
-                <li v-for="(item, index) in $root.menuOptions" :key="index" class="menu-item" v-on:click="selectThisItem(item.link)" :id="'menu' + item.link.replace(/\//g, '-')" :class="checkCurrentPathname(item.link) ? 'li-active' : ''">
+                <li v-for="(item, index) in $root.menuOptions" :key="index" class="menu-item"
+                    v-on:click="selectThisItem(item.link)" :id="'menu' + item.link.replace(/\//g, '-')"
+                    :class="checkCurrentPathname(item.link) ? 'li-active' : ''">
                     <router-link :to="item.link">
                         <span class="material-icons">{{ item.icone }}</span>
                         <h3>{{ item.nome }}</h3>
                     </router-link>
-                </li> 
+                </li>
             </ul>
         </div>
         <div class="lateral-menu-wrapper" v-on:click="toggleLateralMenu()"></div>
@@ -101,10 +111,10 @@ export default {
     },
     computed: {
         filteredNotifications: function () {
-            
+
             let filtered = JSON.parse(JSON.stringify(this.notifications)).filter((notification) => {
                 return notification.tipo.indexOf(this.notificationTypeFilter) != -1 &&
-                        ((this.onlyUnseen && notification.lido_em == null) || 
+                    ((this.onlyUnseen && notification.lido_em == null) ||
                         (!this.onlyUnseen && (notification.lido_em != null || notification.lido_em == null)))
             });
 
@@ -169,7 +179,7 @@ export default {
             this.lastNotificationsCount = this.$root.user.status.notifications;
             this.notificationsCount = this.$root.user.status.notifications;
 
-            api.post("/users/get_notifications", { 
+            api.post("/users/get_notifications", {
                 offset: currentOffset
             }).then((response) => {
                 const newNotifications = response.data.returnObj;
@@ -188,7 +198,7 @@ export default {
                         map[notification.tipo] = {
                             tipo_nome: notification.tipo_nome,
                             tipo: notification.tipo,
-                            qtd: 0 
+                            qtd: 0
                         };
                     }
 
@@ -224,7 +234,7 @@ export default {
         },
         handleToggleNotifications: function () {
             this.toggleNotifications = !this.toggleNotifications;
-            
+
             if (this.toggleNotifications) {
                 this.resetNotifications();
             }
@@ -366,8 +376,8 @@ export default {
 }
 </script>
 <style scoped>
-
-header, .lateral-menu {
+header,
+.lateral-menu {
     background: var(--background-color);
 }
 
@@ -384,15 +394,16 @@ header {
     z-index: 4;
 }
 
-.left-content, .right-content {
+.left-content,
+.right-content {
     display: flex;
     align-items: center;
     color: var(--white);
 }
 
-    .left-content img {
-        margin: var(--space-3);
-    }
+.left-content img {
+    margin: var(--space-3);
+}
 
 .responsive-lateral-menu-toggle {
     margin: 0 var(--space-4) 0 var(--space-3);
@@ -410,23 +421,25 @@ header {
     z-index: 3;
 }
 
-    .notifications-container span:first-child, .right-content > span, .responsive-lateral-menu-toggle {
-        font-size: var(--fontsize-lg);
-        cursor: pointer;
-    }
+.notifications-container span:first-child,
+.right-content>span,
+.responsive-lateral-menu-toggle {
+    font-size: var(--fontsize-lg);
+    cursor: pointer;
+}
 
-    .notifications-container .notifications-number {
-        position: absolute;
-        left: -3px;
-        bottom: -3px;
-        background: var(--orange);
-        border-radius: var(--radius-full);
-        width: 20px;
-        height: 20px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
+.notifications-container .notifications-number {
+    position: absolute;
+    left: -3px;
+    bottom: -3px;
+    background: var(--orange);
+    border-radius: var(--radius-full);
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 
 .notifications {
     position: absolute;
@@ -438,11 +451,26 @@ header {
     border-radius: var(--radius-md);
     border: 1px solid var(--cor-destaque);
     z-index: 3;
-    overflow: hidden;
     width: 350px;
-    height: 90dvh;
+    max-height: 90dvh;
     display: flex;
     flex-direction: column;
+
+    scrollbar-width: thin;
+    scrollbar-color: var(--cor-destaque) transparent;
+
+    &::-webkit-scrollbar {
+        width: 6px; 
+    }
+
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background-color: var(--cor-destaque); 
+        border-radius: 20px;
+    }
 
     & ul {
         width: 100%;
@@ -473,14 +501,22 @@ header {
         display: flex;
         align-items: center;
         gap: var(--space-3);
+        width: 100%;
+        white-space: nowrap;
 
         & span {
             font-size: var(--fontsize-xs);
             color: var(--label-color);
             white-space: nowrap;
+            flex-grow: 1;
+            min-width: 0;
+            text-overflow: ellipsis;
+            overflow: hidden;
 
             &:last-child {
                 font-weight: 600;
+                flex-grow: 0;
+                flex-shrink: 0;
             }
         }
     }
@@ -505,41 +541,44 @@ header {
     z-index: 3;
 }
 
-    .lateral-menu h3 {
-        color: var(--label-color);
-    }
+.lateral-menu h3 {
+    color: var(--label-color);
+}
 
-    .lateral-menu ul {
-        margin: 0;
-        padding: var(--space-3) 0;
-        list-style-type: none;
-        height: 100%;
-        overflow-y: auto;
-    }
+.lateral-menu ul {
+    margin: 0;
+    padding: var(--space-3) 0;
+    list-style-type: none;
+    height: 100%;
+    overflow-y: auto;
+}
 
-        .lateral-menu ul li {
-            margin: var(--space-2) auto;
-            width: 90%;
-        }
+.lateral-menu ul li {
+    margin: var(--space-2) auto;
+    width: 90%;
+}
 
-        .lateral-menu ul li a {
-            padding: var(--space-4);
-            width: 100%;
-        }
+.lateral-menu ul li a {
+    padding: var(--space-4);
+    width: 100%;
+}
 
-        .lateral-menu ul li, .lateral-menu ul li a {
-            display: flex;
-            cursor: pointer;
-            color: var(--label-color);
-            border-radius: var(--radius-md);
-        }   
+.lateral-menu ul li,
+.lateral-menu ul li a {
+    display: flex;
+    cursor: pointer;
+    color: var(--label-color);
+    border-radius: var(--radius-md);
+}
 
-            .lateral-menu ul li:hover, .li-active {
-                color: var(--label-hover-color);
-                background: var(--cor-destaque);
-            }
+.lateral-menu ul li:hover,
+.li-active {
+    color: var(--label-hover-color);
+    background: var(--cor-destaque);
+}
 
-.lateral-menu-wrapper, .notifications-wrapper {
+.lateral-menu-wrapper,
+.notifications-wrapper {
     position: fixed;
     top: 80px;
     left: 260px;
@@ -583,24 +622,24 @@ header {
     display: none;
 }
 
-    .profile-menu-container ul {
-        margin: 0;
-        padding: 0;
-        list-style-type: none;
-    }
+.profile-menu-container ul {
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
+}
 
-        .profile-menu-container ul li {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: var(--space-2) var(--space-6);
-        }
+.profile-menu-container ul li {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-2) var(--space-6);
+}
 
-            .profile-menu-container ul li:hover {
-                color: var(--label-hover-color);
-                background: var(--cor-destaque);
-                cursor: pointer;
-            }
+.profile-menu-container ul li:hover {
+    color: var(--label-hover-color);
+    background: var(--cor-destaque);
+    cursor: pointer;
+}
 
 .profile-menu-wrapper {
     width: 100vw;
@@ -636,15 +675,16 @@ header {
     right: var(--space-3);
     top: 46px;
     z-index: 3;
-    max-height: 80dvh;    
+    max-height: 80dvh;
     border-radius: var(--radius-md);
     overflow-y: auto;
 
     & li {
         background: white !important;
-        color: var(--black) !important; 
+        color: var(--black) !important;
 
-        &:hover, &.selected-type {
+        &:hover,
+        &.selected-type {
             background: rgb(204, 204, 204) !important;
         }
     }
@@ -659,27 +699,27 @@ header {
     height: 100vh;
 }
 
-    .type {
-        padding: var(--space-3);
-        border-radius: var(--radius-md);
-    }
+.type {
+    padding: var(--space-3);
+    border-radius: var(--radius-md);
+}
 
-    .type.selected-type {
-        background: var(--cor-destaque);
-    }
+.type.selected-type {
+    background: var(--cor-destaque);
+}
 
-        .type span {
-            font-size: var(--fontsize-sm) !important;
-        }
+.type span {
+    font-size: var(--fontsize-sm) !important;
+}
 
-        .type.selected-type span {
-            font-weight: bold;
-        }
+.type.selected-type span {
+    font-weight: bold;
+}
 
 .empty-notifications {
     text-align: center;
     font-size: var(--fontsize-sm) !important;
-    margin-top: var(--space-6);
+    margin: var(--space-6) 0;
 }
 
 @media (max-width: 768px) {
@@ -699,5 +739,4 @@ header {
         display: none;
     }
 }
-
 </style>
