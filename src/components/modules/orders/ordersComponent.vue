@@ -1,14 +1,14 @@
 <template>
     <div class="orders-component">
         <div class="page-title">
-            <h1>Pedidos</h1>
+            <h1>Vendas</h1>
         </div>  
         <actionButtons add_text="ADICIONAR PEDIDO" exclude_text="CANCELAR PEDIDO" edit_text="EDITAR PEDIDO" :disabledbuttons="disabledButtons" @add="addOrder()" @exclude="cancelOrder()" @edit="editOrder()" />
         <div class="dishes-container">
             <div class="filter-container-header">
-                <h2>Lista de pedidos</h2>
+                <h2>Lista de vendas</h2>
             </div>
-            <dataTable :dataobj="orders" rowsperpage="7" searchText="pedido" :loaded="contentLoaded">
+            <dataTable :dataobj="orders" rowsperpage="7" searchText="item" :loaded="contentLoaded">
                 <grid-column prop="comanda" label="Nº Comanda" align="center" v-slot="props"> 
                     <p class="clicable" v-on:click="selectRow($event)">{{ props.item.comanda }}</p>
                 </grid-column>
