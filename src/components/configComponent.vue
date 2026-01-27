@@ -34,6 +34,7 @@
                 <shippingConfig v-if="showSections.shippingConfig" @cancel="resetConfigOptions"></shippingConfig>
                 <systemData v-if="showSections.systemData" @cancel="resetConfigOptions"></systemData>
                 <systemLinkedCompanies v-if="showSections.systemLinkedCompanies"></systemLinkedCompanies>
+                <systemPreferences v-if="showSections.systemPreferences"></systemPreferences>
             </div>
         </div>
     </div>
@@ -50,6 +51,7 @@ import reservationPreferences from "./config/reservationPreferences.vue";
 import shippingConfig from "./config/shippingConfig.vue";
 import systemData from "./config/systemData.vue";
 import systemLinkedCompanies from "./config/systemLinkedCompanies.vue";
+import systemPreferences from "./config/systemPreferences.vue";
 
 export default {
     name: "configComponent",
@@ -104,6 +106,11 @@ export default {
                             id: 2,
                             name: "Empresas vinculadas",
                             link: "systemLinkedCompanies"
+                        },
+                        {
+                            id: 3,
+                            name: "Preferências do sistema",
+                            link: "systemPreferences"
                         }
                     ]
                 },
@@ -166,7 +173,8 @@ export default {
                 reservationPreferences: false,
                 shippingConfig: false,
                 systemData: false,
-                systemLinkedCompanies: false
+                systemLinkedCompanies: false,
+                systemPreferences: false
             }
         }
     },
@@ -234,7 +242,8 @@ export default {
         reservationPreferences,
         shippingConfig,
         systemData,
-        systemLinkedCompanies
+        systemLinkedCompanies,
+        systemPreferences
     }
 }
 </script>
