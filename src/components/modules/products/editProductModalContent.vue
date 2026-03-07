@@ -261,7 +261,7 @@ export default {
         returnDishesCategories: function () {
             let self = this;
 
-            api.post("/products/categories", { filters: {} }).then((response) => {
+            api.post("/products/categories", {}).then((response) => {
                 self.dishes_categories = response.data.returnObj;
             }).catch((error) => {
                 console.log(error);
