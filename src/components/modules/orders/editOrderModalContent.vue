@@ -468,6 +468,8 @@ export default {
                 self.cliente_id = self.order.id_cliente;
                 self.cliente_desconto = self.order.porcentagem_desconto;
 
+                self.delivery_amount = self.formatCurrency(self.order.valor_entrega || 0);
+
                 let originalObj = self.order;
                 let frozenObj = JSON.parse(JSON.stringify(originalObj));
 
