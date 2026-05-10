@@ -2,8 +2,9 @@ import axios from 'axios'
 
 let url_api;
 
-const dev_environment = "http://192.168.15.167:3000/"; //Ambiente de desenvolvimento.
-const publish_environment = "https://gourmetech-coreteste-5d758e07e0da.herokuapp.com/"; //Ambiente de teste ou produção.
+const dev_environment = "http://192.168.0.4:3000/"; //Ambiente de desenvolvimento.
+const test_environment = "https://gourmetech-coreteste-5d758e07e0da.herokuapp.com/"; //Ambiente de teste ou produção.
+const publish_environment = "https://gourmetech-core-46715094ffeb.herokuapp.com/"; //Ambiente de teste ou produção.
 // TROCA DO AMBIENTE DA API
 //
 // O parâmetro que deverá ser informado será 0 ou 1, sendo que:
@@ -30,6 +31,9 @@ switch (ambient) {
         break;
     case 1: 
         url_api = test_environment;
+        break;
+    case 2: 
+        url_api = publish_environment;
         break;
 }
 
