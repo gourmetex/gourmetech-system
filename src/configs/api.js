@@ -2,12 +2,8 @@ import axios from 'axios'
 
 let url_api;
 
-const dev_environment = "http://localhost:3000/"; //Ambiente de desenvolvimento.
-const test_environment = "https://gourmetech-coreteste-5d758e07e0da.herokuapp.com/"; //Ambiente de teste ou produção.
-
-// https://gourmetech-coreteste-5d758e07e0da.herokuapp.com/  --  ambiente de teste
-// https://gourmetech-core-46715094ffeb.herokuapp.com/       --  ambiente de produção         
-
+const dev_environment = "http://192.168.15.167:3000/"; //Ambiente de desenvolvimento.
+const publish_environment = "https://gourmetech-coreteste-5d758e07e0da.herokuapp.com/"; //Ambiente de teste ou produção.
 // TROCA DO AMBIENTE DA API
 //
 // O parâmetro que deverá ser informado será 0 ou 1, sendo que:
