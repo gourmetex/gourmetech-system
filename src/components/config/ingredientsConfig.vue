@@ -1,0 +1,128 @@
+<template>
+    <div class="ingredients-config">
+        <div class="filters">
+            <form id="filter-form" @submit.prevent="search()">
+                <div class="filter-field">
+                    <label for="categoria">Categoria</label>
+                    <select id="categoria" name="categoria">
+                        <option value="">* Selecione *</option>
+                        <option v-for="(category, index) in ingredients_categories" :key="index" :value="category.id">{{
+                            category.nome }}</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Buscar</button>
+            </form>
+        </div>
+        <dataTable :dataobj="ingredients" :loaded="loaded" rowsperpage="7" searchText="">
+            <grid-column prop="id" label="ID" align="center" v-slot="props">
+                <p class="clicable text-center" @click="selectRow($event)">{{ props.item.id }}</p>
+            </grid-column>
+            <grid-column prop="nome" label="Nome"></grid-column>
+            <grid-column prop="categoria" label="Categoria"></grid-column>
+            <grid-column prop="unidade_medida" label="Unidade de Medida"></grid-column>
+        </dataTable>
+        <div class="edit-buttons">
+            <button type="button" class="rounded-btn btn-primary" v-on:click="createNewIngredient()">
+                <span class="material-icons">add</span>
+            </button>
+            <div class="dynamic-edit-buttons">
+                <button type="button" class="rounded-btn btn-red" v-on:click="deleteIngredient()">
+                    <span class="material-icons">delete</span>
+                </button>
+                <button type="button" class="rounded-btn btn-yellow" v-on:click="editIngredient()">
+                    <span class="material-icons">edit</span>
+                </button>
+            </div>
+        </div>
+        <modal v-if="showModal" :modaltitle="modalTitle" :modalbutton1="modalButton1"
+            :excludepath="'/products/ingredients/' + editId" :modalbutton2="modalButton2" :modalbutton3="modalButton3"
+            @closeModal="closeModalFunction(); returnAllIngredients();">
+            <editIngredientModalContent v-if="showEditIngredientModalContent" :ingredientid="editId"
+                @savedContent="closeModalFunction(); returnAllIngredients();"></editIngredientModalContent>
+        </modal>
+    </div>
+</template>
+<script>
+import dataTable from "../dataTable.vue";
+import { globalMethods } from "@/js/globalMethods";
+import modal from "../modal.vue";
+import editIngredientModalContent from "./editIngredientModalContent.vue";
+import api from "../../configs/api";
+import $ from 'jquery';
+
+export default {
+    name: "ingredientsConfig",
+    mixins: [globalMethods],
+    data() {
+        return {
+            ingredients: [],
+            gridOptions: [],
+            editId: null,
+            showEditIngredientModalContent: false,
+            filters: [],
+            ingredients_categories: [],
+            loaded: false
+        }
+    },
+    methods: {
+        search: function () {
+            let data = $("#filter-form").serializeArray().reduce(function (obj, item) { // Pega todos os dados do formulário e coloca em um objeto.
+                obj[item.name] = item.value;
+                return obj;
+            }, {});
+            this.filters = data;
+            this.returnAllIngredients();
+        },
+        deleteIngredient: function () {
+            this.showModalFunction("Excluir componente", "Excluir", "Cancelar");
+        },
+        createNewIngredient: function () {
+            this.showModalFunction("Cadastrar componente", "Salvar", "Cancelar");
+            this.showEditIngredientModalContent = true;
+            this.editId = null;
+        },
+        editIngredient: function () {
+            this.showModalFunction("Editar componente", "Salvar", "Cancelar");
+            this.showEditIngredientModalContent = true;
+        },
+        returnIngredientsCategories: function () {
+            let self = this;
+
+            self.loaded = false;
+
+            api.get("/products/ingredient_categories").then((response) => {
+                self.ingredients_categories = response.data.returnObj;
+                self.loading = true;
+            }).catch((error) => {
+                console.log(error);
+            })
+        },
+        returnAllIngredients: function () {
+            let self = this;
+
+            let data = {
+                filters: self.filters
+            }
+
+            self.loaded = false;
+
+            api.post("/products/ingredients", data).then((response) => {
+                self.ingredients = response.data.returnObj;
+                self.loaded = true;
+            }).catch((error) => {
+                console.log(error);
+            })
+        }
+    },
+    mounted: function () {
+        this.returnIngredientsCategories();
+        this.returnAllIngredients();
+    },
+    components: {
+        dataTable,
+        editIngredientModalContent,
+        modal
+    }
+}
+</script>
+<style scoped></style>

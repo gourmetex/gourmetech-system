@@ -1,6 +1,10 @@
 import Vue from 'vue';
 import router from '../src/routes/router.js';
 import App from './App.vue';
+import * as VueGoogleMaps from 'vue2-google-maps';
+import { GridColumn } from './components/dataTable.vue'; 
+
+Vue.component('grid-column', GridColumn);
 
 // This callback runs before every route change, including on page load.
 router.beforeEach((to, from, next) => {
@@ -46,9 +50,19 @@ router.beforeEach((to, from, next) => {
   next();
 });
 
-Vue.config.productionTip = false
+Vue.config.productionTip = false;
+
+Vue.use(VueGoogleMaps, {
+  load: {
+    key: 'AIzaSyBvmx0TID9yJiIQ6siePW-OZnlKX6AkoRA',
+    libraries: 'places', // necessário se você estiver usando a biblioteca Places
+  },
+});
 
 new Vue({
+  data: {
+    user: null
+  },
   router,
   render: h => h(App),
 }).$mount('#app')
