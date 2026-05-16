@@ -21,6 +21,9 @@
                     <p class="ellipsis" :title="props.item.descricao">{{ props.item.descricao }}</p>
                 </grid-column>
                 <grid-column prop="preco" label="Preço"></grid-column>
+                <grid-column prop="a_granel" label="A granel" align="center" v-slot="props">
+                    <p class="text-center">{{ props.item.a_granel == 1 ? "Sim" : "Não" }}</p>
+                </grid-column>
                 <grid-column prop="categoria" label="Categoria" align="center" v-slot="props">
                     <newBadge :background="props.item.cor" :text="props.item.nome_categoria" class="text-center" />
                 </grid-column>

@@ -19,6 +19,10 @@
                     <label for="preco">Preço</label>
                     <input type="text" name="preco" id="preco" @input="inputMoneyCheck($event)" required>
                 </div>
+                <div class="form-group check-group">
+                    <input type="checkbox" id="a_granel" v-model="dish.a_granel">
+                    <label for="a_granel">Produto a granel</label>
+                </div>
             </div>
             <div class="form-group">
                 <label for="descricao">Descrição</label>
@@ -38,7 +42,7 @@
                 </grid-column>
             </dataTable>
             <div class="edit-buttons buttons-vertical">
-                <button type="button" class="rounded-btn btn-primary" v-on:click="addIngredient()">
+                <button type="button" class="rounded-btn btn-primary" v-on:click="addIngredient()" :disabled="dish.a_granel && dish.ingredientes.length >= 1">
                     <span class="material-icons">add</span>
                 </button>
                 <div class="dynamic-edit-buttons">
@@ -63,11 +67,15 @@
                         </option>
                     </select>
                 </div>
-                <div class="form-group">
+                <div class="form-group" v-if="!dish.a_granel">
                     <label for="quantity">Quantidade {{ selected_ingredient_measure_unit != "" ?
                         `(${selected_ingredient_measure_unit})` : "" }}</label>
                     <input type="text" name="quantity" id="quantity" required v-model="quantity"
                         @keypress="formatDecimalValues(quantity)">
+                </div>
+                <div class="form-group" v-else>
+                    <label>Unidade de venda</label>
+                    <input type="text" :value="selected_ingredient_measure_unit || 'Selecione um item'" disabled>
                 </div>
                 <button type="submit" class="btn btn-primary w-100">Salvar</button>
             </form>
@@ -102,7 +110,24 @@ export default {
                 categoria: "",
                 preco: null,
                 ingredientes: [],
-                imagem: ""
+                imagem: "",
+                a_granel: false
+            }
+        }
+    },
+    watch: {
+        "dish.a_granel": function (isBulk) {
+            if (isBulk && this.dish.ingredientes.length > 1) {
+                this.dish.ingredientes = this.dish.ingredientes.slice(0, 1);
+                this.ingredients_list = this.ingredients_list.slice(0, 1).map((ingredient) => ({
+                    ...ingredient,
+                    quantidade: 1
+                }));
+            }
+
+            if (isBulk && this.ingredients_list.length == 1) {
+                this.ingredients_list[0].quantidade = 1;
+                this.dish.ingredientes[0].quantidade = 1;
             }
         }
     },
@@ -110,7 +135,7 @@ export default {
         deleteIngredient: function () {
             let self = this;
 
-            if (self.dish.ingredientes.length == 1) {
+            if (self.dish.ingredientes.length == 1 && !self.dish.a_granel) {
                 this.editId = null;
                 return;
             }
@@ -120,16 +145,23 @@ export default {
         },
         submitAddIngredient: function () {
             this.selectThisIngredient();
+            let ingredientQuantity = this.dish.a_granel ? 1 : this.formatDecimalValues(this.quantity);
+
+            if (!this.selected_ingredient.id || ingredientQuantity <= 0) {
+                this.setResponse("Informe um item valido", "error");
+                return;
+            }
 
             let newIngredientGrid = {
                 id: this.selected_ingredient.id,
                 nome: this.selected_ingredient.nome,
-                quantidade: this.quantity + " " + this.selected_ingredient_measure_unit
+                quantidade: ingredientQuantity,
+                unidade_medida: this.selected_ingredient_measure_unit
             }
 
             let newIngredient = {
                 id: this.selected_ingredient.id,
-                quantidade: this.quantity
+                quantidade: ingredientQuantity
             }
 
             if (this.dish.ingredientes.length == 0 || !this.dish.ingredientes.some(obj => obj.id == this.selected_ingredient.id)) {
@@ -147,7 +179,7 @@ export default {
                 let currentIngredient = this.dish.ingredientes[i];
                 let newIngredient = {
                     id: currentIngredient.id,
-                    quantidade: parseInt(currentIngredient.quantidade)
+                    quantidade: parseFloat(currentIngredient.quantidade)
                 }
 
                 this.ingredients_list.push(newIngredient);
@@ -166,6 +198,11 @@ export default {
             }
         },
         addIngredient: function () {
+            if (this.dish.a_granel && this.dish.ingredientes.length >= 1) {
+                this.setResponse("Produto a granel deve ter somente um ingrediente", "error");
+                return;
+            }
+
             this.openSmallModal();
         },
         readFile: function () {
@@ -192,7 +229,10 @@ export default {
                 return;
             }
 
-            self.savingDish = true;
+            if (this.dish.a_granel && this.ingredients_list.length != 1) {
+                this.setResponse("Produto a granel deve ter somente um ingrediente", "error");
+                return;
+            }
 
             const imageInput = document.getElementById('product-image');
             const file = imageInput?.files[0];
@@ -203,8 +243,13 @@ export default {
 
             let precoField = fields.find(obj => obj.name == "preco");
 
-            if (this.formatDecimalValues(precoField.value) < 5) {
+            if (!this.dish.a_granel && this.formatDecimalValues(precoField.value) < 5) {
                 this.setResponse("O preço mínimo do produto é R$ 5,00", "error");
+                return;
+            }
+
+            if (this.dish.a_granel && this.formatDecimalValues(precoField.value) <= 0) {
+                this.setResponse("O preco do produto a granel deve ser maior que zero", "error");
                 return;
             }
 
@@ -213,6 +258,7 @@ export default {
             });
 
             formData.append("ingredientes", JSON.stringify(self.ingredients_list));
+            formData.append("a_granel", self.dish.a_granel ? "1" : "0");
 
             if (file) {
                 formData.append("product_image", file);
@@ -224,6 +270,8 @@ export default {
             if (self.dishid != null) {
                 path = "edit_product/" + self.dishid;
             }
+
+            self.savingDish = true;
 
             api.post("/products/" + path, formData, {
                 headers: {
@@ -251,6 +299,7 @@ export default {
 
             api.get("/products/" + self.dishid).then((response) => {
                 self.dish = response.data.returnObj;
+                self.dish.a_granel = self.dish.a_granel == 1;
                 self.contentLoaded = true;
                 self.fillSubmitIngredients();
                 $("#preco").val(self.formatCurrency(self.dish.preco));
@@ -306,5 +355,16 @@ export default {
         margin: auto;
         margin-top: var(--space-4);
     }
+}
+
+.check-group {
+    align-items: center;
+    display: flex;
+    flex-direction: row;
+    gap: var(--space-2);
+}
+
+.check-group input {
+    width: auto;
 }
 </style>

@@ -23,7 +23,9 @@
                         <p class="clicable text-center" @click="selectRow($event)">{{ props.item.id }}</p>
                     </grid-column>
                     <grid-column prop="nome" label="Nome do Item"></grid-column>
-                    <grid-column prop="quantidade" label="Qtd" align="center"></grid-column>
+                    <grid-column prop="quantidade" label="Qtd" align="center" v-slot="props">
+                        <p class="text-center">{{ formatDishQuantity(props.item) }}</p>
+                    </grid-column>
                     <grid-column prop="observacoes" label="OBS"></grid-column>
                     <grid-column prop="preco" label="Valor do Item"></grid-column>
                     <grid-column prop="status" label="Status"></grid-column>
@@ -72,15 +74,15 @@
             <form class="add-dish" id="informations-form" @submit.prevent="submitAddDish()">
                 <div class="form-group">
                     <label for="item">Item</label>
-                    <select name="item" id="item" required>
+                    <select name="item" id="item" required @change="selectThisDish()">
                         <option value="">* Selecione *</option>
                         <option :value="item.id" v-for="(item, index) in dishes_list" :key="index">{{ item.nome }} {{
                             item.disponivel == 1 ? "" : "(Indisponível)" }}</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="quantidade">Quantidade</label>
-                    <input type="number" name="quantidade" v-model="quantity" id="quantidade" required>
+                    <label for="quantidade">Quantidade {{ selectedDishUnitLabel }}</label>
+                    <input type="number" name="quantidade" v-model="quantity" id="quantidade" :step="selected_dish.a_granel == 1 ? '0.001' : '1'" min="0.001" required>
                 </div>
                 <div class="form-group">
                     <label for="observacoes">Observações</label>
@@ -170,6 +172,13 @@ export default {
                 style: 'currency',
                 currency: 'BRL'
             });
+        },
+        selectedDishUnitLabel() {
+            if (this.selected_dish?.a_granel == 1 && this.selected_dish?.unidade_medida_granel) {
+                return `(${this.selected_dish.unidade_medida_granel})`;
+            }
+
+            return "";
         }
     },
     watch: {
@@ -190,6 +199,24 @@ export default {
         }
     },
     methods: {
+        normalizeDishQuantity: function (quantity, dish = {}) {
+            let normalizedQuantity = parseFloat(quantity);
+
+            if (isNaN(normalizedQuantity) || normalizedQuantity <= 0) {
+                return 0;
+            }
+
+            return dish.a_granel == 1 ? normalizedQuantity : parseInt(normalizedQuantity);
+        },
+        formatDishQuantity: function (dish) {
+            let quantity = parseFloat(dish.quantidade || dish.quantity || 0);
+
+            if (dish.a_granel == 1) {
+                return `${quantity.toLocaleString('pt-BR', { maximumFractionDigits: 3 })} ${dish.unidade_medida_granel || ""}`.trim();
+            }
+
+            return parseInt(quantity);
+        },
         calculateOrderTotal: function () {
             let total = this.order_total;
             let desconto = ((parseInt(this.cliente_desconto) / 100) * total).toFixed(2);
@@ -233,8 +260,9 @@ export default {
 
             this.selectThisDish();
             this.resetResponse();
+            let requestedQuantity = this.normalizeDishQuantity(this.quantity, this.selected_dish);
 
-            if (this.quantity == 0 || this.selected_dish.disponivel != 1) {
+            if (requestedQuantity <= 0 || this.selected_dish.disponivel != 1) {
                 this.disposeSelectedDishAndCloseSmallModal();
                 return;
             }
@@ -245,7 +273,9 @@ export default {
             if (dishObservations != null && dishObservations.trim() != "") {
                 dishObservations += ", " + this.observations;
             } else {
-                for (let i = 0; i < parseInt(this.quantity); i++) {
+                let observationRepeats = this.selected_dish.a_granel == 1 ? 1 : parseInt(requestedQuantity);
+
+                for (let i = 0; i < observationRepeats; i++) {
                     if (i == 0) {
                         dishObservations = this.observations;
                     } else {
@@ -259,20 +289,22 @@ export default {
             let newDishGrid = {
                 id: this.selected_dish.id,
                 nome: this.selected_dish.nome,
-                quantidade: this.quantity,
+                quantidade: requestedQuantity,
                 observacoes: gridDishObservations,
                 preco: this.selected_dish.preco,
-                status: "Preparando"
+                status: "Preparando",
+                a_granel: this.selected_dish.a_granel,
+                unidade_medida_granel: this.selected_dish.unidade_medida_granel
             }
 
             let selectedDishHaveInGrid = this.order.dishes.some(obj => obj.id == this.selected_dish.id);
 
-            let accumulatedQuantity = this.quantity;
+            let accumulatedQuantity = requestedQuantity;
 
             if (this.order.dishes.length != 0 && selectedDishHaveInGrid) {
                 this.order.dishes.map(obj => {
                     if (obj.id == this.selected_dish.id) {
-                        accumulatedQuantity = (parseInt(obj.quantidade) + parseInt(this.quantity)).toString();
+                        accumulatedQuantity = this.normalizeDishQuantity(obj.quantidade, obj) + requestedQuantity;
                     }
                 })
             }
@@ -297,7 +329,7 @@ export default {
                     self.order.dishes.pop();
                 }
 
-                let total_value = (self.formatDecimalValues(newDishGrid.preco) * parseFloat(self.quantity));
+                let total_value = (self.formatDecimalValues(newDishGrid.preco) * requestedQuantity);
                 self.order_total += total_value;
 
                 self.observations = "";
