@@ -217,6 +217,21 @@ export default {
 
             return parseInt(quantity);
         },
+        dishPriceFactor: function (dish) {
+            if (dish?.a_granel != 1) {
+                return 1;
+            }
+
+            let factor = parseFloat(dish.fator_preco_granel || 1);
+
+            return factor > 0 ? factor : 1;
+        },
+        dishLineTotal: function (dish, quantity = null) {
+            let price = this.formatDecimalValues(dish.preco) || 0;
+            let dishQuantity = quantity == null ? this.normalizeDishQuantity(dish.quantidade || dish.quantity, dish) : this.normalizeDishQuantity(quantity, dish);
+
+            return Math.round(((price * dishQuantity) / this.dishPriceFactor(dish)) * 100) / 100;
+        },
         calculateOrderTotal: function () {
             let total = this.order_total;
             let desconto = ((parseInt(this.cliente_desconto) / 100) * total).toFixed(2);
@@ -243,7 +258,7 @@ export default {
             let excludedDish = self.order.dishes.find(obj => obj.id == self.editId);
 
             self.order.dishes = self.order.dishes.filter(obj => obj.id !== self.editId);
-            let item_value = (this.formatDecimalValues(excludedDish.preco) * parseFloat(excludedDish.quantidade));
+            let item_value = this.dishLineTotal(excludedDish);
 
             this.order_total -= item_value;
             this.editId = null;
@@ -294,7 +309,9 @@ export default {
                 preco: this.selected_dish.preco,
                 status: "Preparando",
                 a_granel: this.selected_dish.a_granel,
-                unidade_medida_granel: this.selected_dish.unidade_medida_granel
+                unidade_medida_granel: this.selected_dish.unidade_medida_granel,
+                unidade_preco_granel: this.selected_dish.unidade_preco_granel,
+                fator_preco_granel: this.selected_dish.fator_preco_granel
             }
 
             let selectedDishHaveInGrid = this.order.dishes.some(obj => obj.id == this.selected_dish.id);
@@ -329,7 +346,7 @@ export default {
                     self.order.dishes.pop();
                 }
 
-                let total_value = (self.formatDecimalValues(newDishGrid.preco) * requestedQuantity);
+                let total_value = self.dishLineTotal(newDishGrid, requestedQuantity);
                 self.order_total += total_value;
 
                 self.observations = "";

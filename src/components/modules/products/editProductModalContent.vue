@@ -12,7 +12,7 @@
                         placeholder="Selecione a categoria..." />
                 </div>
                 <div class="form-group">
-                    <label for="preco">Preço</label>
+                    <label for="preco">{{ priceFieldLabel }}</label>
                     <input type="text" name="preco" id="preco" @input="inputMoneyCheck($event)" required>
                 </div>
             </div>
@@ -113,6 +113,18 @@ export default {
             }
         }
     },
+    computed: {
+        priceFieldLabel() {
+            if (!this.dish.a_granel) {
+                return "Preço";
+            }
+
+            let unit = this.dish.ingredientes?.[0]?.unidade_medida || this.selected_ingredient_measure_unit || "";
+            let priceUnit = this.bulkPriceUnitFromMeasure(unit);
+
+            return priceUnit ? `Preço por ${priceUnit}` : "Preço por unidade de venda";
+        }
+    },
     watch: {
         "dish.a_granel": function (isBulk) {
             if (isBulk && this.dish.ingredientes.length > 1) {
@@ -130,6 +142,15 @@ export default {
         }
     },
     methods: {
+        bulkPriceUnitFromMeasure: function (unit) {
+            const unitMap = {
+                g: "kg",
+                mL: "L",
+                mg: "g"
+            };
+
+            return unitMap[unit] || unit;
+        },
         deleteIngredient: function () {
             let self = this;
 
