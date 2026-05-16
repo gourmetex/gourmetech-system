@@ -8,12 +8,8 @@
                 </div>
                 <div class="form-group">
                     <label for="categoria">Categoria</label>
-                    <SearchableSelect 
-                        :options="dishes_categories" 
-                        v-model="dish.categoria"
-                        name="categoria" 
-                        placeholder="Selecione a categoria..."
-                    />
+                    <SearchableSelect :options="dishes_categories" v-model="dish.categoria" name="categoria"
+                        placeholder="Selecione a categoria..." />
                 </div>
                 <div class="form-group">
                     <label for="preco">Preço</label>
@@ -42,7 +38,8 @@
                 </grid-column>
             </dataTable>
             <div class="edit-buttons buttons-vertical">
-                <button type="button" class="rounded-btn btn-primary" v-on:click="addIngredient()" :disabled="dish.a_granel && dish.ingredientes.length >= 1">
+                <button type="button" class="rounded-btn btn-primary" v-on:click="addIngredient()"
+                    :disabled="dish.a_granel && dish.ingredientes.length >= 1">
                     <span class="material-icons">add</span>
                 </button>
                 <div class="dynamic-edit-buttons">
@@ -54,7 +51,8 @@
         </div>
         <div class="product-imagem-container">
             <h3>Imagem do produto</h3>
-            <input type="file" name="product_image" @change="readFile()" id="product-image" accept=".jpg, .jpeg, .png">
+            <input type="file" name="product_image" @change="readFile()" id="product-image"
+                accept="image/jpeg, image/png, image/webp" />
             <img :src="dish.imagem">
         </div>
         <div class="small-modal">
