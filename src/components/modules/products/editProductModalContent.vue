@@ -15,10 +15,10 @@
                     <label for="preco">Preço</label>
                     <input type="text" name="preco" id="preco" @input="inputMoneyCheck($event)" required>
                 </div>
-                <div class="form-group check-group">
-                    <input type="checkbox" id="a_granel" v-model="dish.a_granel">
-                    <label for="a_granel">Produto a granel</label>
-                </div>
+            </div>
+            <div class="form-group check-group">
+                <input type="checkbox" id="a_granel" v-model="dish.a_granel">
+                <label for="a_granel">Produto a granel</label>
             </div>
             <div class="form-group">
                 <label for="descricao">Descrição</label>
