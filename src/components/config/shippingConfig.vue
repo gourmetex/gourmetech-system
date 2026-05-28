@@ -5,7 +5,13 @@
             <input type="text" name="tax" id="tax" @input="inputMoneyCheck($event)" required>
         </div>
         <div class="map-container" v-if="mapLoaded">
-            <mapComponent :radiuskm="config.radiuskm" :center="config.center" :blockmovement="true" @changerangevalue="newRadius = $event"></mapComponent>
+            <mapComponent
+                :radiuskm="config.radiuskm"
+                :center="config.center"
+                :blockmovement="false"
+                @changerangevalue="newRadius = $event"
+                @changecenter="newCenter = $event"
+            ></mapComponent>
         </div>
         <p class="response">{{ response }}</p>
         <div class="footer">
@@ -31,14 +37,16 @@ export default {
                 radiuskm: 5, // 5 km
             },
             mapLoaded: false,
-            newRadius: 5
+            newRadius: 5,
+            newCenter: { lat: -25.427, lng: -49.273 }
         }
     },
     methods: {
         saveShippingConfig: function () {
             let data = {
                 tax: $("#tax").val(),
-                radius: this.newRadius
+                radius: this.newRadius,
+                center: this.newCenter
             }
 
             let self = this;
@@ -54,6 +62,8 @@ export default {
 
             api.get("/shipping/config").then((response) => {
                 self.config = response.data.returnObj;
+                self.newCenter = self.config.center;
+                self.newRadius = self.config.radiuskm;
 
                 if (self.config.tax) {
                     $("#tax").val(self.formatCurrency(self.config.tax));
