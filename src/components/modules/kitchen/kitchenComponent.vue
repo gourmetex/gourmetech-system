@@ -30,7 +30,8 @@ export default {
     mixins: [globalMethods],
     data() {
         return {
-            orders: []
+            orders: [],
+            refreshTimeout: null
         }
     },
     watch: {
@@ -73,7 +74,8 @@ export default {
             }).catch((error) => {
                 console.log(error);
             }).then(() => {
-                setTimeout(() => {
+                clearTimeout(self.refreshTimeout);
+                self.refreshTimeout = setTimeout(() => {
                     self.returnDishes();
                 }, 60 * 1000)
             })
@@ -87,6 +89,9 @@ export default {
     mounted: function () {
         this.returnDishes();
         this.disableActionsButtons(true, true, true);
+    },
+    unmounted: function () {
+        clearTimeout(this.refreshTimeout);
     },
     components: {
         actionButtons,

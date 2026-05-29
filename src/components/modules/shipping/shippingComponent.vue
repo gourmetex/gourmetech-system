@@ -29,7 +29,7 @@
             </dataTable>
         </div>
         <modal v-if="showModal" :modaltitle="modalTitle" :modalbutton1="modalButton1" :confirm="true"
-            @confirmCallback="confirmCallback(); returnShippings();" :confirmtext="confirmText" :modalbutton2="modalButton2"
+            @confirmCallback="handleConfirmCallback()" :confirmtext="confirmText" :modalbutton2="modalButton2"
             :modalButton3="modalButton3" @closeModal="closeModalFunction();"></modal>
     </div>
 </template>
@@ -60,7 +60,7 @@ export default {
             let self = this;
 
             this.confirmCallback = () => {
-                api.patch("/shipping/cancel/" + self.editId);
+                return api.patch("/shipping/cancel/" + self.editId);
             }
         },
         finishShipping: function () {
@@ -70,8 +70,15 @@ export default {
             let self = this;
 
             this.confirmCallback = () => {
-                api.patch("/shipping/finish/" + self.editId);
+                return api.patch("/shipping/finish/" + self.editId);
             }
+        },
+        handleConfirmCallback: function () {
+            Promise.resolve(this.confirmCallback()).then(() => {
+                this.returnShippings();
+            }).catch((error) => {
+                console.log(error);
+            })
         },
         returnShippings: function () {
             let self = this;
