@@ -32,6 +32,7 @@
                 <financialConfig v-if="showSections.financialConfig"></financialConfig>
                 <reservationPreferences v-if="showSections.reservationPreferences" @cancel="resetConfigOptions"></reservationPreferences>
                 <shippingConfig v-if="showSections.shippingConfig" @cancel="resetConfigOptions"></shippingConfig>
+                <shippingDriversConfig v-if="showSections.shippingDriversConfig"></shippingDriversConfig>
                 <systemData v-if="showSections.systemData" @cancel="resetConfigOptions"></systemData>
                 <systemLinkedCompanies v-if="showSections.systemLinkedCompanies"></systemLinkedCompanies>
                 <systemPreferences v-if="showSections.systemPreferences"></systemPreferences>
@@ -49,6 +50,7 @@ import tablesConfig from "./config/tablesConfig.vue";
 import financialConfig from "./config/financialConfig.vue";
 import reservationPreferences from "./config/reservationPreferences.vue";
 import shippingConfig from "./config/shippingConfig.vue";
+import shippingDriversConfig from "./config/shippingDriversConfig.vue";
 import systemData from "./config/systemData.vue";
 import systemLinkedCompanies from "./config/systemLinkedCompanies.vue";
 import systemPreferences from "./config/systemPreferences.vue";
@@ -159,6 +161,11 @@ export default {
                             id: 0,
                             name: "Configurar taxa",
                             link: "shippingConfig"
+                        },
+                        {
+                            id: 1,
+                            name: "Entregadores",
+                            link: "shippingDriversConfig"
                         }
                     ]
                 }
@@ -172,6 +179,7 @@ export default {
                 financialConfig: false,
                 reservationPreferences: false,
                 shippingConfig: false,
+                shippingDriversConfig: false,
                 systemData: false,
                 systemLinkedCompanies: false,
                 systemPreferences: false
@@ -241,6 +249,7 @@ export default {
         financialConfig,
         reservationPreferences,
         shippingConfig,
+        shippingDriversConfig,
         systemData,
         systemLinkedCompanies,
         systemPreferences

@@ -3,8 +3,8 @@
         <div class="page-title">
             <h1>Entregas</h1>
         </div>
-        <actionButtons add_text="FINALIZAR ENTREGA" exclude_text="CANCELAR ENTREGA" :disabledbuttons="disabledButtons"
-            @add="finishShipping()" @exclude="cancelShipping()" />
+        <actionButtons add_text="ENVIAR PARA ENTREGA" exclude_text="CANCELAR ENTREGA" :disabledbuttons="disabledButtons"
+            @add="sendShipping()" @exclude="cancelShipping()" />
         <div class="dishes-container">
             <div class="filter-container-header">
                 <h2>Lista de entregas</h2>
@@ -23,8 +23,11 @@
                 </grid-column>
                 <grid-column prop="status" label="Status" align="center" v-slot="props">
                     <newBadge
-                        :background="props.item.status == 'pendente' ? 'var(--yellow)' : props.item.status == 'cancelado' ? 'var(--red)' : 'var(--green)'"
-                        :text="capitalize(props.item.status)" class="text-center" />
+                        :background="chooseStatusColor(props.item.status)"
+                        :text="formatShippingStatus(props.item.status)" class="text-center" />
+                </grid-column>
+                <grid-column prop="entregador" label="Entregador" v-slot="props">
+                    <p>{{ props.item.entregador || "-" }}</p>
                 </grid-column>
             </dataTable>
         </div>
@@ -63,15 +66,35 @@ export default {
                 return api.patch("/shipping/cancel/" + self.editId);
             }
         },
-        finishShipping: function () {
-            this.confirmText = "Tem certeza que deseja finalizar a entrega?";
-            this.showModalFunction("Finalizar entrega", "Finalizar", "Cancelar");
+        sendShipping: function () {
+            this.confirmText = "Tem certeza que deseja enviar esta entrega para os entregadores?";
+            this.showModalFunction("Enviar para entrega", "Enviar", "Cancelar");
 
             let self = this;
 
             this.confirmCallback = () => {
-                return api.patch("/shipping/finish/" + self.editId);
+                return api.patch("/shipping/send/" + self.editId);
             }
+        },
+        formatShippingStatus: function (status) {
+            const statusMap = {
+                aguardando_envio: "Aguardando envio",
+                em_rota: "Em rota",
+                concluido: "Concluida",
+                cancelado: "Cancelada"
+            };
+
+            return statusMap[status] || this.capitalize(status);
+        },
+        chooseStatusColor: function (status) {
+            const colorMap = {
+                aguardando_envio: "var(--yellow)",
+                em_rota: "var(--blue)",
+                concluido: "var(--green)",
+                cancelado: "var(--red)"
+            };
+
+            return colorMap[status] || "var(--gray)";
         },
         handleConfirmCallback: function () {
             Promise.resolve(this.confirmCallback()).then(() => {
