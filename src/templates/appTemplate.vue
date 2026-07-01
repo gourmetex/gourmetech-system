@@ -85,8 +85,21 @@ export default {
             pageContent.css("left", "0").css("width", "100vw");
         },
         contractContent: function () {
-            //let pageContent = $(".inner-page-system");
-            //pageContent.css("left", "260px").css("width", "calc(100vw - 260px)");
+            let pageContent = $(".inner-page-system");
+            if ($(window).width() > 960) {
+                pageContent.css("left", "260px").css("width", "calc(100vw - 260px)");
+            } else {
+                pageContent.css("left", "0").css("width", "100vw");
+            }
+        },
+        handleResize: function () {
+            let windowWidth = $(window).width();
+
+            if (windowWidth <= 960) {
+                this.expandContent();
+            } else {
+                this.contractContent();
+            }
         },
         initSystemRequests: function () {
             let self = this;
@@ -112,14 +125,10 @@ export default {
 
         self.updateTime();
 
-        $(window).on("resize", () => {
-            let windowWidth = $(window).width();
+        self.handleResize();
 
-            if (windowWidth <= 960) {
-                self.expandContent();
-            } else {
-                self.contractContent();
-            }
+        $(window).on("resize", () => {
+            self.handleResize();
         })
 
         const player = document.querySelector("lottie-player");
@@ -167,7 +176,7 @@ export default {
         margin-top: -50vh;
     }
 
-@media (max-width: 768px) {
+@media (max-width: 960px) {
     .inner-page-system {
         width: 100vw;
         left: 0;
