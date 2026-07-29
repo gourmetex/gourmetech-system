@@ -338,6 +338,22 @@ export default {
             setTimeout(() => {
                 responsiveButton.css("opacity", 1);
             }, 1)
+        },
+        handleResize: function () {
+            let windowWidth = $(window).width();
+
+            if (windowWidth <= 960) {
+                if (this.menuMovement) return;
+
+                this.hideLateralMenu();
+                this.showResponsiveButton();
+            } else {
+                this.showLateralMenu();
+                this.hideResponsiveButton();
+
+                let lateralMenuWrapper = $(".lateral-menu-wrapper");
+                lateralMenuWrapper.hide();
+            }
         }
     },
     mounted: function () {
@@ -355,22 +371,10 @@ export default {
 
         this.selectThisItem(window.location.pathname, true);
 
+        self.handleResize();
+
         $(window).on("resize", () => {
-            let windowWidth = $(window).width();
-
-            if (windowWidth <= 960) {
-                if (this.menuMovement) return;
-
-                self.hideLateralMenu();
-                self.showResponsiveButton();
-            } else {
-                self.showLateralMenu();
-                self.hideResponsiveButton();
-
-                let lateralMenuWrapper = $(".lateral-menu-wrapper");
-
-                lateralMenuWrapper.hide();
-            }
+            self.handleResize();
         })
     }
 }
@@ -722,7 +726,7 @@ header {
     margin: var(--space-6) 0;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 960px) {
     .responsive-lateral-menu-toggle {
         display: block;
         opacity: 1;
