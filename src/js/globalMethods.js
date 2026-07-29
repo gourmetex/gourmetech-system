@@ -210,7 +210,12 @@ export const globalMethods = {
         //Métodos retorno objetos
         searchCEP: function (cep) {
             return new Promise((resolve, reject) => {
-                cep = cep.replace(/\D/g, '');
+                cep = String(cep || '').replace(/\D/g, '');
+
+                if (cep.length !== 8) {
+                    reject(new Error('CEP inválido.'));
+                    return;
+                }
 
                 axios.get(`/api/ws/${cep}/json/`)
                     .then(response => {
@@ -221,13 +226,23 @@ export const globalMethods = {
 
                             resolve(address);
                         } else {
-                            alert('CEP não encontrado!')
+                            reject(new Error('CEP inválido ou não encontrado.'));
                         }
                     })
                     .catch((erro) => {
                         reject(erro);
                     })
             })
+        },
+        geocodeApproximate: function (query) {
+            return axios.get("https://nominatim.openstreetmap.org/search", {
+                params: { format: "jsonv2", limit: 1, countrycodes: "br", q: query }
+            }).then(response => {
+                const result = response.data?.[0];
+                const lat = Number(result?.lat);
+                const lng = Number(result?.lon);
+                return Number.isFinite(lat) && Number.isFinite(lng) ? { lat, lng } : null;
+            }).catch(() => null);
         },
         //Metodos manipulação objetos
         selectRow: function (event) {

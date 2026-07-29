@@ -1,7 +1,7 @@
 <template>
     <div class="map">
         <div ref="map" class="leaflet-map"></div>
-        <div class="radius-control">
+        <div v-if="showradius !== false" class="radius-control">
             <label for="radius">Raio de atuacao (quilometros): </label>
             <input
                 id="radius"
@@ -28,7 +28,7 @@ L.Icon.Default.mergeOptions({
 });
 
 export default {
-    props: ["radiuskm", "center", "blockmovement"],
+    props: ["radiuskm", "center", "blockmovement", "showradius"],
     data() {
         return {
             map: null,
