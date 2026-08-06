@@ -5,18 +5,23 @@
             <div class="form-group-horizontal inputs-50">
                 <div class="form-group" v-if="checkModulePermission('digital_menu')">
                     <label for="mesa">Mesa vinculada</label>
-                    <input type="number" name="mesa" id="mesa" v-model="order.mesa">
+                    <input type="number" name="mesa" id="mesa" v-model="order.mesa" :disabled="isAppOrder">
                 </div>
                 <div class="form-group" :style="checkModulePermission('digital_menu') ? '' : 'width: 100%'">
                     <label for="id_cliente">Nome do cliente</label>
-                    <ajaxAutoComplete @select="setCustomer($event)" ajaxtype="clientes" :entityid="order.id_cliente"
-                        :entityname="order.nome_cliente" :required="true" />
+                    <div :style="isAppOrder ? 'pointer-events: none; opacity: 0.6;' : ''">
+                        <ajaxAutoComplete @select="setCustomer($event)" ajaxtype="clientes" :entityid="order.id_cliente"
+                            :entityname="order.nome_cliente" :required="true" />
+                    </div>
                 </div>
             </div>
             <input type="submit" id="submit-button" style="display: none;">
         </form>
         <div class="order-dishes-container">
             <h3>Itens do pedido</h3>
+            <p class="app-order-readonly-notice" v-if="isAppOrder">
+                Pedido recebido pelo app: itens e pagamentos são somente leitura neste sistema.
+            </p>
             <div class="modal-edit-grid">
                 <dataTable :dataobj="order.dishes" rowsperpage="2" searchText="" :loaded="contentLoaded">
                     <grid-column prop="id" label="Cód. do Item" align="center" v-slot="props">
@@ -26,11 +31,15 @@
                     <grid-column prop="quantidade" label="Qtd" align="center" v-slot="props">
                         <p class="text-center">{{ formatDishQuantity(props.item) }}</p>
                     </grid-column>
-                    <grid-column prop="observacoes" label="OBS"></grid-column>
+                    <grid-column prop="observacoes" label="OBS" maxchars="5" v-slot="props">
+                        <span class="order-observation-cell" :title="getDishObservationTitle(props.item)">
+                            {{ truncateText(formatDishObservationGrid(props.item), 35) }}
+                        </span>
+                    </grid-column>
                     <grid-column prop="preco" label="Valor do Item"></grid-column>
                     <grid-column prop="status" label="Status"></grid-column>
                 </dataTable>
-                <div class="edit-buttons buttons-vertical">
+                <div class="edit-buttons buttons-vertical" v-if="canMutateOrder">
                     <button type="button" class="rounded-btn btn-primary" v-on:click="addDish()">
                         <span class="material-icons">add</span>
                     </button>
@@ -45,7 +54,7 @@
         <div class="order-submit-informations" v-if="payment != false">
             <div class="payment">
                 <div class="payment-inner">
-                    <button class="btn btn-primary" v-on:click="openPaymentModal()">Pagamento</button>
+                    <button class="btn btn-primary" v-if="canMutateOrder" v-on:click="openPaymentModal()">Pagamento</button>
                     <div class="payment-list">
                         <h3>Pix: {{ pix_payment }}</h3>
                         <h3>Cartão: {{ card_payment }}</h3>
@@ -70,7 +79,7 @@
                 </div>
             </div>
         </div>
-        <div class="small-modal" id="modal-dishes">
+        <div class="small-modal" id="modal-dishes" v-if="canMutateOrder">
             <form class="add-dish" id="informations-form" @submit.prevent="submitAddDish()">
                 <div class="form-group">
                     <label for="item">Item</label>
@@ -82,7 +91,7 @@
                 </div>
                 <div class="form-group">
                     <label for="quantidade">Quantidade {{ selectedDishUnitLabel }}</label>
-                    <input type="number" name="quantidade" v-model="quantity" id="quantidade" :step="selected_dish.a_granel == 1 ? '0.001' : '1'" min="0.001" required>
+                    <input type="number" name="quantidade" v-model="quantity" id="quantidade" :step="selectedDishQuantityStep" :min="selectedDishQuantityMin" inputmode="decimal" required>
                 </div>
                 <div class="form-group">
                     <label for="observacoes">Observações</label>
@@ -91,7 +100,7 @@
                 <button type="submit" class="btn btn-primary w-100">Salvar</button>
             </form>
         </div>
-        <div class="small-modal" id="modal-payment">
+        <div class="small-modal" id="modal-payment" v-if="canMutateOrder">
             <form class="add-payment" id="informations-form" @submit.prevent="submitAddPayment()">
                 <div class="form-group">
                     <label for="metodo_pagamento">Método de pagamento</label>
@@ -104,7 +113,7 @@
                 </div>
                 <div class="form-group">
                     <label for="valor_pago">Valor pago</label>
-                    <input type="text" name="valor_pago" id="quantidade" v-model="amount_payed" required>
+                    <input type="text" name="valor_pago" id="valor_pago" v-model="amount_payed" required>
                 </div>
                 <button type="submit" class="btn btn-primary w-100">Adicionar</button>
             </form>
@@ -139,7 +148,8 @@ export default {
                 complement: null,
                 address_name: null,
                 state: null,
-                city: null
+                city: null,
+                from_app: 0
             },
             dishes_list: [],
             selected_dish: [],
@@ -173,8 +183,27 @@ export default {
                 currency: 'BRL'
             });
         },
+        isAppOrder() {
+            return Number(this.order?.from_app) === 1;
+        },
+        canMutateOrder() {
+            if (this.orderid == null) {
+                return true;
+            }
+
+            return this.contentLoaded && !this.isAppOrder;
+        },
+        selectedDishIsBulk() {
+            return Number(this.selected_dish?.a_granel) === 1;
+        },
+        selectedDishQuantityStep() {
+            return this.selectedDishIsBulk ? "0.001" : "1";
+        },
+        selectedDishQuantityMin() {
+            return this.selectedDishIsBulk ? "0.001" : "1";
+        },
         selectedDishUnitLabel() {
-            if (this.selected_dish?.a_granel == 1 && this.selected_dish?.unidade_medida_granel) {
+            if (this.selectedDishIsBulk && this.selected_dish?.unidade_medida_granel) {
                 return `(${this.selected_dish.unidade_medida_granel})`;
             }
 
@@ -199,6 +228,15 @@ export default {
         }
     },
     methods: {
+        rejectAppOrderMutation: function () {
+            if (!this.isAppOrder) {
+                return false;
+            }
+
+            this.closeSmallModal();
+            this.setResponse("Pedidos feitos pelo app não permitem alteração de itens ou pagamentos", "error");
+            return true;
+        },
         normalizeDishQuantity: function (quantity, dish = {}) {
             let normalizedQuantity = parseFloat(quantity);
 
@@ -216,6 +254,64 @@ export default {
             }
 
             return parseInt(quantity);
+        },
+        truncateText: function (text, maxChars = 35) {
+            let normalizedText = text == null ? "" : text.toString();
+            let limit = parseInt(maxChars);
+
+            if (!limit || normalizedText.length <= limit) {
+                return normalizedText;
+            }
+
+            if (limit <= 3) {
+                return normalizedText.substring(0, limit);
+            }
+
+            return `${normalizedText.substring(0, limit - 3).trimEnd()}...`;
+        },
+        formatDishObservationGrid: function (dish) {
+            let observations = dish?.observacoes == null ? "" : dish.observacoes.toString().trim();
+
+            if (observations == "") {
+                return "";
+            }
+
+            if (dish?.a_granel == 1) {
+                return observations;
+            }
+
+            let dishQuantity = parseInt(this.normalizeDishQuantity(dish.quantidade || dish.quantity || 0, dish));
+
+            if (!dishQuantity || dishQuantity <= 0) {
+                return observations;
+            }
+
+            return observations
+                .split(",")
+                .map((observation) => observation.trim())
+                .filter((observation) => observation != "")
+                .map((observation) => {
+                    let quantityPrefix = observation.match(/^(\d+)\s+(.+)$/);
+
+                    if (!quantityPrefix) {
+                        return observation;
+                    }
+
+                    let observationQuantity = parseInt(quantityPrefix[1]);
+                    let observationText = quantityPrefix[2].trim();
+
+                    if (observationQuantity === dishQuantity || observationQuantity === 1) {
+                        return observationText;
+                    }
+
+                    return `${observationQuantity} ${observationText}`;
+                })
+                .join(", ");
+        },
+        getDishObservationTitle: function (dish) {
+            let observation = this.formatDishObservationGrid(dish);
+
+            return observation.length > 35 ? observation : null;
         },
         dishPriceFactor: function (dish) {
             if (dish?.a_granel != 1) {
@@ -247,12 +343,18 @@ export default {
             this.calculateOrderTotal();
         },
         openPaymentModal: function () {
+            if (this.rejectAppOrderMutation()) return;
+
             this.openSmallModal("#modal-payment");
         },
         addDish: function () {
+            if (this.rejectAppOrderMutation()) return;
+
             this.openSmallModal("#modal-dishes");
         },
         excludeDish: function () {
+            if (this.rejectAppOrderMutation()) return;
+
             let self = this;
 
             let excludedDish = self.order.dishes.find(obj => obj.id == self.editId);
@@ -271,6 +373,8 @@ export default {
             }
         },
         submitAddDish: function () {
+            if (this.rejectAppOrderMutation()) return;
+
             let self = this;
 
             this.selectThisDish();
@@ -363,6 +467,8 @@ export default {
             this.closeSmallModal();
         },
         submitAddPayment: function () {
+            if (this.rejectAppOrderMutation()) return;
+
             let metodoPagamento = $("#metodo_pagamento").val();
             let amountPayed = this.amount_payed;
 
@@ -395,6 +501,11 @@ export default {
         saveOrder: function () {
             let self = this;
             if (self.savingOrder) return;
+            if (self.isAppOrder) {
+                self.setResponse("Pedidos feitos pelo app não podem ser editados ou finalizados manualmente nesta tela", "error");
+                return;
+            }
+            if ($("#submit_type").val() == "save" && self.rejectAppOrderMutation()) return;
 
             let promises = [];
 
@@ -507,7 +618,20 @@ export default {
             api.get("/orders/" + self.orderid).then((response) => {
                 self.contentLoaded = true;
 
-                self.order = response.data.returnObj;
+                self.order = {
+                    ...response.data.returnObj,
+                    from_app: Number(response.data.returnObj?.from_app) === 1 ? 1 : 0
+                };
+
+                setTimeout(() => {
+                    if (self.isAppOrder) {
+                        $("#modal-submit-button").hide();
+                        $("#modal-save-submit-button").hide();
+                    } else {
+                        $("#modal-submit-button").show();
+                        $("#modal-save-submit-button").show();
+                    }
+                }, 10);
 
                 self.order_total = self.order.total == null ? 0.0 : self.formatDecimalValues(self.order.total);
                 self.pix_payment = self.formatCurrency(self.order.pagamento_pix);
@@ -570,5 +694,22 @@ export default {
 .payment-list,
 .payment-difference {
     margin: 0 var(--space-5);
+}
+
+.order-observation-cell {
+    display: inline-block;
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+.app-order-readonly-notice {
+    margin: var(--space-3) 0;
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-sm);
+    background: var(--gray-3);
+    font-weight: 600;
 }
 </style>

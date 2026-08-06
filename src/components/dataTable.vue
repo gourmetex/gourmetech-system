@@ -70,7 +70,10 @@
                   <column-cell :item="item" :render-fn="col.scopedSlot" />
                 </template>
                 <template v-else>
-                  <span>{{ getByPath(item, col.prop) }}</span>
+                  <span
+                    :class="{ 'datatable-cell-truncated': getColumnMaxChars(col) }"
+                    :title="getCellTitle(item, col)"
+                  >{{ getCellDisplayValue(item, col) }}</span>
                 </template>
               </td>
             </tr>
@@ -129,6 +132,7 @@ export const GridColumn = {
     valign: { type: String, default: "middle" },
     export: { type: String, default: "true" },
     order: { type: [String, Number], default: null },
+    maxchars: { type: [String, Number], default: null },
   },
   render: (h) => h('span', { style: { display: 'none' } }),
 };
@@ -289,6 +293,7 @@ export default {
             label: props.label,
             width: props.width,
             order: props.order,
+            maxchars: props.maxchars,
           };
         });
 
@@ -560,6 +565,44 @@ export default {
       String(path || "")
         .split(".")
         .reduce((acc, part) => acc && acc[part], obj),
+
+    getColumnMaxChars(col) {
+      const maxChars = parseInt(col?.maxchars, 10);
+
+      return Number.isInteger(maxChars) && maxChars > 0 ? maxChars : null;
+    },
+
+    getCellRawValue(item, col) {
+      const rawValue = this.getByPath(item, col.prop);
+
+      return rawValue == null ? "" : String(rawValue);
+    },
+
+    getCellDisplayValue(item, col) {
+      const text = this.getCellRawValue(item, col);
+      const maxChars = this.getColumnMaxChars(col);
+
+      if (!maxChars || text.length <= maxChars) {
+        return text;
+      }
+
+      if (maxChars <= 3) {
+        return text.substring(0, maxChars);
+      }
+
+      return `${text.substring(0, maxChars - 3).trimEnd()}...`;
+    },
+
+    getCellTitle(item, col) {
+      const text = this.getCellRawValue(item, col);
+      const maxChars = this.getColumnMaxChars(col);
+
+      if (!maxChars || text.length <= maxChars) {
+        return null;
+      }
+
+      return text;
+    },
 
     formatLabel: (key) =>
       (key || "").replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()),
@@ -983,6 +1026,15 @@ export default {
 .datatable :deep(.ellipsis) {
   max-width: 25dvw;
   min-width: 100px;
+}
+
+.datatable-cell-truncated {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: middle;
 }
 
 .datatable-loading {
