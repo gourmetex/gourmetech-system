@@ -23,6 +23,7 @@
         </div>
         <modal v-if="showModal" :modaltitle="modalTitle" :modalbutton1="modalButton1" :excludepath="'/orders/' + editId" :modalbutton2="modalButton2" :modalButton3="modalButton3" @closeModal="closeModalFunction(); returnOrders();">
             <editOrderModalContent v-if="showEditOrderModalContent" :orderid="editId" @savedContent="closeModalFunction(); returnOrders();"></editOrderModalContent>
+            <cancelOrderModalContent v-if="showCancelOrderModalContent" :orderid="editId" @savedContent="closeModalFunction(); returnOrders();"></cancelOrderModalContent>
         </modal>
     </div>
 </template>
@@ -33,6 +34,7 @@ import dataTable from "../../dataTable.vue";
 import { globalMethods } from "@/js/globalMethods";
 import modal from "../../modal.vue";
 import editOrderModalContent from "./editOrderModalContent.vue";
+import cancelOrderModalContent from "./cancelOrderModalContent.vue";
 
 export default {
     name: "ordersComponent",
@@ -41,16 +43,24 @@ export default {
         return {
             orders: [],
             showEditOrderModalContent: false,
+            showCancelOrderModalContent: false,
             gridOptions: []
         }
     },
     methods: {
         resetModalContents: function () {
             this.showEditOrderModalContent = false;
+            this.showCancelOrderModalContent = false;
         }, 
         cancelOrder: function () {
             this.resetModalContents();
-            this.showModalFunction("Cancelar pedido", "Cancelar", "Fechar");
+            let selectedOrder = this.orders.find(o => o.id == this.editId);
+            if (selectedOrder && selectedOrder.cancel_status === 'requested') {
+                this.showModalFunction("Processar Cancelamento", "Aprovar", "Fechar", "Recusar");
+            } else {
+                this.showModalFunction("Processar Cancelamento", "Confirmar Cancelamento", "Fechar");
+            }
+            this.showCancelOrderModalContent = true;
         },
         addOrder: function () {
             this.resetModalContents();
@@ -89,7 +99,8 @@ export default {
         actionButtons,
         dataTable,
         modal,
-        editOrderModalContent
+        editOrderModalContent,
+        cancelOrderModalContent
     }
 }
 </script>
