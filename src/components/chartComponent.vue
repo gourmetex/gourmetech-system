@@ -44,7 +44,7 @@ export default {
     returnChartFormattedType: function (value) {
       let chartLabelType;
 
-      if (this.chartReportType == "faturamento" || this.chartReportType == "despesas") {
+      if (this.chartReportType == "faturamento" || this.chartReportType == "despesas" || this.chartReportType == "cancelamentos") {
         chartLabelType = `R$ ${value.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}`;
       } else {
         chartLabelType = value;

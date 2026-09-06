@@ -70,6 +70,11 @@ export default {
                     codigo: "vendas",
                     title: "Relatório de vendas",
                     icon: "monetization_on"
+                },
+                {
+                    codigo: "cancelamentos",
+                    title: "Relatório de cancelamentos",
+                    icon: "cancel"
                 }
             ],
             relatorio: {
@@ -97,7 +102,7 @@ export default {
         formatReportData: function (data) {
             let formattedData;
 
-            if (this.relatorio.codigo == "faturamento" || this.relatorio.codigo == "despesas") {
+            if (this.relatorio.codigo == "faturamento" || this.relatorio.codigo == "despesas" || this.relatorio.codigo == "cancelamentos") {
                 formattedData = `R$ ${data.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}`;
             } else {
                 formattedData = data;
@@ -175,6 +180,10 @@ export default {
                 case "vendas":
                     reportType = "bar";
                     reportTitle = "Vendas";
+                    break;
+                case "cancelamentos":
+                    reportType = "bar";
+                    reportTitle = "Cancelamentos";
                     break;
             }
 

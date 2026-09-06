@@ -15,12 +15,16 @@
 
             <div class="info-group">
                 <h3>Devolução de Estoque</h3>
-                <p>Selecione os itens que poderão ser devolvidos ao estoque. (Itens que já começaram a ser preparados ou estragam não devem ser devolvidos).</p>
-                
-                <div v-for="item in items" :key="item.id" class="item-stock">
+                <p v-if="restorableItems.length">
+                    Selecione o que já foi preparado e sobrou pronto. Por padrão nada fica marcado - devolver
+                    comida já preparada ao estoque é exceção.
+                </p>
+                <p v-else>Nenhum item desta comanda chegou a ser preparado. Não há nada para devolver ao estoque.</p>
+
+                <div v-for="item in restorableItems" :key="item.id_prato" class="item-stock">
                     <label>
                         <input type="checkbox" v-model="item.returnToStock">
-                        {{ item.nome }} (Qtd: {{ item.quantidade }})
+                        {{ item.nome }} (preparado: {{ formatNumber(item.quantidade_feita) }})
                     </label>
                 </div>
             </div>
@@ -46,24 +50,34 @@ export default {
     data() {
         return {
             order: null,
-            items: [],
+            restorableItems: [],
             reason: ""
         }
     },
     methods: {
+        formatNumber(value) {
+            const number = Number(value) || 0;
+            return Number.isInteger(number) ? String(number) : number.toFixed(3).replace(/0+$/, "").replace(/\.$/, "");
+        },
         getOrder: function () {
             api.get("/orders/" + this.orderid).then((response) => {
                 this.order = response.data.returnObj;
-                this.items = response.data.returnObj.dishes.map(p => ({
-                    ...p,
-                    returnToStock: true
+            });
+
+            // D8: so o que pedidos_feitos registra como preparado pode voltar ao estoque -
+            // nunca a quantidade pedida (o backend ja clampa isso de novo, mas comecar daqui
+            // evita marcar quantidade que nunca existiu).
+            api.get("/orders/" + this.orderid + "/restorable-items").then((response) => {
+                this.restorableItems = (response.data.returnObj || []).map((item) => ({
+                    ...item,
+                    returnToStock: false
                 }));
             });
         },
         submitCancellation: function () {
-            const itemsToRestore = this.items
+            const itemsToRestore = this.restorableItems
                 .filter(i => i.returnToStock)
-                .map(i => ({ id_prato: i.id, quantidade_restaurar: i.quantidade }));
+                .map(i => ({ id_prato: i.id_prato, quantidade_restaurar: i.quantidade_feita }));
 
             const payload = {
                 reason: this.order.cancel_status === 'requested' ? this.order.cancel_reason : this.reason,

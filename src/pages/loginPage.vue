@@ -51,12 +51,21 @@ export default {
             api.post("/users/login", data).then((res) => {
                 self.setResponse(res.data.message, "success");
                 self.setJwtInLocalStorage(res.data.returnObj.jwtToken);
-                
+
                 self.returnMenuOptions().then(() => {
                     self.$router.push("/home");
                 });
             }).catch((error) => {
-                self.setResponse(error.response.data, "error");
+                // error.response so existe quando o servidor respondeu (4xx/5xx). Em falha de
+                // rede (API fora do ar, CORS, timeout) error.response e undefined - acessar
+                // .data direto quebrava a tela inteira com um erro nao tratado.
+                const serverMessage = error?.response?.data;
+                const message = typeof serverMessage === "string" && serverMessage
+                    ? serverMessage
+                    : (serverMessage?.message || serverMessage?.mensagem)
+                        || "Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.";
+
+                self.setResponse(message, "error");
             }).then(() => {
                 loginButton.removeAttr("disabled").removeClass("btn-loading");
             })

@@ -2,7 +2,13 @@ import axios from 'axios'
 
 let url_api;
 
-const dev_environment = "http://192.168.0.7:3000/"; //Ambiente de desenvolvimento.
+// Ambiente de desenvolvimento: segue o MESMO host de onde a pagina foi carregada, na porta
+// 3000. O dev server ja sobe com --host 0.0.0.0 (acessivel tanto por localhost quanto pelo
+// IP da LAN), entao isso cobre os dois casos sem precisar hardcodar IP nenhum - resolve
+// tambem o IP mudando por DHCP, sem precisar editar este arquivo de novo.
+// VUE_APP_API_URL sobrescreve isso quando front e back NAO estiverem na mesma maquina:
+// crie um .env.local (fora do git, a raiz do projeto) com VUE_APP_API_URL=http://host:3000/
+const dev_environment = process.env.VUE_APP_API_URL || `${window.location.protocol}//${window.location.hostname}:3000/`; //Ambiente de desenvolvimento.
 const test_environment = "https://gourmetech-coreteste-5d758e07e0da.herokuapp.com/"; //Ambiente de teste ou produção.
 const publish_environment = "https://gourmetech-core-46715094ffeb.herokuapp.com/"; //Ambiente de teste ou produção.
 // TROCA DO AMBIENTE DA API

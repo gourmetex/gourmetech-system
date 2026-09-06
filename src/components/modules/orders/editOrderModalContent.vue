@@ -51,6 +51,14 @@
                 </div>
             </div>
         </div>
+        <div class="order-cancelled-dishes-container" v-if="order.cancelled_dishes && order.cancelled_dishes.length">
+            <h3>Itens cancelados</h3>
+            <div class="cancelled-dish-row" v-for="dish in order.cancelled_dishes" :key="dish.id + '-' + dish.cancelado_em">
+                <span class="cancelled-dish-badge">CANCELADO</span>
+                <span class="cancelled-dish-name">{{ dish.nome }} ({{ formatDishQuantity(dish) }})</span>
+                <span class="cancelled-dish-reason">{{ dish.motivo_cancelamento || "Motivo não informado" }}</span>
+            </div>
+        </div>
         <div class="order-submit-informations" v-if="payment != false">
             <div class="payment">
                 <div class="payment-inner">
@@ -138,6 +146,7 @@ export default {
             savingOrder: false,
             order: {
                 dishes: [],
+                cancelled_dishes: [],
                 total: "R$ 0,00",
                 nome_cliente: "",
                 id_cliente: "",
@@ -711,5 +720,38 @@ export default {
     border-radius: var(--radius-sm);
     background: var(--gray-3);
     font-weight: 600;
+}
+
+.order-cancelled-dishes-container {
+    margin-top: var(--space-4);
+}
+
+.cancelled-dish-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-2) 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    opacity: 0.75;
+}
+
+.cancelled-dish-badge {
+    flex-shrink: 0;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    background: #fdecea;
+    color: #8b1f18;
+    border: 1px solid #f5c2c0;
+}
+
+.cancelled-dish-name {
+    text-decoration: line-through;
+}
+
+.cancelled-dish-reason {
+    font-size: 0.85rem;
+    opacity: 0.85;
 }
 </style>

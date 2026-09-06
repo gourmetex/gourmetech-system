@@ -48,7 +48,10 @@ const routes = [
             { path: "orders", component: ordersComponent, meta: { modulo_requerido: 'orders' } },
             { path: "customers", component: customersComponent, meta: { modulo_requerido: 'customers' } },
             { path: "kitchen", component: kitchenComponent, meta: { modulo_requerido: 'kitchen' } },
-            { path: "printout", component: printOut, meta: { modulo_requerido: 'digital_menu' } },
+            // D.4/D15: o wizard de impressao passou a ser global (nao so pra QR Code de
+            // mesa) - qualquer modulo que precise imprimir algo (cozinha, mesas, etc.) usa
+            // o mesmo printService/printOut, entao nao faz sentido mais exigir digital_menu.
+            { path: "printout", component: printOut, meta: { modulo_requerido: '' } },
             { path: "digital_menu", component: digitalMenuComponent, meta: { modulo_requerido: 'digital_menu' } },
             { path: "financial", component: financialComponent, meta: { modulo_requerido: 'financial' } },
             { path: "whatsapp", component: whatsappComponent, meta: { modulo_requerido: 'whatsapp' } },
