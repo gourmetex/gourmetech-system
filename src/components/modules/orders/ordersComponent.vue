@@ -33,6 +33,12 @@
                 <grid-column prop="status" label="Status do pedido" align="center" v-slot="props">
                     <newBadge :background="chooseOrderStatusColor(props.item)" :text="props.item.status" />
                 </grid-column>
+                <grid-column prop="recibo" label="Recibo" align="center" v-slot="props">
+                    <button v-if="props.item.raw_status === 'Finalizado'" class="btn btn-gray small"
+                        title="Baixar recibo" v-on:click="downloadReceipt(props.item)">
+                        <span class="material-icons">receipt_long</span>
+                    </button>
+                </grid-column>
             </dataTable>
         </div>
         <modal v-if="showModal" :modaltitle="modalTitle" :modalbutton1="modalButton1" :excludepath="'/orders/' + editId" :modalbutton2="modalButton2" :modalButton3="modalButton3" @closeModal="closeModalFunction(); returnOrders();">
@@ -81,6 +87,23 @@ export default {
                 self.returnOrders();
             }).catch((error) => {
                 self.setResponse(error.response?.data || "Erro ao enviar para separação", "error");
+            });
+        },
+        downloadReceipt: function (order) {
+            let self = this;
+
+            api.get(`/orders/${order.comanda}/receipt`, { responseType: "blob" }).then((response) => {
+                const blob = new Blob([response.data], { type: "application/pdf" });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.href = url;
+                link.download = `recibo-pedido-${order.comanda}.pdf`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            }).catch(() => {
+                self.setResponse("Erro ao baixar recibo", "error");
             });
         },
         chooseOrderStatusColor: function (order) {
