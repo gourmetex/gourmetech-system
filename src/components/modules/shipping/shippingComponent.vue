@@ -3,7 +3,7 @@
         <div class="page-title">
             <h1>Entregas</h1>
         </div>
-        <actionButtons add_text="ENVIAR PARA ENTREGA" exclude_text="CANCELAR ENTREGA" :disabledbuttons="disabledButtons"
+        <actionButtons add_text="ENVIAR PARA ENTREGA" add_icon="delivery_dining" exclude_text="CANCELAR ENTREGA" :disabledbuttons="disabledButtons"
             @add="sendShipping()" @exclude="cancelShipping()" />
         <div class="dishes-container">
             <div class="filter-container-header">
