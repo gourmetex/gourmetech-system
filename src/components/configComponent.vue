@@ -20,7 +20,7 @@
             </div>
             <div class="config-inner-page">
                 <div class="not-showing" v-if="notShowingSubMenuContent">
-                    <h2>Abra alguma configuração</h2>
+                    <EmptyState icon="tune" title="Nenhuma configuração selecionada" description="Selecione uma categoria no menu acima para gerenciar as configurações." />
                 </div>
                 <systemConfig v-if="showSections.systemConfig"></systemConfig>
                 <rolesConfig v-if="showSections.rolesConfig"></rolesConfig>
@@ -42,6 +42,7 @@
 </template>
 <script>
 import $ from 'jquery';
+import EmptyState from "./EmptyState.vue";
 import systemConfig from "./config/systemConfig.vue";
 import rolesConfig from "./config/rolesConfig.vue";
 import usersConfig from "./config/usersConfig.vue";
@@ -229,6 +230,15 @@ export default {
             this.resetConfigOptions();
             $("#config-menu-" + path).addClass("selected");
             $("#" + subMenu).show();
+
+            const menu = this.filteredConfigMenus[path];
+            if (menu && menu.subMenus && menu.subMenus.length > 0) {
+                const firstSub = menu.subMenus[0];
+                this.showSections[firstSub.link] = true;
+                this.$nextTick(() => {
+                    $("#" + subMenu + " li:first-child").addClass("selected");
+                });
+            }
         },
         resetConfigOptions: function () {
             $(".principal-options .config-option").removeClass("selected");
@@ -239,8 +249,14 @@ export default {
     },
     mounted: function () {
         this.resetConfigOptions();
+        this.$nextTick(() => {
+            if (this.filteredConfigMenus && this.filteredConfigMenus.length > 0) {
+                this.selectConfigOption(0);
+            }
+        });
     },
     components: {
+        EmptyState,
         systemConfig,
         rolesConfig,
         usersConfig,

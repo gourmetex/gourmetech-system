@@ -1,12 +1,13 @@
 <template>
     <div>
-        <div class="loading" v-if="loading">
-            <lottie-player id="loading-system"  background="transparent" speed="1" loop autoplay></lottie-player>
-        </div>
+        <LoadingState v-if="loading" class="loading" message="Preparando seu painel" />
         <div class="app-frame" v-else>
-            <headerComponent @toggleMenu="toggleContent($event)" />
-            <div class="inner-page-system">
-                <slot  />
+            <headerComponent @toggleMenu="menuOpen = $event" />
+            <div class="inner-page-system" :class="{ 'menu-open': menuOpen }">
+                <BreadcrumbsComponent />
+                <transition name="route" mode="out-in">
+                    <slot />
+                </transition>
             </div>
         </div>
     </div>
@@ -14,41 +15,45 @@
 
 <script>
 import headerComponent from '../components/header.vue';
+import LoadingState from '../components/LoadingState.vue';
+import BreadcrumbsComponent from '../components/Breadcrumbs.vue';
 import { globalMethods } from '../js/globalMethods';
-import $ from 'jquery';
-import loadingJson from "../assets/animations/loading.json";
 import moment from "moment";
 
 export default {
     name: "appTemplate",
     mixins: [globalMethods],
     components: {
-        headerComponent
+        headerComponent,
+        LoadingState,
+        BreadcrumbsComponent
     },
     data() {
         return {
-            loading: true
+            loading: true,
+            menuOpen: window.innerWidth > 960,
+            timeInterval: null
+        }
+    },
+    watch: {
+        '$root.selectedTheme': function () {
+            this.setTheme();
         }
     },
     methods: {
         updateTime: function () {
             moment.locale("pt-br");
 
-            setInterval(() => {
-                if ($(".update-time").length) {
-                    let elements = $(".update-time");
-                    
-                    elements.each((index, item) => {
-                        let currentItem = $(item);
-
-                        if (currentItem.html() != "") {
+            this.timeInterval = window.setInterval(() => {
+                document.querySelectorAll('.update-time').forEach((item) => {
+                        if (item.textContent !== "") {
                             let timeSource;
 
-                            if (moment(currentItem.html()).isValid()) {
-                                timeSource = currentItem.html();
-                                currentItem.attr("dataTime", currentItem.html());
+                            if (moment(item.textContent).isValid()) {
+                                timeSource = item.textContent;
+                                item.dataset.time = item.textContent;
                             } else {
-                                timeSource = currentItem.attr("dataTime");
+                                timeSource = item.dataset.time;
                             }
                             
                             const now = moment();
@@ -67,39 +72,14 @@ export default {
                                 .toString()
                                 .padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 
-                            currentItem.html(elapsedTimeString).attr("title", elapsedTimeString);
+                            item.textContent = elapsedTimeString;
+                            item.title = elapsedTimeString;
                         }
-                    })
-                }
+                });
             }, 1000)
         },
-        toggleContent: function (event) {
-            if (event) {
-                this.contractContent();
-            } else {
-                this.expandContent();
-            }
-        },
-        expandContent: function () {
-            let pageContent = $(".inner-page-system");
-            pageContent.css("left", "0").css("width", "100vw");
-        },
-        contractContent: function () {
-            let pageContent = $(".inner-page-system");
-            if ($(window).width() > 960) {
-                pageContent.css("left", "260px").css("width", "calc(100vw - 260px)");
-            } else {
-                pageContent.css("left", "0").css("width", "100vw");
-            }
-        },
         handleResize: function () {
-            let windowWidth = $(window).width();
-
-            if (windowWidth <= 960) {
-                this.expandContent();
-            } else {
-                this.contractContent();
-            }
+            this.menuOpen = window.innerWidth > 960;
         },
         initSystemRequests: function () {
             let self = this;
@@ -113,11 +93,36 @@ export default {
                 })
             })
         },
+        isColorReddish: function (hex) {
+            if (!hex) return false;
+            let c = hex.replace('#', '');
+            if (c.length === 3) c = c.split('').map(x => x + x).join('');
+            const r = parseInt(c.substr(0, 2), 16);
+            const g = parseInt(c.substr(2, 2), 16);
+            const b = parseInt(c.substr(4, 2), 16);
+            return r > 130 && (r - g > 30) && (r - b > 30);
+        },
         setTheme: function () {
-            document.documentElement.style.setProperty('--background-color', this.$root.selectedTheme.cor_background);
-            document.documentElement.style.setProperty('--label-color', this.$root.selectedTheme.cor_label);
-            document.documentElement.style.setProperty('--label-hover-color', this.$root.selectedTheme.cor_label_hover);
-            document.documentElement.style.setProperty('--cor-destaque', this.$root.selectedTheme.cor_destaque);
+            const theme = this.$root.selectedTheme;
+            if (!theme) return;
+            document.documentElement.style.setProperty('--background-color', theme.cor_background);
+            document.documentElement.style.setProperty('--label-color', theme.cor_label);
+            document.documentElement.style.setProperty('--label-hover-color', theme.cor_label_hover);
+            document.documentElement.style.setProperty('--cor-destaque', theme.cor_destaque);
+
+            // No tema vermelho (ex: id 6 ou tons de vermelho/terracota):
+            // O botão principal assume a cor do tema (--cor-destaque), logo o de exclusão
+            // NÃO pode ser vermelho também. Usamos um tom grafite escuro com alto contraste.
+            const isRedTheme = theme.id === 6 || this.isColorReddish(theme.cor_destaque) || this.isColorReddish(theme.cor_background);
+            if (isRedTheme) {
+                document.documentElement.style.setProperty('--btn-danger-bg', '#292524');
+                document.documentElement.style.setProperty('--btn-danger-hover', '#1C1917');
+                document.documentElement.style.setProperty('--btn-danger-color', '#FFFFFF');
+            } else {
+                document.documentElement.style.setProperty('--btn-danger-bg', '#DC2626');
+                document.documentElement.style.setProperty('--btn-danger-hover', '#B91C1C');
+                document.documentElement.style.setProperty('--btn-danger-color', '#FFFFFF');
+            }
         }
     },
     mounted: function () {
@@ -127,16 +132,7 @@ export default {
 
         self.handleResize();
 
-        $(window).on("resize", () => {
-            self.handleResize();
-        })
-
-        const player = document.querySelector("lottie-player");
-        player.addEventListener("rendered", () => {
-            player.load(
-                loadingJson
-            );
-        });
+        window.addEventListener('resize', self.handleResize);
 
         this.checkIfUserIsAuthenticated().then(() => {
             let interval = setInterval(() => {
@@ -147,20 +143,27 @@ export default {
                 }
             }, 100)
         })
+    },
+    beforeDestroy() {
+        window.clearInterval(this.timeInterval);
+        window.removeEventListener('resize', this.handleResize);
     }
 }
 </script>
 <style scoped>
 .inner-page-system {
-    width: calc(100vw - 260px);
+    width: 100vw;
     position: absolute;
-    left: 260px;
+    left: 0;
     top: 80px;
     height: calc(100vh - 80px);
     overflow-y: auto;
     padding: var(--space-6);
-    transition: all 0.4s;
+    background: var(--paper);
+    transition: left .18s ease, width .18s ease;
 }
+
+.inner-page-system.menu-open { left: 260px; width: calc(100vw - 260px); }
 
 .loading {
     width: 100vw;
@@ -170,16 +173,12 @@ export default {
     justify-content: center;
 }
 
-    .loading lottie-player {
-        width: 90vw;
-        max-width: 420px;
-        margin-top: -50vh;
-    }
-
 @media (max-width: 960px) {
-    .inner-page-system {
+    .inner-page-system, .inner-page-system.menu-open {
         width: 100vw;
         left: 0;
     }
 }
+
+.route-enter-active, .route-leave-active { transition: opacity .16s ease, transform .16s ease; }.route-enter, .route-leave-to { opacity: 0; transform: translateY(6px); }
 </style>

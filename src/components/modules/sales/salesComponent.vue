@@ -1,7 +1,7 @@
 <template>
     <div class="sales-component">
         <div class="page-title">
-            <h1>PROMOÇÕES</h1>
+            <h1>Promoções</h1>
         </div>
         <actionButtons add_text="CRIAR PROMOÇÃO" exclude_text="EXCLUIR PROMOÇÃO" edit_text="EDITAR PROMOÇÃO"
             :disabledbuttons="disabledButtons" @add="addSale()" @exclude="excludeSale()"

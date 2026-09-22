@@ -2,12 +2,12 @@
     <div class="inner-modal-content">
         <form class="add-order" id="informations-form" @submit.prevent="saveOrder()">
             <input type="hidden" id="submit_type" value="save">
-            <div class="form-group-horizontal inputs-50">
-                <div class="form-group" v-if="checkModulePermission('digital_menu')">
+            <div class="form-row">
+                <div class="form-group form-col-1" v-if="checkModulePermission('digital_menu')">
                     <label for="mesa">Mesa vinculada</label>
-                    <input type="number" name="mesa" id="mesa" v-model="order.mesa" :disabled="isAppOrder">
+                    <input type="number" name="mesa" id="mesa" v-model="order.mesa" :disabled="isAppOrder" placeholder="Nº da mesa">
                 </div>
-                <div class="form-group" :style="checkModulePermission('digital_menu') ? '' : 'width: 100%'">
+                <div class="form-group" :class="checkModulePermission('digital_menu') ? 'form-col-3' : 'form-col-4'">
                     <label for="id_cliente">Nome do cliente</label>
                     <div :style="isAppOrder ? 'pointer-events: none; opacity: 0.6;' : ''">
                         <ajaxAutoComplete @select="setCustomer($event)" ajaxtype="clientes" :entityid="order.id_cliente"
@@ -18,38 +18,38 @@
             <input type="submit" id="submit-button" style="display: none;">
         </form>
         <div class="order-dishes-container">
-            <h3>Itens do pedido</h3>
-            <p class="app-order-readonly-notice" v-if="isAppOrder">
-                Pedido recebido pelo app: itens e pagamentos são somente leitura neste sistema.
-            </p>
-            <div class="modal-edit-grid">
-                <dataTable :dataobj="order.dishes" rowsperpage="2" searchText="" :loaded="contentLoaded">
-                    <grid-column prop="id" label="Cód. do Item" align="center" v-slot="props">
-                        <p class="clicable text-center" @click="selectRow($event)">{{ props.item.id }}</p>
-                    </grid-column>
-                    <grid-column prop="nome" label="Nome do Item"></grid-column>
-                    <grid-column prop="quantidade" label="Qtd" align="center" v-slot="props">
-                        <p class="text-center">{{ formatDishQuantity(props.item) }}</p>
-                    </grid-column>
-                    <grid-column prop="observacoes" label="OBS" maxchars="5" v-slot="props">
-                        <span class="order-observation-cell" :title="getDishObservationTitle(props.item)">
-                            {{ truncateText(formatDishObservationGrid(props.item), 35) }}
-                        </span>
-                    </grid-column>
-                    <grid-column prop="preco" label="Valor do Item"></grid-column>
-                    <grid-column prop="status" label="Status"></grid-column>
-                </dataTable>
-                <div class="edit-buttons buttons-vertical" v-if="canMutateOrder">
-                    <button type="button" class="rounded-btn btn-primary" v-on:click="addDish()">
-                        <span class="material-icons">add</span>
+            <div class="order-dishes-header">
+                <h3>Itens do pedido</h3>
+                <div class="order-dishes-actions" v-if="canMutateOrder">
+                    <button type="button" class="btn btn-sm btn-primary" v-on:click="addDish()">
+                        <span class="material-icons" style="font-size: 16px; margin-right: 4px;">add</span> Adicionar item
                     </button>
                     <div class="dynamic-edit-buttons">
-                        <button type="button" class="rounded-btn btn-red" v-on:click="excludeDish()">
-                            <span class="material-icons">delete</span>
+                        <button type="button" class="btn btn-sm btn-danger" v-on:click="excludeDish()">
+                            <span class="material-icons" style="font-size: 16px; margin-right: 4px;">delete</span> Excluir
                         </button>
                     </div>
                 </div>
             </div>
+            <p class="app-order-readonly-notice" v-if="isAppOrder">
+                Pedido recebido pelo app: itens e pagamentos são somente leitura neste sistema.
+            </p>
+            <dataTable :dataobj="order.dishes" rowsperpage="3" searchText="" :loaded="contentLoaded">
+                <grid-column prop="id" label="Cód." width="70px" align="center" v-slot="props">
+                    <p class="clicable text-center" @click="selectRow($event)">{{ props.item.id }}</p>
+                </grid-column>
+                <grid-column prop="nome" label="Nome do Item"></grid-column>
+                <grid-column prop="quantidade" label="Qtd" width="80px" align="center" v-slot="props">
+                    <p class="text-center">{{ formatDishQuantity(props.item) }}</p>
+                </grid-column>
+                <grid-column prop="observacoes" label="Observações" width="160px" v-slot="props">
+                    <span class="order-observation-cell" :title="getDishObservationTitle(props.item)">
+                        {{ truncateText(formatDishObservationGrid(props.item), 35) }}
+                    </span>
+                </grid-column>
+                <grid-column prop="preco" label="Valor" width="100px"></grid-column>
+                <grid-column prop="status" label="Status" width="100px"></grid-column>
+            </dataTable>
         </div>
         <div class="order-cancelled-dishes-container" v-if="order.cancelled_dishes && order.cancelled_dishes.length">
             <h3>Itens cancelados</h3>
@@ -60,25 +60,27 @@
             </div>
         </div>
         <div class="order-submit-informations" v-if="payment != false">
-            <div class="payment">
-                <div class="payment-inner">
-                    <button class="btn btn-primary" v-if="canMutateOrder" v-on:click="openPaymentModal()">Pagamento</button>
-                    <div class="payment-list">
-                        <h3>Pix: {{ pix_payment }}</h3>
-                        <h3>Cartão: {{ card_payment }}</h3>
-                        <h3>Dinheiro: {{ cash_payment }}</h3>
-                    </div>
-                    <div class="payment-difference">
-                        <h3>Desconto: {{ total_desconto }}</h3>
-                        <h3 class="font-bold">Restante: {{ difference }}</h3>
-                        <h3 class="font-bold" v-if="checkModulePermission('shipping')">Entrega: {{ delivery_amount }}
-                        </h3>
-                    </div>
+            <div class="payment-card">
+                <div class="payment-actions">
+                    <button class="btn btn-primary" type="button" v-if="canMutateOrder" v-on:click="openPaymentModal()">
+                        <span class="material-icons" style="font-size: 16px; margin-right: 4px;">payments</span> Pagamento
+                    </button>
                 </div>
-                <h2 class="order-total">{{ order.total }}</h2>
+                <div class="payment-breakdown">
+                    <div class="breakdown-item"><span class="breakdown-label">Pix:</span> <span class="breakdown-val">{{ pix_payment }}</span></div>
+                    <div class="breakdown-item"><span class="breakdown-label">Cartão:</span> <span class="breakdown-val">{{ card_payment }}</span></div>
+                    <div class="breakdown-item"><span class="breakdown-label">Dinheiro:</span> <span class="breakdown-val">{{ cash_payment }}</span></div>
+                    <div class="breakdown-item"><span class="breakdown-label">Desconto:</span> <span class="breakdown-val">{{ total_desconto }}</span></div>
+                    <div class="breakdown-item" v-if="checkModulePermission('shipping')"><span class="breakdown-label">Entrega:</span> <span class="breakdown-val">{{ delivery_amount }}</span></div>
+                    <div class="breakdown-item font-bold"><span class="breakdown-label">Restante:</span> <span class="breakdown-val">{{ difference }}</span></div>
+                </div>
+                <div class="order-total-box">
+                    <span class="total-label">Total a pagar</span>
+                    <h2 class="order-total-amount">{{ order.total }}</h2>
+                </div>
             </div>
             <div class="delivery" v-if="checkModulePermission('shipping') && false">
-                <button class="btn btn-blue">Entrega</button>
+                <button class="btn btn-secondary">Entrega</button>
                 <div class="delivery-content">
                     <div class="delivery-texts">
                         <h3>Rua Brasholanda, 556 - Weissópolis, Pinhais</h3>
@@ -681,28 +683,100 @@ export default {
 }
 </script>
 <style scoped>
-.payment,
-.payment-inner,
-.delivery {
+.order-dishes-header {
     display: flex;
-    align-items: center;
     justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-2);
 }
 
-.delivery,
-.payment-inner {
-    justify-content: flex-start;
-    margin: var(--space-5) 0;
+.order-dishes-header h3 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.order-dishes-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.btn-sm {
+    padding: 6px 14px;
+    font-size: 13px;
+    min-width: auto;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+}
+
+.payment-card {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    padding: var(--space-4) var(--space-5);
+    margin-top: var(--space-4);
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: var(--space-5);
+    align-items: center;
+}
+
+@media (max-width: 768px) {
+    .payment-card {
+        grid-template-columns: 1fr;
+        gap: var(--space-3);
+    }
+}
+
+.payment-breakdown {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    font-size: 13px;
+}
+
+.breakdown-item {
+    display: flex;
+    gap: 6px;
+}
+
+.breakdown-label {
+    color: var(--ink-soft);
+}
+
+.breakdown-val {
+    font-weight: 700;
+    color: var(--ink);
+}
+
+.order-total-box {
+    text-align: right;
+    background: var(--surface);
+    padding: 8px 16px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--line);
+}
+
+.total-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--ink-soft);
+    font-weight: 700;
+    display: block;
+}
+
+.order-total-amount {
+    margin: 2px 0 0 0;
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--cor-destaque);
 }
 
 .modal-body .custom-grid-container {
     max-height: 160px;
-}
-
-.delivery-content,
-.payment-list,
-.payment-difference {
-    margin: 0 var(--space-5);
 }
 
 .order-observation-cell {

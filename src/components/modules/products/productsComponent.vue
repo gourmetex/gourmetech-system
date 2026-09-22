@@ -10,24 +10,24 @@
                 <h2>Lista de produtos</h2>
             </div>
             <dataTable :dataobj="dishes" rowsperpage="7" searchText="produto" :loaded="contentLoaded">
-                <grid-column prop="id" label="ID" align="center" v-slot="props">
+                <grid-column prop="id" label="ID" width="70px" align="center" v-slot="props">
                     <p class="clicable text-center" @click="selectRow($event)">{{ props.item.id }}</p>
                 </grid-column>
-                <grid-column prop="nome" label="Nome"></grid-column>
-                <grid-column prop="imagem" label="Imagem" align="center" v-slot="props">
+                <grid-column prop="nome" label="Nome" width="180px"></grid-column>
+                <grid-column prop="imagem" label="Imagem" width="90px" align="center" v-slot="props">
                     <img :src="props.item.imagem">
                 </grid-column>
-                <grid-column prop="descricao" label="Descrição" v-slot="props">
+                <grid-column prop="descricao" label="Descrição" width="240px" v-slot="props">
                     <p class="ellipsis" :title="props.item.descricao">{{ props.item.descricao }}</p>
                 </grid-column>
-                <grid-column prop="preco" label="Preço"></grid-column>
-                <grid-column prop="a_granel" label="A granel" align="center" v-slot="props">
+                <grid-column prop="preco" label="Preço" width="100px"></grid-column>
+                <grid-column prop="a_granel" label="A granel" width="90px" align="center" v-slot="props">
                     <p class="text-center">{{ props.item.a_granel == 1 ? "Sim" : "Não" }}</p>
                 </grid-column>
-                <grid-column prop="categoria" label="Categoria" align="center" v-slot="props">
+                <grid-column prop="categoria" label="Categoria" width="130px" align="center" v-slot="props">
                     <newBadge :background="props.item.cor" :text="props.item.nome_categoria" class="text-center" />
                 </grid-column>
-                <grid-column prop="disponivel" label="Disponível" align="center" v-slot="props">
+                <grid-column prop="disponivel" label="Disponível" width="100px" align="center" v-slot="props">
                     <p class="text-center">{{ props.item.disponivel == 1 ? "Sim" : "Não" }}</p>
                 </grid-column>
             </dataTable>

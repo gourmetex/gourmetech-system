@@ -1,41 +1,45 @@
 <template>
     <div class="edit-sale-modal-content">
         <form class="edit-sale" id="informations-form" @submit.prevent="saveSale()">
-            <div class="form-group">
-                <label for="nome">Nome da promoção</label>
-                <input type="text" name="nome" v-model="sale.nome_promocao" required>
+            <div class="form-row">
+                <div class="form-group form-col-2">
+                    <label for="nome">Nome da promoção</label>
+                    <input type="text" name="nome" v-model="sale.nome_promocao" placeholder="Ex: Terça do Chopp" required>
+                </div>
+                <div class="form-group form-col-2">
+                    <label for="produto">Produto</label>
+                    <select id="produto" name="id_produto" v-model="sale.id_produto" required>
+                        <option value="">* Selecione um produto *</option>
+                        <option :value="product.id" v-for="product in products" :key="product.id">{{ product.nome }}
+                        </option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group form-col-1">
+                    <label for="dia_semana">Dia da semana</label>
+                    <select id="dia_semana" name="dia_semana" v-model="sale.dia_semana" required>
+                        <option value="">* Selecione o dia *</option>
+                        <option :value="day.numero" v-for="day in weekDays" :key="day.numero">{{ day.nome }}</option>
+                    </select>
+                </div>
+                <div class="form-group form-col-1">
+                    <label for="porcentagem_desconto">Desconto (%)</label>
+                    <input type="number" name="porcentagem_desconto" id="porcentagem_desconto" v-model="sale.porcentagem_desconto" min="1" max="100" placeholder="Ex: 20" required>
+                </div>
             </div>
             <div class="form-group">
                 <label for="descricao">Descrição</label>
-                <textarea name="descricao" v-model="sale.descricao"></textarea>
+                <textarea name="descricao" v-model="sale.descricao" rows="3" placeholder="Detalhes da promoção..."></textarea>
             </div>
-            <div class="form-group">
-                <label for="produto">Produto</label>
-                <select id="produto" name="id_produto" v-model="sale.id_produto" required>
-                    <option value="">* Selecione *</option>
-                    <option :value="product.id" v-for="product in products" :key="product.id">{{ product.nome }}
-                    </option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="dia_semana">Dia da semana</label>
-                <select id="dia_semana" name="dia_semana" v-model="sale.dia_semana" required>
-                    <option value="">* Selecione *</option>
-                    <option :value="day.numero" v-for="day in weekDays" :key="day.numero">{{ day.nome }}</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="porcentagem_desconto">Porcentagem de desconto</label>
-                <input type="number" name="porcentagem_desconto" id="porcentagem_desconto" v-model="sale.porcentagem_desconto" min="1" max="100" required>
-            </div>
-            <div class="radio-group">
+            <div class="checkbox-group">
                 <input 
                     type="checkbox" 
                     id="ativa"
                     v-model="sale.ativa"
                     name="ativa"
                 >
-                <label for="ativa">Ativa</label>
+                <label for="ativa">Promoção ativa no sistema</label>
             </div>
             <input type="submit" id="submit-button" style="display: none;">
         </form>

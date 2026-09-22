@@ -1,6 +1,5 @@
 <template>
-  <div class="datatable conteudo-principal" :style="!dataTable.length ? 'border: 1px solid #e0e0e0; margin-top: 1rem;' : ''
-    " v-cloak>
+  <div class="datatable conteudo-principal" v-cloak>
     <!-- Mantém o slot invisível para leitura de colunas declarativas -->
     <div style="display: none">
       <slot></slot>
@@ -8,12 +7,14 @@
 
     <!-- Estado: tabela vazia -->
     <div class="empty-datatable text-center" v-if="loaded && dataTable.length == 0">
+      <span class="material-icons empty-icon">inbox</span>
       <h2>Não existem informações para exibir</h2>
     </div>
 
     <!-- Estado: carregando -->
     <div class="datatable-loading" v-show="!loaded && dataobj.length === 0">
-      <lottie-player background="transparent" speed="1" loop autoplay></lottie-player>
+      <div class="loading-spinner"></div>
+      <p class="loading-text">Carregando informações...</p>
     </div>
 
     <!-- Conteúdo principal da tabela -->
@@ -61,7 +62,7 @@
 
               <!-- Células -->
               <td v-for="col in columns" :key="col.prop" :data-title="col.label" :align="col.align || 'left'"
-                :valign="col.valign || 'middle'" :class="{
+                :valign="col.valign || 'middle'" :style="col.width && col.width !== 'auto' ? { width: formatWidth(col.width), maxWidth: formatWidth(col.width) } : {}" :class="{
                   [`column-${col.prop}`]: col.prop,
                   [`text-${col.align}`]: col.align,
                   [`align-${col.valign}-important`]: col.valign,
@@ -79,26 +80,24 @@
             </tr>
           </tbody>
         </table>
-      </div>
 
-      <!-- Rodapé: exportação + paginação -->
-      <div class="data_grid_footer">
-        <div style="width: 38px;">
-          <button v-if="exportexcel == 'true'" @click="exportarParaExcel(exportoptions)"
-            class="btn rounded-btn small control-button" type="button" title="Exportar para Excel">
-            <i class="far fa-file-excel"></i>
-          </button>
-          &nbsp;
-        </div>
-        <div class="pagination" v-if="rowsperpage > 0">
-          <button @click="prevPage" class="btn rounded-btn small" type="button" :disabled="currentPage === 1">
-            <span class="material-icons">keyboard_arrow_left</span>
-          </button>
-          <span>Página <strong>{{ currentPage }}</strong> de
-            {{ totalPages }}</span>
-          <button @click="nextPage" class="btn rounded-btn small" type="button" :disabled="currentPage === totalPages">
-            <span class="material-icons">keyboard_arrow_right</span>
-          </button>
+        <!-- Rodapé integrado -->
+        <div class="data_grid_footer" v-if="(rowsperpage > 0 && totalPages > 1) || exportexcel == 'true'">
+          <div class="footer-left" v-if="exportexcel == 'true'">
+            <button @click="exportarParaExcel(exportoptions)"
+              class="btn rounded-btn small control-button" type="button" title="Exportar para Excel">
+              <i class="far fa-file-excel"></i>
+            </button>
+          </div>
+          <div class="pagination" v-if="rowsperpage > 0">
+            <button @click="prevPage" class="btn rounded-btn small pagination-arrow" type="button" :disabled="currentPage === 1">
+              <span class="material-icons">keyboard_arrow_left</span>
+            </button>
+            <span class="pagination-info">Página <strong>{{ currentPage }}</strong> de {{ totalPages }}</span>
+            <button @click="nextPage" class="btn rounded-btn small pagination-arrow" type="button" :disabled="currentPage === totalPages">
+              <span class="material-icons">keyboard_arrow_right</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -108,7 +107,6 @@
 <script>
 import inputSearch from "./inputSearch.vue";
 import { globalMethods } from "@/js/globalMethods";
-import loadingJson from "../assets/animations/loading-component.json";
 
 /**
  * VueDataGrid
@@ -228,7 +226,6 @@ export default {
   },
 
   mounted() {
-    this.loadLottieAnimation();
     this.processColumns();
   },
   updated() {
@@ -240,11 +237,7 @@ export default {
 
   methods: {
     loadLottieAnimation() {
-      const player = document.querySelector(".datatable lottie-player");
-
-      player.addEventListener("rendered", () => {
-        player.load(loadingJson);
-      })
+      // Obsolete: CSS loading spinner is used instead
     },
     updateSearchQuery(newVal) {
       this.searchQuery = newVal;
@@ -999,10 +992,37 @@ export default {
 .inner-table-content {
   width: 100%;
   overflow-x: auto;
-  padding: var(--space-1);
-  outline: 1px solid var(--gray);
-  border-radius: var(--radius-sm);
-  margin: var(--space-6) 0 var(--space-4) 0;
+  border: 1px solid var(--line, #E7E1D6);
+  background: var(--surface, #FFFFFF);
+  border-radius: var(--radius-md, 10px);
+  box-shadow: 0 1px 4px rgba(43, 38, 32, 0.04);
+  margin: var(--space-4, 12px) 0;
+}
+
+.empty-datatable {
+  background: var(--surface, #FFFFFF);
+  border: 1px solid var(--line, #E7E1D6);
+  border-radius: var(--radius-md, 10px);
+  padding: 56px 24px;
+  margin-top: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.empty-datatable .empty-icon {
+  font-size: 38px;
+  color: #B0A89C;
+}
+
+.empty-datatable h2 {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--ink-soft, #6B6255);
+  margin: 0;
 }
 
 .align-top-important {
@@ -1020,12 +1040,16 @@ export default {
 .datatable {
   border-radius: var(--radius-md);
   width: 100%;
-  padding: var(--space-6) 0;
+  padding: var(--space-4) 0;
 }
 
+.datatable ::v-deep .ellipsis,
 .datatable :deep(.ellipsis) {
-  max-width: 25dvw;
-  min-width: 100px;
+  max-width: 260px;
+  display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .datatable-cell-truncated {
@@ -1039,59 +1063,88 @@ export default {
 
 .datatable-loading {
   width: 100%;
-  display: grid;
-  place-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 0;
+  gap: 14px;
+}
 
-  & lottie-player {
-    width: 200px;
-  }
+.datatable-loading .loading-spinner {
+  width: 34px;
+  height: 34px;
+  border: 3px solid var(--line, #E7E1D6);
+  border-top-color: var(--cor-destaque);
+  border-radius: 50%;
+  animation: dt-spin 0.8s linear infinite;
+}
+
+.datatable-loading .loading-text {
+  font-size: 13px;
+  color: var(--ink-soft, #6B6255);
+  margin: 0;
+}
+
+@keyframes dt-spin {
+  to { transform: rotate(360deg); }
 }
 
 .table {
   width: 100%;
   border-collapse: collapse;
   table-layout: auto;
-  overflow: hidden;
 }
 
 .table th,
 .table td {
-  padding: var(--space-4);
+  padding: 12px 14px;
   text-align: left;
-  border-bottom: 1px solid var(--gray-high);
+  border-bottom: 1px solid var(--line);
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
 }
 
-.table tr:hover {
-  background: var(--blue-high-2);
+.table tbody tr {
+  transition: background 120ms ease;
 }
 
+.table tbody tr:hover {
+  background: rgba(43, 38, 32, 0.025);
+}
+
+.table td ::v-deep p,
 .table td :deep(p),
+.table td ::v-deep a,
 .table td :deep(a),
+.table td ::v-deep span,
 .table td :deep(span) {
-  line-height: 100%;
-  margin: var(--space-1) 0;
-  font-size: var(--fontsize-sm);
-  color: var(--black);
-  line-height: 118%;
+  margin: 0;
+  font-size: 13px;
+  color: var(--ink);
+  line-height: 130%;
 }
 
+.table td ::v-deep img,
 .table td :deep(img) {
   object-fit: cover;
-  width: 100%;
-  max-width: 100px;
+  width: 48px;
+  height: 48px;
   border-radius: var(--radius-sm);
-  height: 100%;
+  border: 1px solid var(--line);
 }
 
 .table th {
   cursor: pointer;
-  font-size: var(--fontsize-sm);
-  color: var(--black);
-  font-weight: 500;
-  background: var(--gray-high);
+  font-size: 11px;
+  color: var(--ink-soft);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: #F8F6F1;
+  border-bottom: 1px solid var(--line);
+  user-select: none;
 }
 
 .th-content.sorting-asc>*:first-child::after,
@@ -1109,19 +1162,9 @@ export default {
   content: '▼';
 }
 
+.datatable-content ::v-deep tbody .header-template,
 .datatable-content :deep(tbody .header-template) {
   display: none;
-}
-
-.pagination {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.pagination button {
-  padding: 0 var(--space-3);
-  cursor: pointer;
 }
 
 .search-bar {
@@ -1129,10 +1172,18 @@ export default {
 }
 
 .data_grid_footer {
-  display: grid;
+  display: flex;
   align-items: center;
-  grid-template-columns: 38px 100%;
-  background: var(--base-background);
+  justify-content: center;
+  position: relative;
+  padding: 12px 16px;
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+}
+
+.footer-left {
+  position: absolute;
+  left: 16px;
 }
 
 .data_grid_footer button {
@@ -1142,14 +1193,38 @@ export default {
 .pagination {
   display: flex;
   justify-content: center;
-  gap: var(--space-6);
   align-items: center;
-  margin: 0 var(--space-3) !important;
-  width: calc(100% - 54px);
+  gap: 12px;
+  margin: 0 auto !important;
+}
 
-  & button:first-child {
-    margin-left: -38px;
-  }
+.pagination-arrow {
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  min-height: 32px !important;
+  max-width: 32px !important;
+  max-height: 32px !important;
+  padding: 0 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--paper, #F3F1ED) !important;
+  border: 1px solid var(--line, #E7E1D6) !important;
+  border-radius: 6px !important;
+  color: var(--ink, #2B2620) !important;
+  margin: 0 !important;
+}
+
+.pagination-arrow:disabled {
+  opacity: 0.4 !important;
+  background: var(--paper, #F3F1ED) !important;
+  cursor: not-allowed !important;
+}
+
+.pagination-info {
+  font-size: 13px;
+  color: var(--ink-soft, #6B6255);
 }
 
 

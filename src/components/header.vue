@@ -122,9 +122,6 @@ export default {
         }
     },
     watch: {
-        $route() {
-            this.selectThisItem(window.location.pathname);
-        },
         toggleNotifications: function () {
             if (this.toggleNotifications) {
                 this.returnNotifications();
@@ -254,17 +251,17 @@ export default {
             }
         },
         checkCurrentPathname: function (linkToCheck) {
-            let pathname = window.location.pathname;
-            if (pathname == linkToCheck) {
+            if (!this.$route || !this.$route.path) return false;
+            let currentPath = this.$route.path;
+            if (currentPath === linkToCheck) {
+                return true;
+            }
+            if (linkToCheck !== '/home' && currentPath.startsWith(linkToCheck)) {
                 return true;
             }
             return false;
         },
         selectThisItem: function (elementId, close = false) {
-            $(".menu-item").removeClass("li-active");
-
-            let targetElement = $("#menu" + elementId.replace(/\//g, '-'));
-            targetElement.addClass("li-active");
             if (window.innerWidth <= 960) {
                 if (this.menuMovement || close) return;
 
@@ -368,8 +365,6 @@ export default {
         }
 
         let self = this;
-
-        this.selectThisItem(window.location.pathname, true);
 
         self.handleResize();
 
@@ -573,6 +568,18 @@ header {
     cursor: pointer;
     color: var(--label-color);
     border-radius: var(--radius-md);
+}
+
+.lateral-menu ul li a h3 {
+    font-size: 0.92rem;
+    font-weight: 500;
+    margin: 0;
+    letter-spacing: 0.15px;
+}
+
+.lateral-menu ul li:hover a h3,
+.lateral-menu ul li.li-active a h3 {
+    font-weight: 600;
 }
 
 .lateral-menu ul li:hover,

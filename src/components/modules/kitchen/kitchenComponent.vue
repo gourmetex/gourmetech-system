@@ -21,9 +21,7 @@
                         <p class="clicable" @click="openOrder(props.item)">{{ props.item.nome_cliente }}</p>
                     </grid-column>
                     <grid-column prop="from_app" label="Origem" align="center" v-slot="props">
-                        <span class="origin-badge" :class="props.item.from_app == 1 ? 'origin-app' : 'origin-local'">
-                            {{ props.item.from_app == 1 ? 'APP' : 'BALCÃO' }}
-                        </span>
+                        <newBadge :status="props.item.from_app == 1 ? 'info' : 'neutral'" :text="props.item.from_app == 1 ? 'APP' : 'BALCÃO'" />
                     </grid-column>
                     <grid-column prop="mesa" label="Mesa/Entrega" align="center" v-slot="props">
                         {{ formatLocationLabel(props.item) }}
@@ -49,9 +47,7 @@
                 <div>
                     <h2>Venda #{{ selectedOrder.id }} · {{ selectedOrder.nome_cliente }}</h2>
                     <p class="order-detail-subtitle">
-                        <span class="origin-badge" :class="selectedOrder.from_app == 1 ? 'origin-app' : 'origin-local'">
-                            {{ selectedOrder.from_app == 1 ? 'APP' : 'BALCÃO' }}
-                        </span>
+                        <newBadge :status="selectedOrder.from_app == 1 ? 'info' : 'neutral'" :text="selectedOrder.from_app == 1 ? 'APP' : 'BALCÃO'" />
                         {{ formatLocationLabel(selectedOrder) }}
                     </p>
                 </div>
@@ -75,18 +71,18 @@
                         <p class="item-card-obs" v-if="item.observacoes">Obs: {{ item.observacoes }}</p>
 
                         <p class="item-card-cancelled" v-if="item.status === 'Cancelado'">
-                            <span class="status-badge badge-cancelled">CANCELADO</span>
+                            <newBadge status="danger" text="CANCELADO" />
                             {{ item.motivo_cancelamento || 'Motivo não informado' }}
                         </p>
                         <p class="item-card-ready" v-else-if="item.status === 'Pronto'">
-                            <span class="status-badge badge-ready">PRONTO</span>
+                            <newBadge status="success" text="PRONTO" />
                         </p>
                         <p class="item-card-timer" v-else-if="item.status_preparo === 'Em preparo'">
-                            <span class="status-badge badge-in-progress">EM PREPARO</span>
+                            <newBadge status="info" text="EM PREPARO" />
                             ⏱️ {{ formatElapsedTime(item.segundos_decorridos) }}
                         </p>
                         <p v-else>
-                            <span class="status-badge badge-waiting">AGUARDANDO</span>
+                            <newBadge status="warning" text="AGUARDANDO" />
                         </p>
                     </div>
 
@@ -97,7 +93,7 @@
                         <button v-else class="btn btn-primary small" @click="confirmItem(item)">
                             CONFIRMAR
                         </button>
-                        <button class="btn btn-red small" @click="cancelItem(item)">
+                        <button class="btn btn-danger small" @click="cancelItem(item)">
                             CANCELAR
                         </button>
                     </div>
@@ -127,6 +123,7 @@ import dataTable from "../../dataTable.vue";
 import modal from "../../modal.vue";
 import cancelOrderModalContent from "../orders/cancelOrderModalContent.vue";
 import resolveKitchenItemModalContent from "./resolveKitchenItemModalContent.vue";
+import newBadge from "../../newBadge.vue";
 import { globalMethods } from "@/js/globalMethods";
 import { printService } from "@/js/printService";
 
@@ -204,7 +201,7 @@ export default {
                     self.returnOrders(true);
                 }
             }).catch((error) => {
-                console.log(error);
+                this.$toast.error(error.response?.data || 'Não foi possível atualizar a fila da cozinha.');
             });
         },
         startItem(item) {
@@ -213,7 +210,7 @@ export default {
             api.post("/kitchen/orders/" + item.id + "/start").then(() => {
                 self.loadOrderItems();
             }).catch((error) => {
-                console.log(error);
+                this.$toast.error(error.response?.data || 'Não foi possível carregar os itens da venda.');
             });
         },
         // E (D12): CONFIRMAR abre o modal de resolucao - a cozinha declara o que separou
@@ -293,7 +290,7 @@ export default {
 
                 printService.print(self.$router, doc);
             }).catch((error) => {
-                console.log(error);
+                this.$toast.error(error.response?.data || 'Não foi possível iniciar o item.');
             });
         },
         printBatch() {
@@ -330,7 +327,7 @@ export default {
                     blocks
                 });
             }).catch((error) => {
-                console.log(error);
+                this.$toast.error(error.response?.data || 'Não foi possível abrir a resolução do item.');
             });
         },
         returnOrders(cleanCache = false) {
@@ -349,7 +346,7 @@ export default {
                     self.backToGrid();
                 }
             }).catch((error) => {
-                console.log(error);
+                this.$toast.error(error.response?.data || 'Não foi possível carregar a fila da cozinha.');
             }).then(() => {
                 clearTimeout(self.refreshTimeout);
                 self.refreshTimeout = setTimeout(() => {
@@ -377,7 +374,7 @@ export default {
         this.returnOrders();
         this.startTimer();
     },
-    unmounted: function () {
+    beforeDestroy: function () {
         clearTimeout(this.refreshTimeout);
         clearInterval(this.timerInterval);
     },
@@ -385,7 +382,8 @@ export default {
         dataTable,
         modal,
         cancelOrderModalContent,
-        resolveKitchenItemModalContent
+        resolveKitchenItemModalContent,
+        newBadge
     }
 }
 </script>

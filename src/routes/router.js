@@ -109,42 +109,52 @@ const router = new VueRouter({
 router.beforeEach((to, from, next) => {
     const moduloRequerido = to.meta.modulo_requerido;
 
-    if (moduloRequerido == undefined) next();
+    if (!moduloRequerido) {
+        return next();
+    }
 
+    let attempts = 0;
     let interval = setInterval(() => {
-        if (router.app?.$root?.menuOptions != undefined) {
+        attempts++;
+        const menuOptions = router.app?.$root?.menuOptions;
+
+        if (menuOptions && menuOptions.length > 0) {
             clearInterval(interval);
 
-            if (moduloRequerido) {
-                const menuOptions = router.app?.$root?.menuOptions || [];
-        
-                const temPermissao = menuOptions.some(modulo => modulo.codigo === moduloRequerido);
-        
+            const temPermissao = menuOptions.some(modulo => modulo.codigo === moduloRequerido);
+
+            if (!temPermissao) {
+                return next('/forbidden');
+            }
+
+            return next();
+        }
+
+        if (attempts >= 30) {
+            clearInterval(interval);
+            checkIfUserIsAuthenticated().then(() => {
+                const currentMenus = router.app?.$root?.menuOptions || [];
+                const temPermissao = currentMenus.some(modulo => modulo.codigo === moduloRequerido);
                 if (!temPermissao) {
                     return next('/forbidden');
                 }
-            }
-        
-            next();
-        } else if (to.path != "/register" && to.path != "/login") {
-            checkIfUserIsAuthenticated().then((() => {
-                clearInterval(interval);
-            })).catch(() => {
+                return next();
+            }).catch(() => {
                 return next('/login');
-            })
+            });
         }
-    }, 100)   
+    }, 100);
 });
 
 function checkIfUserIsAuthenticated() {
     return new Promise((resolve, reject) => {
-        let jwt = "Bearer " + self.getJwtInLocalStorage();
+        let token = localStorage.getItem("gourmetech_jwt");
                 
-        if (jwt == "Bearer null") {
+        if (!token) {
             reject();
         } else {
             let data = {
-                token: jwt
+                token: "Bearer " + token
             }
 
             api.post("/users/check_jwt", data)

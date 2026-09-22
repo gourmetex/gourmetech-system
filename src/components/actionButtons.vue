@@ -1,28 +1,22 @@
 <template>
     <div class="action-buttons-component">
         <div class="buttons-container">
-            <button class="btn-big btn-primary" v-if="add_text" id="add-button-big" v-on:click="add()">
-                {{ add_text }}
-                <span class="material-icons">{{ chooseAddIcon() }}</span>
+            <button class="btn btn-primary action-button" v-if="add_text" :disabled="isDisabled(1)" @click="add">
+                <span class="material-icons">{{ chooseAddIcon() }}</span>{{ add_text }}
             </button>
-            <button class="btn-big btn-red" v-if="exclude_text" id="exclude-button-big" v-on:click="exclude()">
-                {{ exclude_text }}
-                <span class="material-icons">{{ exclude_icon != undefined && exclude_icon != null && exclude_icon != "" ? exclude_icon : "close" }}</span>
+            <button class="btn btn-danger action-button" v-if="exclude_text" :disabled="isDisabled(2)" @click="exclude">
+                <span class="material-icons">{{ exclude_icon || "close" }}</span>{{ exclude_text }}
             </button>
-            <button class="btn-big btn-yellow" v-if="edit_text" id="edit-button-big" v-on:click="edit()">
-                {{ edit_text }}
-                <span class="material-icons">{{ edit_icon != undefined && edit_icon != null && edit_icon != "" ? edit_icon : "edit" }}</span>
+            <button class="btn btn-secondary action-button" v-if="edit_text" :disabled="isDisabled(3)" @click="edit">
+                <span class="material-icons">{{ edit_icon || "edit" }}</span>{{ edit_text }}
             </button>
+            <slot></slot>
         </div>  
     </div>
 </template>
 <script>
-import { globalMethods } from "@/js/globalMethods";
-import $ from 'jquery';
-
 export default {
     name: "actionButtonsComponent",
-    mixins: [globalMethods],
     props: ["add_text", "exclude_text", "edit_text", "disabledbuttons", "add_icon", "exclude_icon", "edit_icon"],
     methods: {
         chooseAddIcon: function () {
@@ -45,33 +39,7 @@ export default {
         edit: function () {
             this.$emit("edit");
         },
-        disableRequestedButtons: function () {     
-            if (this.disabledbuttons != undefined && this.disabledbuttons.indexOf(1) != -1) {
-                $("#add-button-big").attr("disabled", "disabled");
-            } else {
-                $("#add-button-big").removeAttr("disabled");
-            }
-
-            if (this.disabledbuttons != undefined && this.disabledbuttons.indexOf(2) != -1) {
-                $("#exclude-button-big").attr("disabled", "disabled");
-            } else {
-                $("#exclude-button-big").removeAttr("disabled");
-            }
-
-            if (this.disabledbuttons != undefined && this.disabledbuttons.indexOf(3) != -1) {
-                $("#edit-button-big").attr("disabled", "disabled");
-            } else {
-                $("#edit-button-big").removeAttr("disabled");
-            }
-        }
-    },
-    watch: {
-        disabledbuttons: function () {
-            this.disableRequestedButtons();
-        }
-    },
-    mounted: function () {
-        this.disableRequestedButtons();
+        isDisabled(index) { return Array.isArray(this.disabledbuttons) && this.disabledbuttons.includes(index); }
     }
 }
 </script>
@@ -79,5 +47,7 @@ export default {
 .buttons-container {
     display: flex;
     flex-wrap: wrap;
+    gap: var(--space-3);
 }
+.action-button { gap: 8px; margin: 0; min-width: 0; }
 </style>

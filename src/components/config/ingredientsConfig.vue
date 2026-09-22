@@ -1,7 +1,7 @@
 <template>
     <div class="ingredients-config">
-        <div class="filters">
-            <form id="filter-form" @submit.prevent="search()">
+        <div class="config-toolbar">
+            <form id="filter-form" class="filter-form" @submit.prevent="search()">
                 <div class="filter-field">
                     <label for="categoria">Categoria</label>
                     <select id="categoria" name="categoria">
@@ -12,28 +12,28 @@
                 </div>
                 <button type="submit" class="btn btn-primary">Buscar</button>
             </form>
+            <div class="config-action-bar">
+                <button type="button" class="btn btn-primary" v-on:click="createNewIngredient()">
+                    <span class="material-icons" style="font-size: 18px; margin-right: 6px;">add</span> Novo Tipo
+                </button>
+                <div class="dynamic-edit-buttons">
+                    <button type="button" class="btn btn-secondary" v-on:click="editIngredient()">
+                        <span class="material-icons" style="font-size: 18px; margin-right: 6px;">edit</span> Editar
+                    </button>
+                    <button type="button" class="btn btn-danger" v-on:click="deleteIngredient()">
+                        <span class="material-icons" style="font-size: 18px; margin-right: 6px;">delete</span> Excluir
+                    </button>
+                </div>
+            </div>
         </div>
         <dataTable :dataobj="ingredients" :loaded="loaded" rowsperpage="7" searchText="">
-            <grid-column prop="id" label="ID" align="center" v-slot="props">
+            <grid-column prop="id" label="ID" width="70px" align="center" v-slot="props">
                 <p class="clicable text-center" @click="selectRow($event)">{{ props.item.id }}</p>
             </grid-column>
             <grid-column prop="nome" label="Nome"></grid-column>
             <grid-column prop="categoria" label="Categoria"></grid-column>
             <grid-column prop="unidade_medida" label="Unidade de Medida"></grid-column>
         </dataTable>
-        <div class="edit-buttons">
-            <button type="button" class="rounded-btn btn-primary" v-on:click="createNewIngredient()">
-                <span class="material-icons">add</span>
-            </button>
-            <div class="dynamic-edit-buttons">
-                <button type="button" class="rounded-btn btn-red" v-on:click="deleteIngredient()">
-                    <span class="material-icons">delete</span>
-                </button>
-                <button type="button" class="rounded-btn btn-yellow" v-on:click="editIngredient()">
-                    <span class="material-icons">edit</span>
-                </button>
-            </div>
-        </div>
         <modal v-if="showModal" :modaltitle="modalTitle" :modalbutton1="modalButton1"
             :excludepath="'/products/ingredients/' + editId" :modalbutton2="modalButton2" :modalbutton3="modalButton3"
             @closeModal="closeModalFunction(); returnAllIngredients();">

@@ -258,12 +258,12 @@ export const globalMethods = {
         showEditButtons: function () {
             let editButtons = $(".dynamic-edit-buttons");
 
-            editButtons.show();
+            editButtons.addClass("visible").show();
         },
         hideEditButtons: function () {
             let editButtons = $(".dynamic-edit-buttons");
 
-            editButtons.hide();
+            editButtons.removeClass("visible").hide();
         },
         selectGridRow: function (row) {
             if (row.hasClass("row-selected")) {

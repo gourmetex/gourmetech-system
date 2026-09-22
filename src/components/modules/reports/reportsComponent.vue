@@ -12,7 +12,7 @@
         </div>
         <h2 v-if="!loading && relatorio.dados == null" class="text-center">Selecione um relatório</h2>
 
-        <lottie-player id="loading" background="transparent" speed="1" loop autoplay v-show="loading"></lottie-player>
+        <LoadingState v-if="loading" message="Gerando relatório" />
 
         <div class="relatorio-container" v-if="relatorio.dados != null">
             <div class="filter-container-header">
@@ -46,7 +46,7 @@
 </template>
 <script>
 import chartComponent from '@/components/chartComponent.vue';
-import loadingJson from "@/assets/animations/loading-component.json";
+import LoadingState from "@/components/LoadingState.vue";
 import api from "@/configs/api";
 import * as XLSX from "xlsx";
 
@@ -222,19 +222,14 @@ export default {
         }
     },
     mounted: function () {
-        const player = document.querySelector("lottie-player");
-        player.addEventListener("rendered", () => {
-            player.load(
-                loadingJson
-            );
-        });
 
         this.range = this.year;
 
         this.checkUrl();
     },
     components: {
-        chartComponent
+        chartComponent,
+        LoadingState
     }
 }
 </script>

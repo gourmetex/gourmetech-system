@@ -9,36 +9,31 @@
             </div>
         </div>
         <div class="parent">
-            <div class="div1">
-                <div class="desktop-chart" @click="goToChart('faturamento')" style="cursor: pointer;">
-                    <lottie-player background="transparent" speed="1" loop autoplay
-                        v-show="loadingFaturamento"></lottie-player>
+            <div class="left-charts">
+                <div class="desktop-chart clickable" @click="goToChart('faturamento')">
+                    <LoadingState v-if="loadingFaturamento" size="small" />
                     <chartComponent v-if="!loadingFaturamento" :chartData="faturamento.dados"
                         :chartType="faturamento.tipo" :chartReportType="faturamento.codigo"
                         :chartTitle="faturamento.dados.datasets[0].label" />
                 </div>
-            </div>
-            <div class="div2">
-                <div class="desktop-chart" @click="goToChart('despesas')" style="cursor: pointer;">
-                    <lottie-player background="transparent" speed="1" loop autoplay
-                        v-show="loadingDespesas"></lottie-player>
+                <div class="desktop-chart clickable" @click="goToChart('despesas')">
+                    <LoadingState v-if="loadingDespesas" size="small" />
                     <chartComponent v-if="!loadingDespesas" :chartData="despesas.dados" :chartType="despesas.tipo"
                         :chartReportType="despesas.codigo" :chartTitle="despesas.dados.datasets[0].label" />
                 </div>
             </div>
-            <div class="div3">
-                <div class="desktop-chart" @click="goToChart('vendas')" style="cursor: pointer;">
-                    <lottie-player background="transparent" speed="1" loop autoplay
-                        v-show="loadingVendas"></lottie-player>
+            <div class="right-charts">
+                <div class="desktop-chart clickable" @click="goToChart('vendas')">
+                    <LoadingState v-if="loadingVendas" size="small" />
                     <chartComponent v-if="!loadingVendas" :chartData="vendas.dados" :chartType="vendas.tipo"
                         :chartReportType="vendas.codigo" :chartTitle="vendas.dados.datasets[0].label" />
                 </div>
                 <div class="desktop-chart">
-                    <label>Produtos mais vendidos (Semanal)</label>
+                    <h3 class="chart-header-title">Produtos mais vendidos (Semanal)</h3>
                     <dataTable :dataobj="produtos_vendidos" rowsperpage="7" :loaded="!loadingProdutosVendidos">
                         <grid-column prop="nome" label="Nome"></grid-column>
-                        <grid-column prop="quantidade_vendida" label="Qtd. Vendida" />
-                        <grid-column prop="total_faturado" label="Faturamento" v-slot="props">
+                        <grid-column prop="quantidade_vendida" label="Qtd" width="70px" align="center" />
+                        <grid-column prop="total_faturado" label="Total" width="100px" align="right" v-slot="props">
                             {{ formatCurrency(props.item.total_faturado) }}
                         </grid-column>
                     </dataTable>
@@ -50,10 +45,10 @@
 <script>
 import moment from 'moment';
 import chartComponent from '@/components/chartComponent.vue';
-import loadingJson from "@/assets/animations/loading-component.json";
 import api from "@/configs/api";
 import { globalMethods } from "@/js/globalMethods";
 import dataTable from "./dataTable.vue";
+import LoadingState from "./LoadingState.vue";
 
 export default {
     name: "homeComponent",
@@ -88,7 +83,8 @@ export default {
     },
     components: {
         chartComponent,
-        dataTable
+        dataTable,
+        LoadingState
     },
     methods: {
         returnToday: function () {
@@ -137,16 +133,6 @@ export default {
 
         this.today = this.returnToday();
 
-        const players = document.querySelectorAll("lottie-player");
-
-        players.forEach((item) => {
-            item.addEventListener("rendered", () => {
-                item.load(
-                    loadingJson
-                );
-            });
-        })
-
         this.faturamento = { ...await this.retornaRelatorio("faturamento", "semanal", semanaAtual) };
         this.loadingFaturamento = false;
 
@@ -163,63 +149,67 @@ export default {
 </script>
 <style scoped>
 .home {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
+    min-height: 100%;
+    overflow-y: auto;
+    padding-bottom: var(--space-8);
+}
 
-    & :deep(canvas) {
-        max-height: 367px !important;
-        height: 100% !important;
-        width: 100% !important;
-    }
+.home ::v-deep canvas,
+.home :deep(canvas) {
+    max-height: 280px !important;
+    width: 100% !important;
+}
+
+.desktop-header {
+    margin-bottom: var(--space-2);
 }
 
 .parent {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    grid-template-rows: repeat(4, 1fr);
+    grid-template-columns: 1.35fr 1fr;
     gap: var(--space-5);
-    flex: 1;
-    margin-top: var(--space-6);
+    margin-top: var(--space-4);
+    align-items: start;
 }
 
-.div1,
-.div2,
-.div3 {
-    display: grid;
-    gap: var(--space-3);
-}
-
-.div1 {
-    grid-area: 1 / 1 / 3 / 4;
-}
-
-.div2 {
-    grid-area: 3 / 1 / 5 / 4;
-}
-
-.div3 {
-    grid-area: 1 / 4 / 5 / 6;
+.left-charts,
+.right-charts {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
 }
 
 .desktop-chart {
     width: 100%;
-    height: fit-content;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    box-shadow: 0 2px 8px rgba(43, 38, 32, 0.04);
+    padding: var(--space-5);
+    box-sizing: border-box;
+    transition: transform 120ms ease, box-shadow 120ms ease;
+    overflow: hidden;
 }
 
-@media (max-width: 768px) {
+.desktop-chart.clickable {
+    cursor: pointer;
+}
+
+.desktop-chart.clickable:hover {
+    box-shadow: 0 4px 14px rgba(43, 38, 32, 0.08);
+    transform: translateY(-2px);
+}
+
+.chart-header-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 0 0 var(--space-2) 0;
+}
+
+@media (max-width: 1024px) {
     .parent {
         grid-template-columns: 1fr;
-        grid-template-rows: unset;
-        padding: var(--space-6) 0;
-    }
-
-    .div1,
-    .div2,
-    .div3 {
-        width: 100%;
-        grid-area: unset;
-        gap: var(--space-6);
     }
 }
 </style>

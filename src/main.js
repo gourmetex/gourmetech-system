@@ -2,8 +2,10 @@ import Vue from 'vue';
 import router from '../src/routes/router.js';
 import App from './App.vue';
 import { GridColumn } from './components/dataTable.vue';
+import { toast } from './js/toast';
 
 Vue.component('grid-column', GridColumn);
+Vue.prototype.$toast = toast;
 
 router.beforeEach((to, from, next) => {
   const nearestWithTitle = to.matched.slice().reverse().find(r => r.meta && r.meta.title);
@@ -39,7 +41,11 @@ Vue.config.productionTip = false;
 
 new Vue({
   data: {
-    user: null
+    user: null,
+    menuOptions: [],
+    company: {},
+    selectedTheme: null,
+    jwtLoaded: false
   },
   router,
   render: h => h(App),

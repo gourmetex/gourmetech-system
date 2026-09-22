@@ -20,26 +20,26 @@
                 <button type="submit" class="btn btn-primary">Buscar</button>
             </form>
         </div>
+        <div class="config-action-bar">
+            <button type="button" class="btn btn-primary" v-on:click="createNewUser()">
+                <span class="material-icons" style="font-size: 18px; margin-right: 6px;">person_add</span> Novo Usuário
+            </button>
+            <div class="dynamic-edit-buttons">
+                <button type="button" class="btn btn-yellow" v-on:click="editUser()">
+                    <span class="material-icons" style="font-size: 18px; margin-right: 6px;">edit</span> Editar
+                </button>
+                <button type="button" class="btn btn-red" v-on:click="deleteUser()">
+                    <span class="material-icons" style="font-size: 18px; margin-right: 6px;">delete</span> Excluir
+                </button>
+            </div>
+        </div>
         <dataTable :dataobj="users" rowsperpage="7" searchText="" :loaded="contentLoaded">
-            <grid-column prop="id" label="ID" align="center" v-slot="props">
+            <grid-column prop="id" label="ID" width="70px" align="center" v-slot="props">
                 <p class="clicable text-center" @click="selectRow($event)">{{ props.item.id }}</p>
             </grid-column>
             <grid-column prop="nome" label="Nome"></grid-column>
             <grid-column prop="cargo" label="Cargo"></grid-column>
         </dataTable>
-        <div class="edit-buttons">
-            <button type="button" class="rounded-btn btn-primary" v-on:click="createNewUser()">
-                <span class="material-icons">add</span>
-            </button>
-            <div class="dynamic-edit-buttons">
-                <button type="button" class="rounded-btn btn-red" v-on:click="deleteUser()">
-                    <span class="material-icons">delete</span>
-                </button>
-                <button type="button" class="rounded-btn btn-yellow" v-on:click="editUser()">
-                    <span class="material-icons">edit</span>
-                </button>
-            </div>
-        </div>
         <modal v-if="showModal" :modaltitle="modalTitle" :modalbutton1="modalButton1" :excludepath="'/users/' + editId"
             :modalbutton2="modalButton2" :modalbutton3="modalButton3"
             @closeModal="closeModalFunction(); returnAllUsers();">

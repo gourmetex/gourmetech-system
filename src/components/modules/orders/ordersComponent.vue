@@ -3,19 +3,15 @@
         <div class="page-title">
             <h1>Vendas</h1>
         </div>  
-        <actionButtons add_text="ADICIONAR PEDIDO" exclude_text="CANCELAR PEDIDO" edit_text="EDITAR PEDIDO" :disabledbuttons="disabledButtons" @add="addOrder()" @exclude="cancelOrder()" @edit="editOrder()" />
-        <!-- D.2: acao a parte das 3 fixas de actionButtons (que ja usa add/exclude/edit) -
-             so faz sentido pra venda do app ainda 'Aguardando separação'. -->
-        <div class="separation-button-container">
+        <actionButtons add_text="ADICIONAR PEDIDO" exclude_text="CANCELAR PEDIDO" edit_text="EDITAR PEDIDO" :disabledbuttons="disabledButtons" @add="addOrder()" @exclude="cancelOrder()" @edit="editOrder()">
             <button
-                class="btn-big btn-blue"
+                class="btn btn-secondary action-button"
                 :disabled="!canSendToSeparation"
                 v-on:click="sendToSeparation()"
             >
-                ENVIAR PARA SEPARAÇÃO
-                <span class="material-icons">send</span>
+                <span class="material-icons">send</span> ENVIAR PARA SEPARAÇÃO
             </button>
-        </div>
+        </actionButtons>
         <div class="dishes-container">
             <div class="filter-container-header">
                 <h2>Lista de vendas</h2>
@@ -41,7 +37,18 @@
                 </grid-column>
             </dataTable>
         </div>
-        <modal v-if="showModal" :modaltitle="modalTitle" :modalbutton1="modalButton1" :excludepath="'/orders/' + editId" :modalbutton2="modalButton2" :modalButton3="modalButton3" @closeModal="closeModalFunction(); returnOrders();">
+        <modal
+            v-if="showModal"
+            :modaltitle="modalTitle"
+            :modalbutton1="modalButton1"
+            :excludepath="confirmModal ? null : ('/orders/' + editId)"
+            :modalbutton2="modalButton2"
+            :modalButton3="modalButton3"
+            :confirm="confirmModal"
+            :confirmtext="confirmText"
+            @confirmCallback="handleConfirmCallback()"
+            @closeModal="closeModalFunction(); returnOrders();"
+        >
             <editOrderModalContent v-if="showEditOrderModalContent" :orderid="editId" @savedContent="closeModalFunction(); returnOrders();"></editOrderModalContent>
             <cancelOrderModalContent v-if="showCancelOrderModalContent" :orderid="editId" @savedContent="closeModalFunction(); returnOrders();"></cancelOrderModalContent>
         </modal>
@@ -65,6 +72,9 @@ export default {
             orders: [],
             showEditOrderModalContent: false,
             showCancelOrderModalContent: false,
+            confirmModal: false,
+            confirmText: "",
+            confirmCallback: () => {},
             gridOptions: []
         }
     },
@@ -81,12 +91,26 @@ export default {
         sendToSeparation: function () {
             if (!this.canSendToSeparation) return;
 
-            let self = this;
+            this.resetModalContents();
+            this.confirmModal = true;
+            this.confirmText = `Deseja realmente enviar a comanda #${this.editId} para a separação?`;
+            this.showModalFunction("Confirmar Envio", "Enviar para separação", "Cancelar");
 
-            api.post("/orders/" + self.editId + "/separation").then(() => {
-                self.returnOrders();
+            let self = this;
+            this.confirmCallback = () => {
+                return api.post("/orders/" + self.editId + "/separation").then(() => {
+                    self.setResponse("Pedido enviado para separação com sucesso!", "success");
+                    self.returnOrders();
+                }).catch((error) => {
+                    self.setResponse(error.response?.data || "Erro ao enviar para separação", "error");
+                });
+            };
+        },
+        handleConfirmCallback: function () {
+            Promise.resolve(this.confirmCallback()).then(() => {
+                this.returnOrders();
             }).catch((error) => {
-                self.setResponse(error.response?.data || "Erro ao enviar para separação", "error");
+                console.log(error);
             });
         },
         downloadReceipt: function (order) {
@@ -111,6 +135,8 @@ export default {
                 'Aguardando separação': 'var(--yellow)',
                 'Em separação': 'var(--blue)',
                 'Em andamento': 'var(--blue)',
+                'Aguardando envio': 'var(--yellow)',
+                'Em rota': 'var(--blue)',
                 'Finalizado': 'var(--green)',
                 'Cancelado': 'var(--red)',
                 'Cancelamento Solicitado': 'var(--orange)'
@@ -121,6 +147,9 @@ export default {
         resetModalContents: function () {
             this.showEditOrderModalContent = false;
             this.showCancelOrderModalContent = false;
+            this.confirmModal = false;
+            this.confirmText = "";
+            this.confirmCallback = () => {};
         }, 
         cancelOrder: function () {
             this.resetModalContents();
@@ -175,19 +204,3 @@ export default {
     }
 }
 </script>
-<style scoped>
-.separation-button-container {
-    display: flex;
-    flex-wrap: wrap;
-}
-
-.separation-button-container .btn-big {
-    width: 31%;
-}
-
-@media (max-width: 960px) {
-    .separation-button-container .btn-big {
-        width: 100%;
-    }
-}
-</style>

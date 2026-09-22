@@ -58,10 +58,15 @@ export default {
       }
 
       if (this.chartData && this.chartData.datasets) {
-        this.chartData.datasets.forEach(dataset => {
-          if (dataset.backgroundColor.startsWith("--")) {
+        const palette = ['#3E6990', '#F26430', '#1E8E76', '#B4860A'];
+        this.chartData.datasets.forEach((dataset, index) => {
+          if (typeof dataset.backgroundColor === 'string' && dataset.backgroundColor.startsWith("--")) {
             dataset.backgroundColor = this.getCSSColor(dataset.backgroundColor);
           }
+          if (!dataset.backgroundColor || (Array.isArray(dataset.backgroundColor) && !dataset.backgroundColor.length)) {
+            dataset.backgroundColor = palette[index % palette.length];
+          }
+          if (!dataset.borderColor) dataset.borderColor = palette[index % palette.length];
         });
       }
 

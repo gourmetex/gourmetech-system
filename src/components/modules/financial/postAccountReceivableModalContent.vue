@@ -1,36 +1,42 @@
 <template>
     <div class="post-account-receivable-modal-content">
         <form class="edit-roles" id="informations-form" @submit.prevent="saveDebt()">
-            <div class="form-group">
-                <label for="discriminacao">Discriminação</label>
-                <input type="text" name="discriminacao" id="discriminacao" maxlength="150" required>
+            <div class="form-row">
+                <div class="form-group form-col-2">
+                    <label for="discriminacao">Discriminação</label>
+                    <input type="text" name="discriminacao" id="discriminacao" maxlength="150" placeholder="Ex: Evento Corporativo" required>
+                </div>
+                <div class="form-group form-col-1">
+                    <label for="valor">Valor</label>
+                    <input type="text" name="valor" id="valor" @input="inputMoneyCheck($event)" placeholder="R$ 0,00" required>
+                </div>
             </div>
-            <div class="form-group">
-                <label for="valor">Valor</label>
-                <input type="text" name="valor" id="valor" @input="inputMoneyCheck($event)" required>
+            <div class="form-row">
+                <div class="form-group form-col-1">
+                    <label for="data_lancamento">Data de lançamento</label>
+                    <input type="date" name="data_lancamento" id="data_lancamento" required>
+                </div>
+                <div class="form-group form-col-1">
+                    <label for="data_vencimento">Data de vencimento</label>
+                    <input type="date" name="data_vencimento" id="data_vencimento" required>
+                </div>
             </div>
-            <div class="form-group">
-                <label for="data_lancamento">Data de lançamento</label>
-                <input type="date" name="data_lancamento" id="data_lancamento" required>
-            </div>
-            <div class="form-group">
-                <label for="data_vencimento">Data de vencimento</label>
-                <input type="date" name="data_vencimento" id="data_vencimento" required>
-            </div>
-            <div class="form-group">
-                <label for="status">Status</label>
-                <select name="status" id="status" required>
-                    <option value="">* Selecione *</option>
-                    <option value="pendente">Pendente</option>
-                    <option value="pago">Pago</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="categoria_conta">Categoria</label>
-                <select id="categoria_conta" name="categoria_conta" required>
-                    <option value="">* Selecione *</option>
-                    <option v-for="(item, index) in debt_categories" :key="index" :value="item.id">{{ item.nome }}</option>
-                </select>
+            <div class="form-row">
+                <div class="form-group form-col-1">
+                    <label for="status">Status</label>
+                    <select name="status" id="status" required>
+                        <option value="">* Selecione *</option>
+                        <option value="pendente">Pendente</option>
+                        <option value="pago">Pago</option>
+                    </select>
+                </div>
+                <div class="form-group form-col-1">
+                    <label for="categoria_conta">Categoria</label>
+                    <select id="categoria_conta" name="categoria_conta" required>
+                        <option value="">* Selecione *</option>
+                        <option v-for="(item, index) in debt_categories" :key="index" :value="item.id">{{ item.nome }}</option>
+                    </select>
+                </div>
             </div>
             <input type="submit" id="submit-button" style="display: none;">
         </form>

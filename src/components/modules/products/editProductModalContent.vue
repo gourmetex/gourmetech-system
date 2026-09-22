@@ -1,59 +1,71 @@
 <template>
     <div class="inner-modal-content">
         <form class="add-dish" id="informations-form" @submit.prevent="saveDish()">
-            <div class="form-group-horizontal">
-                <div class="form-group">
+            <div class="form-row">
+                <div class="form-group form-col-2">
                     <label for="nome">Nome</label>
-                    <input type="text" name="nome" v-model="dish.nome" required>
+                    <input type="text" name="nome" v-model="dish.nome" required placeholder="Ex: Risoto de Cogumelos">
                 </div>
-                <div class="form-group">
+                <div class="form-group form-col-2">
                     <label for="categoria">Categoria</label>
                     <SearchableSelect :options="dishes_categories" v-model="dish.categoria" name="categoria"
                         placeholder="Selecione a categoria..." />
                 </div>
-                <div class="form-group">
+                <div class="form-group form-col-1">
                     <label for="preco">{{ priceFieldLabel }}</label>
-                    <input type="text" name="preco" id="preco" @input="inputMoneyCheck($event)" required>
+                    <input type="text" name="preco" id="preco" @input="inputMoneyCheck($event)" required placeholder="R$ 0,00">
                 </div>
             </div>
             <div class="form-group check-group">
                 <input type="checkbox" id="a_granel" v-model="dish.a_granel">
-                <label for="a_granel">Produto a granel</label>
+                <label for="a_granel">Produto a granel (vendido por peso/medida)</label>
             </div>
             <div class="form-group">
                 <label for="descricao">Descrição</label>
-                <textarea name="descricao" id="descricao" v-model="dish.descricao" maxlength="5000"></textarea>
+                <textarea name="descricao" id="descricao" v-model="dish.descricao" maxlength="5000" rows="3" placeholder="Descrição do produto para o cardápio..."></textarea>
             </div>
             <input type="submit" id="submit-button" style="display: none;">
         </form>
-        <h3>Componentes do produto</h3>
-        <div class="modal-edit-grid">
-            <dataTable :dataobj="dish.ingredientes" rowsperpage="2" searchText="" :loaded="contentLoaded">
-                <grid-column prop="id" label="ID" align="center" v-slot="props">
+
+        <div class="section-divider"></div>
+
+        <div class="components-section">
+            <div class="components-header">
+                <h3>Componentes do produto</h3>
+                <div class="components-actions">
+                    <button type="button" class="btn btn-sm btn-primary" v-on:click="addIngredient()"
+                        :disabled="dish.a_granel && dish.ingredientes.length >= 1">
+                        <span class="material-icons" style="font-size: 16px; margin-right: 4px;">add</span> Adicionar item
+                    </button>
+                    <div class="dynamic-edit-buttons">
+                        <button type="button" class="btn btn-sm btn-danger" v-on:click="deleteIngredient()">
+                            <span class="material-icons" style="font-size: 16px; margin-right: 4px;">delete</span> Excluir
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <dataTable :dataobj="dish.ingredientes" rowsperpage="3" searchText="" :loaded="contentLoaded">
+                <grid-column prop="id" label="ID" width="60px" align="center" v-slot="props">
                     <p class="clicable text-center" @click="selectRow($event)">{{ props.item.id }}</p>
                 </grid-column>
                 <grid-column prop="nome" label="Nome"></grid-column>
-                <grid-column prop="quantidade" label="Quantidade" align="center" v-slot="props">
+                <grid-column prop="quantidade" label="Quantidade" width="140px" align="center" v-slot="props">
                     <p class="text-center">{{ props.item.quantidade }} ({{ props.item.unidade_medida }})</p>
                 </grid-column>
             </dataTable>
-            <div class="edit-buttons buttons-vertical">
-                <button type="button" class="rounded-btn btn-primary" v-on:click="addIngredient()"
-                    :disabled="dish.a_granel && dish.ingredientes.length >= 1">
-                    <span class="material-icons">add</span>
-                </button>
-                <div class="dynamic-edit-buttons">
-                    <button type="button" class="rounded-btn btn-red" v-on:click="deleteIngredient()">
-                        <span class="material-icons">delete</span>
-                    </button>
-                </div>
-            </div>
         </div>
+
+        <div class="section-divider"></div>
+
         <div class="product-imagem-container">
             <h3>Imagem do produto</h3>
-            <input type="file" name="product_image" @change="readFile()" id="product-image"
-                accept="image/jpeg, image/png, image/webp" />
-            <img :src="dish.imagem">
+            <div class="image-upload-wrapper">
+                <input type="file" name="product_image" @change="readFile()" id="product-image"
+                    accept="image/jpeg, image/png, image/webp" />
+                <div class="image-preview" v-if="dish.imagem">
+                    <img :src="dish.imagem" alt="Prévia do produto">
+                </div>
+            </div>
         </div>
         <div class="small-modal">
             <form class="add-dish" id="informations-form" @submit.prevent="submitAddIngredient()">
@@ -361,19 +373,71 @@ export default {
     margin-bottom: var(--space-3);
 }
 
-.product-imagem-container {
-    margin-top: var(--space-4);
-    display: grid;
-    gap: var(--space-3);
+.section-divider {
+    height: 1px;
+    background: var(--line);
+    margin: var(--space-5) 0;
+}
 
-    & img {
-        border-radius: var(--radius-md);
-        width: 50%;
-        object-fit: contain;
-        border: 1px solid var(--gray-3);
-        margin: auto;
-        margin-top: var(--space-4);
-    }
+.components-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-2);
+}
+
+.components-header h3 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.components-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.btn-sm {
+    padding: 6px 14px;
+    font-size: 13px;
+    min-width: auto;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+}
+
+.product-imagem-container h3 {
+    margin: 0 0 var(--space-2) 0;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.image-upload-wrapper {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    background: var(--paper);
+    padding: var(--space-4);
+    border-radius: var(--radius-md);
+    border: 1px dashed var(--line);
+}
+
+.image-upload-wrapper input[type="file"] {
+    max-width: 260px;
+    background: transparent;
+    border: none;
+    height: auto;
+    padding: 0;
+}
+
+.image-preview img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--line);
+    background: var(--surface);
 }
 
 .check-group {
@@ -381,9 +445,11 @@ export default {
     display: flex;
     flex-direction: row;
     gap: var(--space-2);
+    margin: var(--space-2) 0;
 }
 
 .check-group input {
-    width: auto;
+    width: 18px;
+    height: 18px;
 }
 </style>

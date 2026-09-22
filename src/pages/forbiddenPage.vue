@@ -86,12 +86,12 @@
   }
   
   .message {
-    color: var(gray);
+    color: var(--gray);
     margin-bottom: 20px;
   }
   
   .countdown {
-    color: var(gray-2);
+    color: var(--gray-2);
     font-size: 14px;
     margin-bottom: 20px;
   }
@@ -113,4 +113,3 @@
     }
   }
   </style>
-  

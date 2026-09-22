@@ -1,33 +1,33 @@
 <template>
     <div class="tables-config">
-        <div class="filters">
-            <form id="filter-form" @submit.prevent="search()">
+        <div class="config-toolbar">
+            <form id="filter-form" class="filter-form" @submit.prevent="search()">
                 <div class="filter-field">
                     <label for="categoria">Número da mesa</label>
                     <input type="number" name="id" id="id">
                 </div>
                 <button type="submit" class="btn btn-primary">Buscar</button>
             </form>
+            <div class="config-action-bar">
+                <button type="button" class="btn btn-primary" v-on:click="createNewTable()">
+                    <span class="material-icons" style="font-size: 18px; margin-right: 6px;">add</span> Nova Mesa
+                </button>
+                <div class="dynamic-edit-buttons">
+                    <button type="button" class="btn btn-secondary" v-on:click="editTable()">
+                        <span class="material-icons" style="font-size: 18px; margin-right: 6px;">edit</span> Editar
+                    </button>
+                    <button type="button" class="btn btn-danger" v-on:click="deleteTable()">
+                        <span class="material-icons" style="font-size: 18px; margin-right: 6px;">delete</span> Excluir
+                    </button>
+                </div>
+            </div>
         </div>
         <dataTable :dataobj="tables" rowsperpage="7" searchText="" :loaded="contentLoaded">
-            <grid-column prop="id" label="Número" align="center" v-slot="props">
+            <grid-column prop="id" label="Número" width="90px" align="center" v-slot="props">
                 <p class="clicable text-center" @click="selectRow($event)">{{ props.item.id }}</p>
             </grid-column>
             <grid-column prop="descricao" label="Descrição"></grid-column>
         </dataTable>
-        <div class="edit-buttons">
-            <button type="button" class="rounded-btn btn-primary" v-on:click="createNewTable()">
-                <span class="material-icons">add</span>
-            </button>
-            <div class="dynamic-edit-buttons">
-                <button type="button" class="rounded-btn btn-red" v-on:click="deleteTable()">
-                    <span class="material-icons">delete</span>
-                </button>
-                <button type="button" class="rounded-btn btn-yellow" v-on:click="editTable()">
-                    <span class="material-icons">edit</span>
-                </button>
-            </div>
-        </div>
         <modal v-if="showModal" :modaltitle="modalTitle" :modalbutton1="modalButton1" :excludepath="'/tables/' + editId"
             :modalbutton2="modalButton2" :modalbutton3="modalButton3"
             @closeModal="closeModalFunction(); returnAllTables();">
