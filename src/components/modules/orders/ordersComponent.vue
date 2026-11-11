@@ -16,7 +16,7 @@
             <div class="filter-container-header">
                 <h2>Lista de vendas</h2>
             </div>
-            <dataTable :dataobj="orders" rowsperpage="7" searchText="item" :loaded="contentLoaded">
+            <dataTable :dataobj="orders" rowsperpage="7" searchText="item" :loaded="contentLoaded" rowkey="comanda" :selectedrow="editId" :preserveview="true">
                 <grid-column prop="comanda" label="Nº Comanda" align="center" v-slot="props">
                     <p class="clicable" v-on:click="selectRow($event)">{{ props.item.comanda }}</p>
                 </grid-column>
@@ -76,7 +76,11 @@ export default {
             confirmModal: false,
             confirmText: "",
             confirmCallback: () => {},
-            gridOptions: []
+            gridOptions: [],
+            refreshInterval: null,
+            refreshRequestId: 0,
+            refreshInFlight: false,
+            pageDestroyed: false
         }
     },
     computed: {
@@ -187,27 +191,37 @@ export default {
             this.showModalFunction("Editar pedido", "Salvar", "Cancelar", "Finalizar");
             this.showEditOrderModalContent = true;
         },
-        returnOrders: function () {
-            let self = this;
-
-            self.contentLoaded = false;
-
-            api.get("/orders").then((response) => {
-                self.orders = response.data.returnObj;
-                self.contentLoaded = true;
-                self.editId = null;
-
-                setTimeout(() => {
-                    this.returnOrders();
-                }, 60 * 1000)
-            }).catch((error) => {
-                self.setResponse(error.response.data, "error");
-            })
+        returnOrders: async function (silent = false) {
+            if (silent && (this.showModal || this.refreshInFlight)) return;
+            const requestId = ++this.refreshRequestId;
+            this.refreshInFlight = true;
+            try {
+                const response = await api.get("/orders");
+                if (this.pageDestroyed || requestId !== this.refreshRequestId || (silent && this.showModal)) return;
+                this.orders = response.data.returnObj || [];
+                if (this.editId != null && !this.orders.some((order) => order.comanda == this.editId) && !this.showModal) {
+                    this.descelectRows();
+                }
+            } catch (error) {
+                if (!silent && !this.pageDestroyed && requestId === this.refreshRequestId) {
+                    this.$toast.error(error.response?.data || "Não foi possível atualizar as vendas.");
+                }
+            } finally {
+                if (!this.pageDestroyed && requestId === this.refreshRequestId) {
+                    this.contentLoaded = true;
+                    this.refreshInFlight = false;
+                }
+            }
         }
     },
     mounted: function () {
         this.returnOrders();
         this.disableActionsButtons(false, true, true);
+        this.refreshInterval = setInterval(() => this.returnOrders(true), 30 * 1000);
+    },
+    beforeDestroy() {
+        this.pageDestroyed = true;
+        clearInterval(this.refreshInterval);
     },
     components: {
         actionButtons,

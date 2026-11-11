@@ -9,7 +9,7 @@
             <div class="filter-container-header">
                 <h2>Lista de entregas</h2>
             </div>
-            <dataTable :dataobj="shippings" rowsperpage="7" searchText="entrega" :loaded="contentLoaded">
+            <dataTable :dataobj="shippings" rowsperpage="7" searchText="entrega" :loaded="contentLoaded" :selectedrow="editId" :preserveview="true">
                 <grid-column prop="id" label="ID" align="center" v-slot="props">
                     <p class="clicable text-center" @click="selectRow($event)">{{ props.item.id }}</p>
                 </grid-column>
@@ -66,7 +66,11 @@ export default {
             confirmCallback: () => { },
             showCancelShippingModalContent: false,
             selectedComandaId: null,
-            selectedValorTotal: 0
+            selectedValorTotal: 0,
+            refreshInterval: null,
+            refreshRequestId: 0,
+            refreshInFlight: false,
+            pageDestroyed: false
         }
     },
     methods: {
@@ -129,23 +133,37 @@ export default {
                 this.$toast.error(message || "Não foi possível enviar a entrega. Tente novamente.");
             })
         },
-        returnShippings: function () {
-            let self = this;
-
-            self.contentLoaded = false;
-
-            api.get("/shipping").then((response) => {
-                self.shippings = response.data.returnObj;
-                self.contentLoaded = true;
-                self.editId = null;
-            }).catch((error) => {
-                console.log(error);
-            })
+        returnShippings: async function (silent = false) {
+            if (silent && (this.showModal || this.refreshInFlight)) return;
+            const requestId = ++this.refreshRequestId;
+            this.refreshInFlight = true;
+            try {
+                const response = await api.get("/shipping?clearCache=true");
+                if (this.pageDestroyed || requestId !== this.refreshRequestId || (silent && this.showModal)) return;
+                this.shippings = response.data.returnObj || [];
+                if (this.editId != null && !this.shippings.some((shipping) => shipping.id == this.editId) && !this.showModal) {
+                    this.descelectRows();
+                }
+            } catch (error) {
+                if (!silent && !this.pageDestroyed && requestId === this.refreshRequestId) {
+                    this.$toast.error(error.response?.data || "Não foi possível atualizar as entregas.");
+                }
+            } finally {
+                if (!this.pageDestroyed && requestId === this.refreshRequestId) {
+                    this.contentLoaded = true;
+                    this.refreshInFlight = false;
+                }
+            }
         }
     },
     mounted: function () {
         this.returnShippings();
         this.disableActionsButtons(true, true, true);
+        this.refreshInterval = setInterval(() => this.returnShippings(true), 30 * 1000);
+    },
+    beforeDestroy() {
+        this.pageDestroyed = true;
+        clearInterval(this.refreshInterval);
     },
     components: {
         actionButtons,

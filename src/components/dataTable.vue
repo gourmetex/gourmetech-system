@@ -54,7 +54,7 @@
           </thead>
 
           <tbody>
-            <tr v-for="(item, rIdx) in paginatedAndFilteredData" :key="item.id || rIdx">
+            <tr v-for="(item, rIdx) in paginatedAndFilteredData" :key="item[rowkey] || rIdx" :class="selectedrow != null && String(item[rowkey]) === String(selectedrow) ? 'row-selected' : null">
               <!-- Checkbox por linha -->
               <td v-if="selectitems == 'true'" style="width: 50px">
                 <input type="checkbox" class="custom-checkbox" :value="item" v-model="selectedItems" />
@@ -156,6 +156,9 @@ export default {
       default: () => ({ filename: "relatorio", title: "Relatório" }),
     },
     selectitems: { type: String, default: "false" },
+    selectedrow: { type: [Number, String], default: null },
+    rowkey: { type: String, default: "id" },
+    preserveview: { type: Boolean, default: false },
     searchText: { type: String, default: "" },
     searchable: { type: Boolean, default: true },
     loaded: { type: Boolean, default: false }
@@ -187,8 +190,9 @@ export default {
     },
     totalPages() {
       const rpp = parseInt(this.rowsperpage, 10);
-      if (!rpp || rpp <= 0 || !this.dataTable.length) return 1;
-      return Math.ceil(this.dataTable.length / rpp);
+      const count = this.preserveview ? this.filteredData.length : this.dataTable.length;
+      if (!rpp || rpp <= 0 || !count) return 1;
+      return Math.ceil(count / rpp);
     },
     paginatedAndFilteredData() {
       const rpp = parseInt(this.rowsperpage, 10);
@@ -205,8 +209,15 @@ export default {
       deep: true,
       handler(newVal) {
         this.dataTable = Array.isArray(newVal) ? [...newVal] : [];
-        this.filteredData = [...this.dataTable];
-        this.currentPage = 1;
+        if (this.preserveview) {
+          this.filterData(false);
+          const sortedColumn = this.columns.find((column) => column.prop === this.sortColumnKey);
+          if (sortedColumn) this.sortRows(sortedColumn);
+          this.currentPage = Math.min(this.currentPage, this.totalPages);
+        } else {
+          this.filteredData = [...this.dataTable];
+          this.currentPage = 1;
+        }
         this.$nextTick(this.processColumns);
       },
     },
@@ -244,7 +255,7 @@ export default {
     },
 
     /** Filtra os dados com base na searchQuery */
-    filterData() {
+    filterData(resetPage = true) {
       if (!this.dataTable || this.dataTable.length === 0) {
         this.filteredData = [];
         return;
@@ -261,7 +272,7 @@ export default {
           })
         );
       }
-      this.currentPage = 1; // Reseta a página ao filtrar
+      if (resetPage !== false) this.currentPage = 1; // Reseta a página ao filtrar
     },
     /**
      * Gera uma "assinatura" JSON leve baseada nas props dos slots,
@@ -496,7 +507,9 @@ export default {
         this.sortColumnKey = columnKey;
         this.sortDirection = "asc";
       }
-
+      this.sortRows(col);
+    },
+    sortRows(col) {
       const dir = this.sortDirection === "asc" ? 1 : -1;
       this.filteredData.sort((a, b) => {
         if (col.sortexpression) {

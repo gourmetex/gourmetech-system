@@ -32,7 +32,7 @@
                 <span><i class="legend-dot dot-danger"></i> Atrasado &gt; 30 min</span>
             </div>
             <div class="dishes-container queue-table">
-                <dataTable ref="queueTable" :dataobj="orders" rowsperpage="10" searchText="" :loaded="contentLoaded" selectitems="true" @selected="selectedForPrint = $event">
+                <dataTable ref="queueTable" :dataobj="orders" rowsperpage="10" searchText="" :loaded="contentLoaded" selectitems="true" :preserveview="true" @selected="selectedForPrint = $event">
                     <grid-column prop="id" label="Pedido / cliente" v-slot="props">
                         <button class="order-link" type="button" @click="openOrder(props.item)">
                             <span class="order-number">#{{ props.item.id }}</span>
@@ -173,6 +173,11 @@ export default {
             selectedForPrint: [],
             refreshTimeout: null,
             timerInterval: null,
+            refreshRequestId: 0,
+            itemRequestId: 0,
+            refreshInFlight: false,
+            itemsInFlight: false,
+            pageDestroyed: false,
             clockNow: Date.now(),
             showCancelOrderModalContent: false,
             showResolveItemModalContent: false,
@@ -253,12 +258,16 @@ export default {
                 this.returnOrders();
             }
         },
-        loadOrderItems(checkIfStillQueued = false) {
+        loadOrderItems(checkIfStillQueued = false, silent = false) {
             let self = this;
 
-            if (!self.selectedOrder) return;
+            if (!self.selectedOrder || (silent && (self.showModal || self.itemsInFlight))) return;
+            const orderId = self.selectedOrder.id;
+            const requestId = ++self.itemRequestId;
+            self.itemsInFlight = true;
 
-            api.get("/kitchen/orders/" + self.selectedOrder.id + "/items").then((response) => {
+            api.get("/kitchen/orders/" + orderId + "/items?clearCache=true").then((response) => {
+                if (self.pageDestroyed || requestId !== self.itemRequestId || !self.selectedOrder || self.selectedOrder.id !== orderId || (silent && self.showModal)) return;
                 const items = (response.data.returnObj || []).map((item) => ({
                     ...item,
                     observacoes: self.groupObservations(item.observacoes)
@@ -271,10 +280,14 @@ export default {
                 if (checkIfStillQueued && !stillPending) {
                     self.backToGrid();
                 } else {
-                    self.returnOrders(true);
+                    self.returnOrders(true, silent);
                 }
             }).catch((error) => {
-                this.$toast.error(error.response?.data || 'Não foi possível atualizar a fila da cozinha.');
+                if (!silent && !self.pageDestroyed && requestId === self.itemRequestId) {
+                    this.$toast.error(error.response?.data || 'Não foi possível atualizar a fila da cozinha.');
+                }
+            }).then(() => {
+                if (requestId === self.itemRequestId) self.itemsInFlight = false;
             });
         },
         startItem(item) {
@@ -345,12 +358,14 @@ export default {
                 this.$toast.error(error.response?.data || 'Não foi possível carregar as listas de separação.');
             });
         },
-        returnOrders(cleanCache = false) {
+        returnOrders(cleanCache = false, silent = false) {
             let self = this;
-
-            self.contentLoaded = false;
+            if (silent && (self.showModal || self.refreshInFlight)) return;
+            const requestId = ++self.refreshRequestId;
+            self.refreshInFlight = true;
 
             api.get("/kitchen/orders" + (cleanCache ? "?clearCache=true" : "")).then((response) => {
+                if (self.pageDestroyed || requestId !== self.refreshRequestId || (silent && self.showModal)) return;
                 const selectedIds = new Set(self.selectedForPrint.map((order) => order.id));
                 self.clockNow = Date.now();
                 self.orders = (response.data.returnObj || []).map((order) => ({ ...order, queueLoadedAt: self.clockNow }));
@@ -368,12 +383,14 @@ export default {
                     self.backToGrid();
                 }
             }).catch((error) => {
-                this.$toast.error(error.response?.data || 'Não foi possível carregar a fila da cozinha.');
+                if (!silent && !self.pageDestroyed && requestId === self.refreshRequestId) {
+                    this.$toast.error(error.response?.data || 'Não foi possível carregar a fila da cozinha.');
+                }
             }).then(() => {
-                clearTimeout(self.refreshTimeout);
-                self.refreshTimeout = setTimeout(() => {
-                    self.returnOrders();
-                }, 60 * 1000);
+                if (!self.pageDestroyed && requestId === self.refreshRequestId) {
+                    self.contentLoaded = true;
+                    self.refreshInFlight = false;
+                }
             });
         },
         startTimer() {
@@ -389,11 +406,17 @@ export default {
         }
     },
     mounted: function () {
-        this.returnOrders();
+        this.returnOrders(true);
         this.startTimer();
+        this.refreshTimeout = setInterval(() => {
+            if (this.showModal) return;
+            if (this.view === 'detail' && this.selectedOrder) this.loadOrderItems(true, true);
+            else this.returnOrders(true, true);
+        }, 30 * 1000);
     },
     beforeDestroy: function () {
-        clearTimeout(this.refreshTimeout);
+        this.pageDestroyed = true;
+        clearInterval(this.refreshTimeout);
         clearInterval(this.timerInterval);
     },
     components: {
