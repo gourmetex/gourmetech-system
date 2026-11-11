@@ -86,6 +86,10 @@ export default {
             this.showModalFunction("Cancelamento da entrega", "Continuar", "Fechar");
         },
         sendShipping: function () {
+            if (!this.editId) {
+                this.$toast.error("Selecione uma entrega antes de enviar.");
+                return;
+            }
             this.showCancelShippingModalContent = false;
             this.confirmText = "Tem certeza que deseja enviar esta entrega para os entregadores?";
             this.showModalFunction("Enviar para entrega", "Enviar", "Cancelar");
@@ -120,7 +124,9 @@ export default {
             Promise.resolve(this.confirmCallback()).then(() => {
                 this.returnShippings();
             }).catch((error) => {
-                console.log(error);
+                const response = error.response?.data;
+                const message = typeof response === "string" ? response : response?.message;
+                this.$toast.error(message || "Não foi possível enviar a entrega. Tente novamente.");
             })
         },
         returnShippings: function () {

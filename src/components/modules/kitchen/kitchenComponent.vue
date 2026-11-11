@@ -33,9 +33,14 @@
                         {{ formatElapsedTime(props.item.segundos_na_fila) }}
                     </grid-column>
                     <grid-column prop="acao" label="Ação" align="center" v-slot="props">
-                        <button class="btn btn-gray small print-action" type="button" title="Imprimir lista de separação" aria-label="Imprimir lista de separação" @click="printOne(props.item)">
-                            <span class="material-icons">print</span>
-                        </button>
+                        <div class="row-actions">
+                            <button class="btn btn-primary small" type="button" @click="openOrder(props.item)">
+                                <span class="material-icons">checklist</span> SEPARAR ITENS
+                            </button>
+                            <button class="btn btn-gray small print-action" type="button" title="Imprimir lista de separação" aria-label="Imprimir lista de separação" @click="printOne(props.item)">
+                                <span class="material-icons">print</span>
+                            </button>
+                        </div>
                     </grid-column>
                 </dataTable>
             </div>
@@ -337,8 +342,19 @@ export default {
 }
 </script>
 <style scoped>
-.print-action {
-    margin: 0 auto;
+.row-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+}
+
+.row-actions button {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    white-space: nowrap;
 }
 
 .grid-actions {
