@@ -3,7 +3,7 @@
         <div class="page-title">
             <h1>Entregas</h1>
         </div>
-        <actionButtons add_text="ENVIAR PARA ENTREGA" add_icon="delivery_dining" exclude_text="CANCELAR ENTREGA" :disabledbuttons="disabledButtons"
+        <actionButtons add_text="ENVIAR PARA ENTREGA" add_icon="delivery_dining" exclude_text="CANCELAR ENTREGA" :disabledbuttons="shippingDisabledButtons"
             @add="sendShipping()" @exclude="cancelShipping()" />
         <div class="dishes-container">
             <div class="filter-container-header">
@@ -73,13 +73,30 @@ export default {
             pageDestroyed: false
         }
     },
+    computed: {
+        selectedShipping() {
+            return this.shippings.find((shipping) => shipping.id == this.editId);
+        },
+        canSendShipping() {
+            return this.selectedShipping?.status === 'aguardando_envio';
+        },
+        canCancelShipping() {
+            return ['aguardando_envio', 'em_rota'].includes(this.selectedShipping?.status);
+        },
+        shippingDisabledButtons() {
+            const disabled = [];
+            if (!this.canSendShipping) disabled.push(1);
+            if (!this.canCancelShipping) disabled.push(2);
+            return disabled;
+        }
+    },
     methods: {
         // C.2/C.3: cancelar a entrega passou a cancelar a comanda inteira, com estorno
         // integral - o antigo confirm de uma linha so nao dava espaco pra motivo nem pra
         // escolher o que volta ao estoque (D8), entao abre o modal dedicado.
         cancelShipping: function () {
-            const selected = this.shippings.find((s) => s.id === this.editId);
-            if (!selected) return;
+            if (!this.canCancelShipping) return;
+            const selected = this.selectedShipping;
 
             this.selectedComandaId = selected.comanda;
             this.selectedValorTotal = selected.valor_total;
@@ -90,10 +107,7 @@ export default {
             this.showModalFunction("Cancelamento da entrega", "Continuar", "Fechar");
         },
         sendShipping: function () {
-            if (!this.editId) {
-                this.$toast.error("Selecione uma entrega antes de enviar.");
-                return;
-            }
+            if (!this.canSendShipping) return;
             this.showCancelShippingModalContent = false;
             this.confirmText = "Tem certeza que deseja enviar esta entrega para os entregadores?";
             this.showModalFunction("Enviar para entrega", "Enviar", "Cancelar");
