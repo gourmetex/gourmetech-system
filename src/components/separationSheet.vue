@@ -15,7 +15,15 @@
                 <div class="item-details">
                     <strong class="item-name">{{ item.nome }}</strong>
                     <div v-if="item.observacoes" class="item-note"><strong>Observação:</strong> {{ item.observacoes }}</div>
-                    <div v-if="substitutionMessage(item)" class="item-alert"><strong>Se não tiver:</strong> {{ substitutionMessage(item) }}</div>
+                    <div v-if="substitutionMessage(item)" class="item-alert">
+                        <strong>SE FALTAR</strong>
+                        <div class="substitution-instruction">
+                            <img v-if="item.preferencia_indisponivel === 'especifico' && item.substituto && item.substituto.imagem"
+                                class="item-photo substitute-photo" :src="item.substituto.imagem"
+                                :alt="'Foto do substituto ' + (item.substituto.nome || '')" />
+                            <span>{{ substitutionMessage(item) }}</span>
+                        </div>
+                    </div>
                 </div>
                 <div class="item-quantity"><strong>{{ item.quantidade }}</strong><span>{{ item.unidade || 'un' }}</span></div>
             </div>
@@ -38,9 +46,13 @@ export default {
             return 'Balcão';
         },
         substitutionMessage(item) {
-            if (item.preferencia_indisponivel === 'cancelar') return 'não levar substituto';
-            if (item.substituto && item.substituto.nome) return 'levar ' + item.substituto.nome;
-            if (item.preferencia_indisponivel === 'similar') return 'escolher um produto similar';
+            if (item.preferencia_indisponivel === 'cancelar') return 'Cancelar este item';
+            if (item.preferencia_indisponivel === 'similar') return 'Substituir por um produto similar';
+            if (item.preferencia_indisponivel === 'especifico') {
+                return item.substituto && item.substituto.nome
+                    ? 'Substituir por: ' + item.substituto.nome
+                    : 'Substituto não identificado. Consulte o pedido.';
+            }
             return '';
         }
     }
@@ -65,7 +77,11 @@ export default {
 .item-details { min-width: 0; overflow-wrap: anywhere; }
 .item-name { font-size: 14px; }
 .item-note, .item-alert { margin-top: 5px; font-size: 11px; white-space: pre-wrap; }
-.item-alert { border-left: 2px solid #111; padding-left: 6px; }
+.item-alert { display: flex; flex-wrap: wrap; gap: 4px 7px; align-items: flex-start; border-left: 3px solid #111; padding: 3px 0 3px 7px; }
+.item-alert strong { font-size: 10px; letter-spacing: .03em; }
+.substitution-instruction { display: flex; flex: 1 1 100px; align-items: center; gap: 6px; min-width: 0; }
+.substitution-instruction span { min-width: 0; overflow-wrap: anywhere; }
+.substitute-photo { flex: 0 0 44px; }
 .item-quantity { display: flex; align-items: baseline; gap: 3px; white-space: nowrap; }
 .item-quantity strong { font-size: 17px; }
 .item-quantity span { font-size: 11px; }
