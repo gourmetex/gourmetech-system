@@ -1,41 +1,67 @@
 <template>
     <div class="kitchen-component">
-        <div class="page-title">
-            <h1>Fila da cozinha</h1>
+        <div class="page-title kitchen-title">
+            <div>
+                <p class="eyebrow">OPERAÇÃO · COZINHA</p>
+                <h1>Fila da cozinha</h1>
+                <p class="page-description">Acompanhe os pedidos e organize a separação dos itens.</p>
+            </div>
         </div>
 
         <!-- NIVEL 1: grid de vendas (D.3/D14) -->
         <div v-if="view === 'grid'">
-            <div class="grid-actions">
-                <button class="btn btn-primary" :disabled="!selectedForPrint.length" @click="printBatch()">
+            <div class="queue-overview" v-if="contentLoaded || orders.length">
+                <div class="overview-item"><span class="overview-icon overview-icon-total material-icons">receipt_long</span><div><strong>{{ orders.length }}</strong><span>pedidos na fila</span></div></div>
+                <div class="overview-item"><span class="overview-icon overview-icon-warning material-icons">schedule</span><div><strong>{{ countSla('warning') }}</strong><span>em atenção</span></div></div>
+                <div class="overview-item"><span class="overview-icon overview-icon-danger material-icons">priority_high</span><div><strong>{{ countSla('danger') }}</strong><span>atrasados</span></div></div>
+            </div>
+            <div class="queue-toolbar">
+                <div>
+                    <h2>Pedidos em separação</h2>
+                    <p>Selecione pedidos para imprimir as listas em lote.</p>
+                </div>
+                <button class="btn btn-secondary batch-print" type="button" :disabled="!selectedForPrint.length" @click="printBatch()">
                     <span class="material-icons">print</span>
                     IMPRIMIR ({{ selectedForPrint.length }})
                 </button>
             </div>
-            <div class="dishes-container">
-                <dataTable :dataobj="orders" rowsperpage="10" searchText="" :loaded="contentLoaded" selectitems="true" @selected="selectedForPrint = $event">
-                    <grid-column prop="id" label="Nº" align="center" v-slot="props">
-                        <p class="clicable text-center" @click="openOrder(props.item)">{{ props.item.id }}</p>
-                    </grid-column>
-                    <grid-column prop="nome_cliente" label="Cliente" v-slot="props">
-                        <p class="clicable" @click="openOrder(props.item)">{{ props.item.nome_cliente }}</p>
+            <div class="sla-legend" aria-label="Referência de tempo na fila">
+                <span class="legend-title">TEMPO NA FILA</span>
+                <span><i class="legend-dot dot-success"></i> No prazo ≤ 20 min</span>
+                <span><i class="legend-dot dot-warning"></i> Atenção &gt; 20 até 30 min</span>
+                <span><i class="legend-dot dot-danger"></i> Atrasado &gt; 30 min</span>
+            </div>
+            <div class="dishes-container queue-table">
+                <dataTable ref="queueTable" :dataobj="orders" rowsperpage="10" searchText="" :loaded="contentLoaded" selectitems="true" @selected="selectedForPrint = $event">
+                    <grid-column prop="id" label="Pedido / cliente" v-slot="props">
+                        <button class="order-link" type="button" @click="openOrder(props.item)">
+                            <span class="order-number">#{{ props.item.id }}</span>
+                            <span class="order-customer">{{ props.item.nome_cliente || 'Cliente não informado' }}</span>
+                        </button>
                     </grid-column>
                     <grid-column prop="from_app" label="Origem" align="center" v-slot="props">
-                        <newBadge :status="props.item.from_app == 1 ? 'info' : 'neutral'" :text="props.item.from_app == 1 ? 'APP' : 'BALCÃO'" />
+                        <span class="origin-label" :class="props.item.from_app == 1 ? 'origin-app' : 'origin-local'">{{ props.item.from_app == 1 ? 'APP' : 'LOCAL' }}</span>
                     </grid-column>
-                    <grid-column prop="mesa" label="Mesa/Entrega" align="center" v-slot="props">
-                        {{ formatLocationLabel(props.item) }}
+                    <grid-column prop="mesa" label="Destino" v-slot="props">
+                        <span class="destination"><span class="material-icons" aria-hidden="true">{{ props.item.tem_entrega ? 'delivery_dining' : (props.item.mesa ? 'restaurant' : 'storefront') }}</span>{{ formatLocationLabel(props.item) }}</span>
                     </grid-column>
-                    <grid-column prop="itens_prontos" label="Itens" align="center" v-slot="props">
-                        {{ props.item.itens_prontos }}/{{ props.item.total_itens }}
+                    <grid-column prop="itens_prontos" label="Progresso" v-slot="props">
+                        <div class="progress-cell">
+                            <span><strong>{{ resolvedCount(props.item) }}/{{ props.item.total_itens }}</strong> resolvidos</span>
+                            <div class="progress-track" role="progressbar" :aria-valuenow="resolvedCount(props.item)" aria-valuemin="0" :aria-valuemax="Number(props.item.total_itens) || 0" :aria-label="resolvedCount(props.item) + ' de ' + props.item.total_itens + ' itens resolvidos'"><div class="progress-fill" :style="{ width: progressPercent(props.item) + '%' }"></div></div>
+                            <small v-if="Number(props.item.itens_cancelados) > 0">{{ props.item.itens_cancelados }} cancelado(s)</small>
+                        </div>
                     </grid-column>
-                    <grid-column prop="segundos_na_fila" label="Tempo na fila" align="center" v-slot="props">
-                        {{ formatElapsedTime(props.item.segundos_na_fila) }}
+                    <grid-column prop="segundos_na_fila" label="Tempo na fila" v-slot="props">
+                        <div class="sla-cell" :class="'sla-' + slaLevel(elapsedQueue(props.item))">
+                            <span class="sla-status"><i></i>{{ slaLabel(elapsedQueue(props.item)) }}</span>
+                            <strong>{{ formatQueueTime(elapsedQueue(props.item)) }}</strong>
+                        </div>
                     </grid-column>
-                    <grid-column prop="acao" label="Ação" align="center" v-slot="props">
+                    <grid-column prop="acao" label="Ações" align="center" v-slot="props">
                         <div class="row-actions">
                             <button class="btn btn-primary small" type="button" @click="openOrder(props.item)">
-                                <span class="material-icons">checklist</span> SEPARAR ITENS
+                                <span class="material-icons">checklist</span> SEPARAR
                             </button>
                             <button class="btn btn-gray small print-action" type="button" title="Imprimir lista de separação" aria-label="Imprimir lista de separação" @click="printOne(props.item)">
                                 <span class="material-icons">print</span>
@@ -48,12 +74,14 @@
 
         <!-- NIVEL 2: sub-aba da venda, mesma tela -->
         <div v-if="view === 'detail' && selectedOrder">
+            <button class="back-link" type="button" @click="backToGrid()"><span class="material-icons">arrow_back</span> Voltar para a fila</button>
             <div class="order-detail-header">
                 <div>
                     <h2>Venda #{{ selectedOrder.id }} · {{ selectedOrder.nome_cliente }}</h2>
                     <p class="order-detail-subtitle">
                         <newBadge :status="selectedOrder.from_app == 1 ? 'info' : 'neutral'" :text="selectedOrder.from_app == 1 ? 'APP' : 'BALCÃO'" />
                         {{ formatLocationLabel(selectedOrder) }}
+                        <span class="detail-sla" :class="'sla-' + slaLevel(elapsedQueue(selectedOrder))">{{ slaLabel(elapsedQueue(selectedOrder)) }} · {{ formatQueueTime(elapsedQueue(selectedOrder)) }}</span>
                     </p>
                 </div>
                 <div class="order-detail-actions">
@@ -61,9 +89,10 @@
                         <span class="material-icons">print</span>
                         IMPRIMIR
                     </button>
-                    <button class="btn btn-gray" @click="backToGrid()">VOLTAR</button>
                 </div>
             </div>
+
+            <p class="detail-guidance">Inicie cada item e confirme o que foi separado. Se necessário, informe a falta ou substituição.</p>
 
             <div class="item-cards" v-if="orderItems.length">
                 <div class="item-card" v-for="item in orderItems" :key="item.id">
@@ -75,20 +104,20 @@
                         <p class="item-card-quantity">Qtd: {{ item.quantidade_restante }}</p>
                         <p class="item-card-obs" v-if="item.observacoes">Obs: {{ item.observacoes }}</p>
 
-                        <p class="item-card-cancelled" v-if="item.status === 'Cancelado'">
+                        <div class="item-card-status item-card-cancelled" v-if="item.status === 'Cancelado'">
                             <newBadge status="danger" text="CANCELADO" />
-                            {{ formatCancellationReason(item.motivo_cancelamento) || 'Motivo não informado' }}
-                        </p>
-                        <p class="item-card-ready" v-else-if="item.status === 'Pronto'">
+                            <span>{{ formatCancellationReason(item.motivo_cancelamento) || 'Motivo não informado' }}</span>
+                        </div>
+                        <div class="item-card-status" v-else-if="item.status === 'Pronto'">
                             <newBadge status="success" text="PRONTO" />
-                        </p>
-                        <p class="item-card-timer" v-else-if="item.status_preparo === 'Em preparo'">
+                        </div>
+                        <div class="item-card-status" v-else-if="item.status_preparo === 'Em preparo'">
                             <newBadge status="info" text="EM PREPARO" />
-                            ⏱️ {{ formatElapsedTime(item.segundos_decorridos) }}
-                        </p>
-                        <p v-else>
+                            <span>⏱️ {{ formatElapsedTime(item.segundos_decorridos) }}</span>
+                        </div>
+                        <div class="item-card-status" v-else>
                             <newBadge status="warning" text="AGUARDANDO" />
-                        </p>
+                        </div>
                     </div>
 
                     <div class="item-card-buttons" v-if="item.status === 'Preparando'">
@@ -144,6 +173,7 @@ export default {
             selectedForPrint: [],
             refreshTimeout: null,
             timerInterval: null,
+            clockNow: Date.now(),
             showCancelOrderModalContent: false,
             showResolveItemModalContent: false,
             resolveInitialResolution: null,
@@ -153,6 +183,37 @@ export default {
         }
     },
     methods: {
+        elapsedQueue(order) {
+            if (order.segundos_na_fila === null || order.segundos_na_fila === undefined || order.segundos_na_fila === '') return null;
+            const seconds = Number(order.segundos_na_fila);
+            if (!Number.isFinite(seconds)) return null;
+            return Math.max(0, seconds + Math.floor((this.clockNow - order.queueLoadedAt) / 1000));
+        },
+        slaLevel(seconds) {
+            if (seconds === null || !Number.isFinite(seconds)) return 'unknown';
+            if (seconds > 30 * 60) return 'danger';
+            if (seconds > 20 * 60) return 'warning';
+            return 'success';
+        },
+        slaLabel(seconds) {
+            return { success: 'No prazo', warning: 'Atenção', danger: 'Atrasado', unknown: 'Sem tempo' }[this.slaLevel(seconds)];
+        },
+        countSla(level) {
+            return this.orders.filter((order) => this.slaLevel(this.elapsedQueue(order)) === level).length;
+        },
+        formatQueueTime(seconds) {
+            if (seconds === null || !Number.isFinite(seconds)) return 'Tempo indisponível';
+            const minutes = Math.floor(seconds / 60);
+            if (minutes >= 60) return `${Math.floor(minutes / 60)}h ${String(minutes % 60).padStart(2, '0')}min`;
+            return `${minutes}min ${String(Math.floor(seconds % 60)).padStart(2, '0')}s`;
+        },
+        resolvedCount(order) {
+            return (Number(order.itens_prontos) || 0) + (Number(order.itens_cancelados) || 0);
+        },
+        progressPercent(order) {
+            const total = Number(order.total_itens) || 0;
+            return total ? Math.min(100, Math.max(0, this.resolvedCount(order) / total * 100)) : 0;
+        },
         formatCancellationReason(reason) {
             if (!reason) return reason;
             const labels = { 'Pedido lancado errado': 'Pedido lançado errado', 'Solicitacao do cliente': 'Solicitação do cliente' };
@@ -290,7 +351,14 @@ export default {
             self.contentLoaded = false;
 
             api.get("/kitchen/orders" + (cleanCache ? "?clearCache=true" : "")).then((response) => {
-                self.orders = response.data.returnObj || [];
+                const selectedIds = new Set(self.selectedForPrint.map((order) => order.id));
+                self.clockNow = Date.now();
+                self.orders = (response.data.returnObj || []).map((order) => ({ ...order, queueLoadedAt: self.clockNow }));
+                if (self.$refs.queueTable) {
+                    self.$refs.queueTable.selectedItems = self.orders.filter((order) => selectedIds.has(order.id));
+                }
+                const updatedOrder = self.selectedOrder && self.orders.find((order) => order.id === self.selectedOrder.id);
+                if (updatedOrder) self.selectedOrder = updatedOrder;
                 self.contentLoaded = true;
 
                 // A venda aberta pode ter saido do grid (ultimo item resolvido em outra
@@ -311,11 +379,7 @@ export default {
         startTimer() {
             clearInterval(this.timerInterval);
             this.timerInterval = setInterval(() => {
-                for (let i = 0; i < this.orders.length; i++) {
-                    if (typeof this.orders[i].segundos_na_fila === 'number') {
-                        this.orders[i].segundos_na_fila++;
-                    }
-                }
+                this.clockNow = Date.now();
                 for (let i = 0; i < this.orderItems.length; i++) {
                     if (this.orderItems[i].status_preparo === 'Em preparo' && typeof this.orderItems[i].segundos_decorridos === 'number') {
                         this.orderItems[i].segundos_decorridos++;
@@ -342,6 +406,74 @@ export default {
 }
 </script>
 <style scoped>
+.kitchen-title { margin-bottom: 24px; }
+.kitchen-title h1 { margin: 4px 0 6px; }
+.eyebrow { margin: 0; color: #a64a34; font-size: 11px; font-weight: 800; letter-spacing: .12em; }
+.page-description { margin: 0; color: var(--ink-soft); font-size: 14px; }
+.queue-overview { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 28px; }
+.overview-item { display: flex; align-items: center; gap: 14px; min-height: 90px; padding: 16px 20px; background: var(--surface); border: 1px solid #e9e3da; border-radius: 12px; }
+.overview-item > div { display: flex; flex-direction: column; gap: 3px; }
+.overview-item strong { font-size: 25px; line-height: 1; color: #302b25; }
+.overview-item div span { font-size: 13px; color: #70695f; }
+.overview-icon { display: grid; place-items: center; width: 44px; height: 44px; flex: 0 0 44px; border-radius: 12px; font-size: 22px; }
+.overview-icon-total { color: #a64a34; background: #faeee9; }
+.overview-icon-warning { color: #956506; background: #fdf3d9; }
+.overview-icon-danger { color: #b73332; background: #fbe9e7; }
+.queue-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; }
+.queue-toolbar h2 { margin: 0 0 5px; font-size: 19px; }
+.queue-toolbar p { margin: 0; font-size: 13px; color: var(--ink-soft); }
+.batch-print { display: inline-flex; align-items: center; gap: 8px; }
+.sla-legend { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 20px; padding: 0 0 14px; color: #625b53; font-size: 12px; }
+.sla-legend > span:not(.legend-title) { display: inline-flex; align-items: center; gap: 6px; }
+.legend-title { color: #8b8176; font-size: 10px; letter-spacing: .08em; font-weight: 800; }
+.legend-dot, .sla-status i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; flex: 0 0 8px; }
+.dot-success { background: #32966a; }.dot-warning { background: #d69218; }.dot-danger { background: #d44b43; }
+.queue-table ::v-deep .inner-table-content { border: 1px solid #e9e3da; border-radius: 12px; overflow: hidden; }
+.queue-table ::v-deep .table th { color: #7a7167; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+.queue-table ::v-deep .table td { padding-top: 16px; padding-bottom: 16px; }
+.order-link { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; border: 0; padding: 0; background: transparent; text-align: left; cursor: pointer; }
+.order-number { color: #ad4b34; font-weight: 800; font-size: 15px; }
+.order-customer { color: #3a342e; font-weight: 600; font-size: 13px; }
+.order-link:hover .order-customer { text-decoration: underline; }
+.origin-label { display: inline-block; border-radius: 6px; padding: 5px 9px; font-size: 10px; letter-spacing: .04em; font-weight: 800; }
+.destination { display: inline-flex; align-items: center; gap: 7px; color: #5d564e; font-size: 13px; font-weight: 600; }
+.destination .material-icons { color: #9c9083; font-size: 19px; }
+.queue-table ::v-deep .table .row-actions .btn-primary .material-icons { color: #fff; font-size: 18px; }
+.queue-table ::v-deep .table .row-actions .print-action { width: 38px; min-width: 38px; }
+.queue-table ::v-deep .table .row-actions .print-action .material-icons { font-size: 18px; }
+.progress-cell { min-width: 125px; max-width: 160px; color: #746c62; font-size: 12px; }
+.progress-cell strong { color: #39332e; font-size: 13px; }
+.progress-cell small { display: block; margin-top: 5px; color: #9a5c50; font-size: 11px; }
+.progress-track { height: 6px; border-radius: 10px; background: #ece8e1; margin-top: 7px; overflow: hidden; }
+.progress-fill { height: 100%; background: #c6553a; border-radius: inherit; }
+.sla-cell { display: inline-flex; min-width: 116px; flex-direction: column; align-items: flex-start; gap: 4px; border-radius: 8px; padding: 8px 10px; }
+.sla-cell strong { font-size: 14px; font-variant-numeric: tabular-nums; }
+.sla-status { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; }
+.sla-success { color: #236c4d; background: #eaf6ef; }.sla-success i { background: #32966a; }
+.sla-warning { color: #805600; background: #fff5dc; }.sla-warning i { background: #d69218; }
+.sla-danger { color: #a62f2d; background: #fcebe9; }.sla-danger i { background: #d44b43; }
+.sla-unknown { color: #716b63; background: #f1efeb; }.sla-unknown i { background: #9a938a; }
+.back-link { display: inline-flex; align-items: center; gap: 5px; border: 0; padding: 0; margin-bottom: 18px; background: transparent; color: #a64a34; font-weight: 700; cursor: pointer; }
+.back-link .material-icons { font-size: 18px; }
+.detail-sla { padding: 5px 9px; border-radius: 6px; font-size: 12px; font-weight: 700; }
+.detail-guidance { margin: 0 0 16px; padding: 13px 16px; border-radius: 9px; background: #fff7e9; color: #765b36; font-size: 13px; }
+@media (max-width: 768px) {
+    .queue-overview { gap: 8px; }
+    .overview-item { flex-direction: column; justify-content: flex-start; min-height: 122px; padding: 12px 6px; gap: 8px; text-align: center; }
+    .overview-item > div { align-items: center; }
+    .overview-icon { width: 32px; height: 32px; flex-basis: 32px; font-size: 18px; }
+    .overview-item strong { font-size: 20px; }
+    .overview-item div span { font-size: 11px; }
+    .queue-table ::v-deep .inner-table-content { overflow: hidden; }
+    .queue-table ::v-deep .table { min-width: 0; }
+    .queue-table ::v-deep .table tbody tr { padding: 8px 12px; border: 0; border-bottom: 1px solid #e9e3da; }
+    .queue-table ::v-deep .table td { grid-template-columns: minmax(90px, 1fr) minmax(0, 1.4fr); place-items: center start; padding: 10px 4px; text-align: left; }
+    .queue-table ::v-deep .table td::before { text-align: left; color: #81766b; font-size: 11px; font-weight: 700; }
+    .queue-table ::v-deep .table td:first-child { display: flex; width: auto !important; max-width: none !important; justify-content: flex-end; padding-bottom: 4px; }
+    .queue-table ::v-deep .table td:first-child::before { content: 'Selecionar para impressão'; font-size: 11px; }
+    .row-actions { justify-content: flex-start; }
+    .order-detail-subtitle { flex-wrap: wrap; }
+}
 .row-actions {
     display: flex;
     align-items: center;
@@ -357,23 +489,10 @@ export default {
     white-space: nowrap;
 }
 
-.grid-actions {
-    display: flex;
-    justify-content: flex-end;
-    margin-bottom: var(--space-4);
-}
-
-.grid-actions button, .order-detail-actions button {
+.order-detail-actions button {
     display: inline-flex;
     align-items: center;
     gap: var(--space-2);
-}
-
-.origin-badge {
-    padding: 2px 10px;
-    border-radius: 10px;
-    font-size: 0.75rem;
-    font-weight: 700;
 }
 
 .origin-app {
@@ -452,6 +571,9 @@ export default {
     margin: 2px 0;
     font-size: 0.9rem;
 }
+
+.item-card-status { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 8px; color: var(--ink-soft); font-size: 13px; }
+.item-card-status ::v-deep .badge { margin: 0; }
 
 .item-card-buttons {
     display: flex;
