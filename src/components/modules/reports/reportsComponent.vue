@@ -1,284 +1,147 @@
 <template>
     <div class="reports-component">
-        <div class="page-title">
-            <h1>Relatórios</h1>
+        <div class="page-title"><h1>Relatórios</h1><p>Acompanhe os resultados por período.</p></div>
+        <div v-if="companyId" class="company-context">
+            <span class="material-icons">apartment</span>
+            <div><strong>Empresa vinculada</strong><p>{{ companyName || 'Empresa #' + companyId }}</p></div>
+            <router-link to="/home/reports">Ver minha empresa</router-link>
         </div>
-        <div class="relatorios-tipos">
-            <div class="relatorio-tipo" v-for="(relatorio, index) in relatoriosTipos" :key="index"
-                v-on:click="selecionaRelatorio(relatorio.codigo)">
-                <i class="material-icons">{{ relatorio.icon }}</i>
-                <h3>{{ relatorio.title }}</h3>
-            </div>
+        <div class="report-types" aria-label="Tipos de relatório">
+            <button v-for="item in relatoriosTipos" :key="item.codigo" type="button" class="report-type"
+                :class="{ active: reportType === item.codigo }" :aria-pressed="reportType === item.codigo"
+                @click="selecionaRelatorio(item.codigo)">
+                <span class="material-icons">{{ item.icon }}</span><span>{{ item.title }}</span>
+            </button>
         </div>
-        <h2 v-if="!loading && relatorio.dados == null" class="text-center">Selecione um relatório</h2>
-
+        <div v-if="error" class="report-message error" role="alert">{{ error }}</div>
         <LoadingState v-if="loading" message="Gerando relatório" />
-
-        <div class="relatorio-container" v-if="relatorio.dados != null">
-            <div class="filter-container-header">
-                <h2>{{ relatorio.title }}</h2>
-                <div class="filters">
-                    <form id="filter-form" @submit.prevent="search()">
-                        <div class="filter-field">
-                            <label for="tipo_range">Tipo</label>
-                            <select v-model="dateRange" id="tipo_range">
-                                <option value="anual">Anual</option>
-                                <option value="semanal">Semanal</option>
-                            </select>
-                        </div>
-                        <div class="filter-field">
-                            <label>Competência</label>
-                            <input v-if="dateRange === 'anual'" type="number" v-model="year" placeholder="Ano"
-                                required />
-                            <input v-if="dateRange === 'semanal'" type="week" v-model="week" placeholder="Semana"
-                                required />
-                        </div>
-                        <button type="submit" class="btn btn-primary">Buscar</button>
-                        <button type="button" class="btn btn-gray" style="margin-left: var(--space-5);"
-                            v-on:click="exportToExcel">Exportar</button>
-                    </form>
+        <div v-else-if="!relatorio.dados && !error" class="report-message">Selecione um relatório para começar.</div>
+        <section v-if="relatorio.dados && !loading" class="report-panel">
+            <div class="report-heading">
+                <div><span class="eyebrow">VISÃO GERAL</span><h2>{{ relatorio.title }}</h2><p>{{ periodLabel }}</p></div>
+                <form class="report-filters" @submit.prevent="search">
+                    <label>Tipo<select v-model="dateRange"><option value="anual">Anual</option><option value="semanal">Semanal</option></select></label>
+                    <label>Competência<input v-if="dateRange === 'anual'" type="number" v-model="year" min="1000" max="9999" required /><input v-else type="week" v-model="week" required /></label>
+                    <button type="submit" class="btn btn-primary">Buscar</button>
+                    <button type="button" class="btn btn-gray" @click="exportToExcel">Exportar</button>
+                </form>
+            </div>
+            <div class="report-summary" v-if="relatorio.dados.labels.length">
+                <div v-for="dataset in relatorio.dados.datasets" :key="dataset.label" class="summary-card">
+                    <span>{{ dataset.label }}</span><strong>{{ formatReportData(sumDataset(dataset)) }}</strong><small>Total no período</small>
                 </div>
             </div>
-            <chartComponent v-if="!loading" :chartData="relatorio.dados" :chartType="relatorio.tipo"
-                :chartReportType="relatorio.codigo" :chartTitle="relatorio.dados.datasets[0].label" />
-        </div>
+            <div v-if="relatorio.dados.labels.length" class="chart-panel">
+                <div class="chart-heading"><h3>Distribuição dos resultados</h3><p>Valores por {{ relatorio.codigo === 'cancelamentos' ? 'motivo' : (loadedDateRange === 'anual' ? 'mês' : 'dia') }}</p></div>
+                <div class="chart-area"><chartComponent :chartData="relatorio.dados" :chartType="relatorio.tipo" :chartReportType="relatorio.codigo" /></div>
+            </div>
+            <div v-else class="report-message">Não há dados para o período selecionado.</div>
+        </section>
     </div>
 </template>
 <script>
 import chartComponent from '@/components/chartComponent.vue';
-import LoadingState from "@/components/LoadingState.vue";
-import api from "@/configs/api";
-import * as XLSX from "xlsx";
+import LoadingState from '@/components/LoadingState.vue';
+import api from '@/configs/api';
+import * as XLSX from 'xlsx';
 
 export default {
-    name: "reportsComponent",
+    name: 'reportsComponent',
+    components: { chartComponent, LoadingState },
     data() {
         return {
-            reportType: "",
+            reportType: '', companyId: null, companyName: '', requestId: 0,
             relatoriosTipos: [
-                {
-                    codigo: "faturamento",
-                    title: "Relatório de faturamento",
-                    icon: "bar_chart"
-                },
-                {
-                    codigo: "despesas",
-                    title: "Relatório de despesas",
-                    icon: "request_quote"
-                },
-                {
-                    codigo: "vendas",
-                    title: "Relatório de vendas",
-                    icon: "monetization_on"
-                },
-                {
-                    codigo: "cancelamentos",
-                    title: "Relatório de cancelamentos",
-                    icon: "cancel"
-                }
+                { codigo: 'faturamento', title: 'Faturamento', icon: 'bar_chart' },
+                { codigo: 'despesas', title: 'Despesas', icon: 'request_quote' },
+                { codigo: 'vendas', title: 'Vendas', icon: 'shopping_bag' },
+                { codigo: 'cancelamentos', title: 'Cancelamentos', icon: 'cancel' }
             ],
-            relatorio: {
-                title: "",
-                dados: null,
-                tipo: null
-            },
-            loading: false,
-            dateRange: "anual",
-            year: new Date().getFullYear(),
-            week: null,
-            range: null
-        }
+            relatorio: { title: '', dados: null, tipo: 'bar', codigo: '' },
+            loading: false, error: '', loadedDateRange: 'anual', loadedRange: '', dateRange: 'anual', year: new Date().getFullYear(), week: '', range: new Date().getFullYear()
+        };
     },
+    computed: {
+        periodLabel() { return this.loadedDateRange === 'anual' ? 'Ano ' + this.loadedRange : 'Semana ' + this.loadedRange; }
+    },
+    watch: { '$route.query': { handler() { this.checkUrl(); }, deep: true } },
+    mounted() { this.checkUrl(); },
     methods: {
-        search() {
-            if (this.dateRange === 'anual') {
-                this.range = this.year;
-            } else if (this.dateRange === 'semanal') {
-                this.range = this.week;
-            }
-
-            this.selecionaRelatorio(this.reportType);
+        sumDataset(dataset) { return dataset.data.reduce((sum, value) => sum + (Number(value) || 0), 0); },
+        formatReportData(value) {
+            const number = Number(value) || 0;
+            return ['faturamento', 'despesas', 'cancelamentos'].includes(this.relatorio.codigo)
+                ? number.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : number.toLocaleString('pt-BR');
         },
-        formatReportData: function (data) {
-            let formattedData;
-
-            if (this.relatorio.codigo == "faturamento" || this.relatorio.codigo == "despesas" || this.relatorio.codigo == "cancelamentos") {
-                formattedData = `R$ ${data.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}`;
-            } else {
-                formattedData = data;
+        search() { this.range = this.dateRange === 'anual' ? this.year : this.week; this.selecionaRelatorio(this.reportType); },
+        async selecionaRelatorio(tipo) {
+            const selected = this.relatoriosTipos.find(item => item.codigo === tipo);
+            if (!selected) return;
+            const requestId = ++this.requestId;
+            this.reportType = tipo; this.loading = true; this.error = ''; this.relatorio.dados = null;
+            try {
+                const data = { type: tipo, competence: this.dateRange, range: this.range };
+                if (this.companyId) data.company_id = this.companyId;
+                const response = await api.post('/reports', data);
+                if (requestId !== this.requestId) return;
+                this.loadedDateRange = data.competence; this.loadedRange = data.range;
+                this.relatorio = { title: selected.title, dados: response.data.returnObj, tipo: 'bar', codigo: tipo };
+            } catch (error) {
+                if (requestId !== this.requestId) return;
+                this.error = 'Não foi possível carregar o relatório. Verifique o período e tente novamente.';
+            } finally { if (requestId === this.requestId) this.loading = false; }
+        },
+        async checkUrl() {
+            const query = this.$route.query;
+            this.requestId++; this.loading = false; this.error = ''; this.relatorio.dados = null;
+            this.companyId = query.company_id || (query.type === 'linkedCompany' ? query.id : null);
+            this.companyName = '';
+            if (query.competence && query.range) {
+                this.dateRange = query.competence; this.range = query.range;
+                if (this.dateRange === 'anual') this.year = query.range; else this.week = query.range;
             }
-
-            return formattedData;
+            if (this.companyId) {
+                const companyId = this.companyId;
+                try {
+                    const response = await api.get('/companies/return_linked_companies');
+                    if (String(this.companyId) !== String(companyId)) return;
+                    const company = response.data.returnObj.find(item => String(item.id) === String(companyId));
+                    if (!company) { this.error = 'Empresa vinculada não encontrada ou sem permissão de acesso.'; return; }
+                    this.companyName = company.nome;
+                } catch (error) { this.error = 'Não foi possível identificar a empresa vinculada.'; return; }
+            }
+            this.selecionaRelatorio(this.relatoriosTipos.some(item => item.codigo === query.type) ? query.type : 'faturamento');
         },
         exportToExcel() {
-            if (!this.relatorio.dados) {
-                alert("Não há dados para exportar.");
-                return;
-            }
-
-            // Obtém os datasets e labels do gráfico
-            const labels = this.relatorio.dados.labels;
-            const datasets = this.relatorio.dados.datasets;
-
-            // Monta os dados para o Excel
-            let excelData = [];
-            const headerRow = ["          ", ...datasets.map(ds => ds.label)];
-            excelData.push(headerRow); // Cabeçalhos
-
-            labels.forEach((label, index) => {
-                let row = [label]; // Primeira coluna: rótulo (categoria)
-                datasets.forEach(dataset => {
-                    row.push(this.formatReportData(dataset.data[index]) || 0);
-                });
-                excelData.push(row);
-            });
-
-            // Cria a planilha
-            const ws = XLSX.utils.aoa_to_sheet(excelData);
-
-            // Aplica estilos aos cabeçalhos (negrito e alinhamento)
-            const range = XLSX.utils.decode_range(ws["!ref"]);
-            for (let col = range.s.c; col <= range.e.c; col++) {
-                const cellRef = XLSX.utils.encode_cell({ r: 0, c: col }); // Cabeçalhos na primeira linha
-                if (!ws[cellRef]) continue;
-                ws[cellRef].s = {
-                    font: { bold: true }, // Negrito
-                    alignment: { horizontal: "center", vertical: "center" } // Alinhamento
-                };
-            }
-
-            // Ajuste de largura das colunas com base no conteúdo
-            ws["!cols"] = headerRow.map(header => ({ wch: header.length + 5 })); // Define largura baseada no tamanho do texto
-
-            // Aplica autofiltro para ordenação dos cabeçalhos
-            ws["!autofilter"] = { ref: XLSX.utils.encode_range(range) };
-
-            // Cria o workbook e adiciona a planilha
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Relatório");
-
-            // Salva o arquivo
-            XLSX.writeFile(wb, `${this.relatorio.title || "Relatorio"}.xlsx`);
-        },
-        selecionaRelatorio: function (tipo) {
-            let self = this;
-            let reportType;
-            let reportTitle;
-
-            self.loading = true;
-            self.reportType = tipo;
-
-            switch (tipo) {
-                case "faturamento":
-                    reportType = "bar";
-                    reportTitle = "Faturamento";
-                    break;
-                case "despesas":
-                    reportType = "bar";
-                    reportTitle = "Despesas";
-                    break;
-                case "vendas":
-                    reportType = "bar";
-                    reportTitle = "Vendas";
-                    break;
-                case "cancelamentos":
-                    reportType = "bar";
-                    reportTitle = "Cancelamentos";
-                    break;
-            }
-
-            self.retornaRelatorio(tipo, this.dateRange, this.range).then((response) => {
-                self.relatorio.dados = response;
-                self.relatorio.tipo = reportType;
-                self.relatorio.codigo = self.reportType;
-                self.relatorio.title = reportTitle;
-
-                self.loading = false;
-            })
-        },
-        retornaRelatorio: function (type, competence, range) {
-            let data = {
-                type: type,
-                competence: competence,
-                range: range
-            }
-
-            return new Promise((resolve) => {
-                api.post("/reports", data).then((response) => {
-                    resolve(response.data.returnObj);
-                })
-            })
-        },
-        checkUrl: function () {
-            let query = this.$route.query;
-
-            if (query?.competence && query?.range && query?.type) {
-                this.dateRange = query.competence;
-                this.range = query.range;
-                this.week = this.range;
-
-                this.selecionaRelatorio(query.type);
-            }
+            const data = this.relatorio.dados;
+            if (!data) return;
+            const rows = [['Período', ...data.datasets.map(dataset => dataset.label)], ...data.labels.map((label, i) => [label, ...data.datasets.map(dataset => Number(dataset.data[i]) || 0)])];
+            const sheet = XLSX.utils.aoa_to_sheet(rows);
+            sheet['!cols'] = rows[0].map(() => ({ wch: 24 }));
+            const book = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(book, sheet, 'Relatório');
+            XLSX.writeFile(book, this.relatorio.title + (this.companyName ? ' - ' + this.companyName : '') + '.xlsx');
         }
-    },
-    mounted: function () {
-
-        this.range = this.year;
-
-        this.checkUrl();
-    },
-    components: {
-        chartComponent,
-        LoadingState
     }
-}
+};
 </script>
 <style scoped>
-#loading {
-    width: 200;
-    margin: auto;
-}
-
-.relatorios-tipos,
-.relatorio-tipo {
-    display: flex;
-    gap: var(--space-3);
-}
-
-.relatorios-tipos {
-    border-bottom: 1px solid var(--gray-3);
-    padding-bottom: var(--space-3);
-    margin-bottom: var(--space-6);
-    flex-wrap: wrap;
-}
-
-.filter-container-header {
-    margin-bottom: var(--space-8);
-}
-
-.relatorio-tipo {
-    align-items: center;
-    gap: var(--space-5);
-    padding: var(--space-3);
-    border-radius: var(--radius-md);
-    cursor: pointer;
-
-    &:hover {
-        background: var(--gray-3);
-    }
-
-    & i {
-        width: 50px;
-        height: 50px;
-        min-width: 50px;
-        min-height: 50px;
-        max-width: 50px;
-        max-height: 50px;
-        background: var(--blue-high-2);
-        border-radius: 50%;
-        color: var(--blue);
-        display: grid;
-        place-items: center;
-    }
-}
+.page-title p, .report-heading p, .chart-heading p { color: var(--ink-soft, #6b6255); margin: 5px 0 0; }
+.company-context { display: flex; align-items: center; gap: 12px; padding: 14px 18px; margin-bottom: 20px; border: 1px solid #bad9ce; border-radius: 10px; background: #eff8f4; color: #225d4d; }
+.company-context p { margin: 3px 0 0; } .company-context a { margin-left: auto; color: #225d4d; font-weight: 600; }
+.report-types { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 24px 0; }
+.report-type { display: flex; align-items: center; gap: 12px; padding: 16px; border: 1px solid var(--line, #e7e1d6); border-radius: 10px; background: #fff; color: #4d4840; font-weight: 600; cursor: pointer; text-align: left; }
+.report-type .material-icons { padding: 9px; border-radius: 9px; background: #f3f1ed; color: #517961; }
+.report-type:hover, .report-type.active { border-color: #318468; background: #f3faf6; color: #205d49; }
+.report-panel { background: #fff; border: 1px solid var(--line, #e7e1d6); border-radius: 12px; padding: 24px; }
+.report-heading { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 20px; }
+.report-heading h2, .chart-heading h3 { margin: 4px 0; } .eyebrow { font-size: 11px; letter-spacing: .1em; font-weight: 700; color: #578674; }
+.report-filters { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; } .report-filters label { display: grid; gap: 6px; font-size: 12px; font-weight: 600; color: #6b6255; }
+.report-filters input, .report-filters select { min-height: 42px; width: 145px; border: 1px solid #dedbd4; border-radius: 6px; padding: 8px; background: #fff; }
+.report-filters .btn { min-width: auto; min-height: 42px; margin: 0; }
+.report-summary { display: flex; flex-wrap: wrap; gap: 12px; margin: 24px 0; } .summary-card { flex: 1 1 200px; display: grid; gap: 7px; padding: 18px; border: 1px solid #eeeae3; border-radius: 10px; background: #faf9f6; }
+.summary-card span, .summary-card small { color: #746e64; } .summary-card strong { font-size: 24px; color: #253c33; }
+.chart-panel { border: 1px solid #eeeae3; border-radius: 10px; padding: 20px; } .chart-heading p { font-size: 13px; } .chart-area { height: 340px; margin-top: 20px; }
+.report-message { padding: 32px; text-align: center; color: #746e64; } .report-message.error { color: #a32626; background: #fff1f1; border-radius: 8px; }
+@media (max-width: 800px) { .report-types { grid-template-columns: repeat(2, minmax(0, 1fr)); } .report-panel { padding: 16px; } .chart-area { height: 280px; } }
+@media (max-width: 480px) { .report-type { padding: 10px; gap: 7px; } .company-context { flex-wrap: wrap; } .report-filters label { flex: 1 1 130px; } .report-filters input, .report-filters select { width: 100%; } }
 </style>

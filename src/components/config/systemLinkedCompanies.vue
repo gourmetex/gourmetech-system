@@ -29,7 +29,7 @@ export default {
     },
     methods: {
         goToReport: function (company_id) {
-            this.$router.push("/home/reports?type=linkedCompany&id=" + company_id);
+            this.$router.push("/home/reports?company_id=" + company_id);
         },
         returnLinkedCompanies: function () {
             let self = this;

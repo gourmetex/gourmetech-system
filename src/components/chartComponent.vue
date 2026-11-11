@@ -1,127 +1,44 @@
-<template>
-  <canvas ref="canvas"></canvas>
-</template>
-
+<template><canvas ref="canvas"></canvas></template>
 <script>
-import { Chart, Title, Tooltip, Legend, BarElement, LinearScale, CategoryScale, BarController, LineController } from "chart.js";
-
-// Registrar os componentes necessários
+import { Chart, Title, Tooltip, Legend, BarElement, LinearScale, CategoryScale, BarController, LineController } from 'chart.js';
 Chart.register(Title, Tooltip, Legend, BarElement, LinearScale, CategoryScale, BarController, LineController);
-
 export default {
-  name: "chartComponent",
-  props: {
-    chartData: {
-      type: Object,
-      required: true,
-    },
-    chartType: {
-      type: String,
-      required: true,
-    },
-    chartReportType: {
-      type: String,
-      required: true,
-    },
-    chartTitle: {
-      type: String,
-      required: false,
-      default: "",
-    }
-  },
-  data() {
-    return {
-      chartInstance: null,
-    };
-  },
-  mounted() {
-    this.renderChart();
-  },
+  name: 'chartComponent',
+  props: { chartData: { type: Object, required: true }, chartType: { type: String, required: true }, chartReportType: { type: String, required: true }, chartTitle: { type: String, default: '' } },
+  data() { return { chartInstance: null }; },
+  mounted() { this.renderChart(); },
+  beforeDestroy() { if (this.chartInstance) this.chartInstance.destroy(); },
+  watch: { chartData: { deep: true, handler() { this.renderChart(); } }, chartType() { this.renderChart(); } },
   methods: {
-    getCSSColor(variable) {
-      return getComputedStyle(document.documentElement).getPropertyValue(variable).trim();
-    },
-    returnChartFormattedType: function (value) {
-      let chartLabelType;
-
-      if (this.chartReportType == "faturamento" || this.chartReportType == "despesas" || this.chartReportType == "cancelamentos") {
-        chartLabelType = `R$ ${value.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}`;
-      } else {
-        chartLabelType = value;
-      }
-
-      return chartLabelType;
+    formatValue(value) {
+      return ['faturamento', 'despesas', 'cancelamentos'].includes(this.chartReportType)
+        ? Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+        : Number(value).toLocaleString('pt-BR');
     },
     renderChart() {
-      if (this.chartInstance) {
-        this.chartInstance.destroy(); // Destrói a instância anterior
-      }
-
-      if (this.chartData && this.chartData.datasets) {
-        const palette = ['#3E6990', '#F26430', '#1E8E76', '#B4860A'];
-        this.chartData.datasets.forEach((dataset, index) => {
-          if (typeof dataset.backgroundColor === 'string' && dataset.backgroundColor.startsWith("--")) {
-            dataset.backgroundColor = this.getCSSColor(dataset.backgroundColor);
-          }
-          if (!dataset.backgroundColor || (Array.isArray(dataset.backgroundColor) && !dataset.backgroundColor.length)) {
-            dataset.backgroundColor = palette[index % palette.length];
-          }
-          if (!dataset.borderColor) dataset.borderColor = palette[index % palette.length];
-        });
-      }
-
-      let self = this;
-
+      if (this.chartInstance) this.chartInstance.destroy();
+      const palette = ['#348466', '#df9a51', '#6688ad', '#b76b70'];
+      const datasets = this.chartData.datasets.map((dataset, index) => ({
+        ...dataset, backgroundColor: palette[index % palette.length], borderColor: palette[index % palette.length],
+        borderRadius: 5, maxBarThickness: 42, borderSkipped: false
+      }));
       this.chartInstance = new Chart(this.$refs.canvas, {
-        type: this.chartType, // 'bar' ou 'line'
-        data: this.chartData,
+        type: this.chartType, data: { ...this.chartData, datasets },
         options: {
-            maintainAspectRatio: false,
-            responsive: true,
-            plugins: {
-                legend: {
-                    position: "top",
-                },
-                title: {
-                    display: true,
-                    text: this.chartTitle,
-                    font: {
-                        size: 20,
-                    },
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function (context) {
-                            let value = context.raw || 0;
-                            return self.returnChartFormattedType(value);
-                        }
-                    }
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        callback: function (value) {
-                            return self.returnChartFormattedType(value);
-                        }
-                    }
-                }
-            }
+          maintainAspectRatio: false, responsive: true,
+          plugins: {
+            legend: { display: datasets.length > 1, position: 'top', align: 'end', labels: { usePointStyle: true, boxWidth: 8, padding: 18 } },
+            title: { display: !!this.chartTitle, text: this.chartTitle, align: 'start', font: { size: 15, weight: '600' }, padding: { bottom: 16 } },
+            tooltip: { backgroundColor: '#263a32', padding: 12, callbacks: { label: context => context.dataset.label + ': ' + this.formatValue(context.raw || 0) } }
+          },
+          scales: {
+            x: { grid: { display: false }, border: { display: false }, ticks: { color: '#746e64', maxRotation: 45 } },
+            y: { beginAtZero: true, border: { display: false }, grid: { color: '#eeeae3' }, ticks: { color: '#746e64', padding: 10, callback: value => this.formatValue(value) } }
+          }
         }
-    });
-    },
-  },
+      });
+    }
+  }
 };
 </script>
-
-<style scoped>
-canvas {
-  width: 100%;
-  max-height: calc(100vh - 300px);
-  border: 1px solid var(--gray-3);
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  padding: var(--space-3);
-}
-</style>
+<style scoped>canvas { width: 100%; height: 100%; max-height: calc(100vh - 300px); }</style>

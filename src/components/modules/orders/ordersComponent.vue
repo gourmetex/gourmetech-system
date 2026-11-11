@@ -29,7 +29,7 @@
                 <grid-column prop="status" label="Status do pedido" align="center" v-slot="props">
                     <newBadge :background="chooseOrderStatusColor(props.item)" :text="props.item.status" />
                 </grid-column>
-                <grid-column prop="recibo" label="Recibo" align="center" v-slot="props">
+                <grid-column prop="recibo" label="Recibo" align="left" v-slot="props">
                     <button v-if="props.item.raw_status === 'Finalizado'" class="btn btn-gray small"
                         title="Baixar recibo" v-on:click="downloadReceipt(props.item)">
                         <span class="material-icons">receipt_long</span>
@@ -204,3 +204,6 @@ export default {
     }
 }
 </script>
+<style scoped>
+.receipt-button { margin: 0; }
+</style>
