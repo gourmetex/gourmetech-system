@@ -9,8 +9,9 @@
                 <div class="sheet-meta"><span>Origem</span><strong>{{ Number(sheet.comanda.from_app) === 1 ? 'Aplicativo' : 'Balcão' }}</strong></div>
             </header>
             <div class="items-heading"><strong>ITENS PARA SEPARAR</strong><span>{{ sheet.itens.length }} {{ sheet.itens.length === 1 ? 'item' : 'itens' }}</span></div>
-            <div class="sheet-item" v-for="(item, itemIndex) in sheet.itens" :key="item.id || itemIndex">
+            <div class="sheet-item" :class="{ 'has-photo': item.imagem }" v-for="(item, itemIndex) in sheet.itens" :key="item.id || itemIndex">
                 <span class="item-checkbox" aria-hidden="true"></span>
+                <img v-if="item.imagem" class="item-photo" :src="item.imagem" :alt="'Foto de ' + item.nome" />
                 <div class="item-details">
                     <strong class="item-name">{{ item.nome }}</strong>
                     <div v-if="item.observacoes" class="item-note"><strong>Observação:</strong> {{ item.observacoes }}</div>
@@ -58,6 +59,8 @@ export default {
 .items-heading { display: flex; justify-content: space-between; gap: 8px; padding: 12px 0 8px; border-bottom: 1px solid #888; font-size: 11px; }
 .items-heading span { color: #555; white-space: nowrap; }
 .sheet-item { display: grid; grid-template-columns: 18px minmax(0, 1fr) auto; gap: 10px; align-items: start; padding: 12px 0; border-bottom: 1px solid #ccc; break-inside: avoid; page-break-inside: avoid; }
+.sheet-item.has-photo { grid-template-columns: 18px 44px minmax(0, 1fr) auto; }
+.item-photo { width: 44px; height: 44px; object-fit: cover; border: 1px solid #bbb; box-sizing: border-box; }
 .item-checkbox { width: 15px; height: 15px; border: 1.5px solid #111; box-sizing: border-box; margin-top: 2px; }
 .item-details { min-width: 0; overflow-wrap: anywhere; }
 .item-name { font-size: 14px; }

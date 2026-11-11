@@ -3,7 +3,7 @@
         <div v-if="doc && doc.type === 'separation'" class="separation-print">
             <div class="wizard-actions wizard-actions-top no-print">
                 <button type="button" class="btn btn-gray" @click="goBack">Voltar</button>
-                <button type="button" class="btn btn-primary" @click="triggerPrint"><span class="material-icons">print</span> Imprimir novamente</button>
+                <button type="button" class="btn btn-primary" @click="triggerPrint"><span class="material-icons">print</span> Imprimir</button>
             </div>
             <div class="print-area"><separationSheet :sheets="doc.sheets" /></div>
         </div>
@@ -167,7 +167,6 @@ export default {
         if (this.doc && this.doc.type === 'separation') {
             document.documentElement.classList.add('printing-separation');
             document.body.classList.add('printing-separation');
-            this.triggerPrint();
         }
     },
     beforeDestroy() {
