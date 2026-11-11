@@ -4,20 +4,27 @@
             <h1>Configurações</h1>
         </div>
         <div class="config-content">
-            <div class="config-menu">
-                <ul class="options-ul principal-options">
-                    <li v-for="(menu, index) in filteredConfigMenus" class="config-option" :key="index" :id="'config-menu-' + index" v-on:click="selectConfigOption(index)">
-                        <div class="menu-title">
-                            <h3>{{ menu.name }}</h3>
-                        </div>
-                    </li>
-                </ul>
-                <ul class="sub-menu options-ul" :id="'sub-menu-' + index" v-for="(menu, index) in filteredConfigMenus" :key="index">
-                    <li v-for="(subMenu, index) in menu.subMenus" class="config-option" :key="index" :dataLink="subMenu.link" v-on:click="selectThisConfig($event)">
-                        <h3>{{ subMenu.name }}</h3>
-                    </li>
-                </ul>
-            </div>
+            <nav v-if="filteredConfigMenus.length" class="config-navigation" aria-label="Navegação de configurações">
+                <div class="navigation-label">CATEGORIAS</div>
+                <div class="category-list" aria-label="Categorias de configurações">
+                    <button v-for="menu in filteredConfigMenus" :key="menu.id" type="button"
+                        class="category-button" :class="{ 'is-active': activeMenuId === menu.id }"
+                        :aria-pressed="activeMenuId === menu.id" @click="selectConfigOption(menu)">
+                        <span class="material-icons" aria-hidden="true">{{ menu.icon }}</span>
+                        <span>{{ menu.name }}</span>
+                    </button>
+                </div>
+                <div v-if="activeMenu" class="subcategory-section">
+                    <div class="subcategory-heading"><span class="material-icons" aria-hidden="true">{{ activeMenu.icon }}</span><span>{{ activeMenu.name }}</span></div>
+                    <div class="subcategory-list" :aria-label="'Opções de ' + activeMenu.name">
+                        <button v-for="subMenu in activeMenu.subMenus" :key="subMenu.link" type="button"
+                            class="subcategory-button" :class="{ 'is-active': activeSection === subMenu.link }"
+                            :aria-pressed="activeSection === subMenu.link" @click="selectThisConfig(subMenu)">
+                            {{ subMenu.name }}
+                        </button>
+                    </div>
+                </div>
+            </nav>
             <div class="config-inner-page">
                 <div class="not-showing" v-if="notShowingSubMenuContent">
                     <EmptyState icon="tune" title="Nenhuma configuração selecionada" description="Selecione uma categoria no menu acima para gerenciar as configurações." />
@@ -41,7 +48,6 @@
     </div>
 </template>
 <script>
-import $ from 'jquery';
 import EmptyState from "./EmptyState.vue";
 import systemConfig from "./config/systemConfig.vue";
 import rolesConfig from "./config/rolesConfig.vue";
@@ -64,6 +70,7 @@ export default {
                 {
                     id: 1,
                     name: "Componentes de produtos",
+                    icon: "category",
                     modulo_requerido: "products",
                     subMenus: [
                         {
@@ -76,6 +83,7 @@ export default {
                 {
                     id: 2,
                     name: "Usuários",
+                    icon: "group",
                     modulo_requerido: "config",
                     subMenus: [
                         {
@@ -93,6 +101,7 @@ export default {
                 {
                     id: 3,
                     name: "Sistema",
+                    icon: "settings",
                     modulo_requerido: "config",
                     subMenus: [
                         {
@@ -120,6 +129,7 @@ export default {
                 {
                     id: 4,
                     name: "Mesas",
+                    icon: "table_restaurant",
                     modulo_requerido: "digital_menu",
                     subMenus: [
                         {
@@ -132,6 +142,7 @@ export default {
                 {
                     id: 5,
                     name: "Financeiro",
+                    icon: "account_balance_wallet",
                     modulo_requerido: "financial",
                     subMenus: [
                         {
@@ -144,6 +155,7 @@ export default {
                 {
                     id: 6,
                     name: "Reservas",
+                    icon: "event_available",
                     modulo_requerido: "reservations",
                     subMenus: [
                         {
@@ -156,6 +168,7 @@ export default {
                 {
                     id: 7,
                     name: "Entregas",
+                    icon: "local_shipping",
                     modulo_requerido: "shipping",
                     subMenus: [
                         {
@@ -171,6 +184,8 @@ export default {
                     ]
                 }
             ],
+            activeMenuId: null,
+            activeSection: null,
             showSections: {
                 systemConfig: false,
                 rolesConfig: false,
@@ -188,6 +203,9 @@ export default {
         }
     },
     computed: {
+        activeMenu() {
+            return this.filteredConfigMenus.find(menu => menu.id === this.activeMenuId) || null;
+        },
         notShowingSubMenuContent() {
             return Object.values(this.showSections).every(property => !property);
         },
@@ -203,57 +221,32 @@ export default {
             return filteredMenus;
         }
     },
-    methods: {
-        selectThisConfig: function (event) {
-            $(".sub-menu .config-option").removeClass("selected");
-
-            let subMenuItem = $(event.target.parentElement);
-            if (event.target.localName == "li") {
-                subMenuItem = $(event.target);
+    watch: {
+        filteredConfigMenus: {
+            immediate: true,
+            handler(menus) {
+                if (!menus.length) { this.resetConfigOptions(); return; }
+                if (!menus.some(menu => menu.id === this.activeMenuId)) this.selectConfigOption(menus[0]);
             }
-
-            subMenuItem.addClass("selected");
-            let dataLink = subMenuItem.attr("dataLink");
-
-            this.resetMenus();
-
-            this.showSections[dataLink] = true;
-        },
-        resetMenus: function () {
-            for (let key in this.showSections) {
-                this.showSections[key] = false;
-            }
-        },
-        selectConfigOption: function (path) {
-            let subMenu = "sub-menu-" + path;
-
-            this.resetConfigOptions();
-            $("#config-menu-" + path).addClass("selected");
-            $("#" + subMenu).show();
-
-            const menu = this.filteredConfigMenus[path];
-            if (menu && menu.subMenus && menu.subMenus.length > 0) {
-                const firstSub = menu.subMenus[0];
-                this.showSections[firstSub.link] = true;
-                this.$nextTick(() => {
-                    $("#" + subMenu + " li:first-child").addClass("selected");
-                });
-            }
-        },
-        resetConfigOptions: function () {
-            $(".principal-options .config-option").removeClass("selected");
-            $(".sub-menu").hide();
-            $(".sub-menu li").removeClass("selected");
-            this.resetMenus();
         }
     },
-    mounted: function () {
-        this.resetConfigOptions();
-        this.$nextTick(() => {
-            if (this.filteredConfigMenus && this.filteredConfigMenus.length > 0) {
-                this.selectConfigOption(0);
-            }
-        });
+    methods: {
+        selectThisConfig(subMenu) {
+            if (!subMenu || !Object.prototype.hasOwnProperty.call(this.showSections, subMenu.link)) return;
+            Object.keys(this.showSections).forEach(key => { this.showSections[key] = false; });
+            this.activeSection = subMenu.link;
+            this.showSections[subMenu.link] = true;
+        },
+        selectConfigOption(menu) {
+            this.activeMenuId = menu.id;
+            this.activeSection = null;
+            if (menu.subMenus.length) this.selectThisConfig(menu.subMenus[0]);
+        },
+        resetConfigOptions() {
+            this.activeMenuId = null;
+            this.activeSection = null;
+            Object.keys(this.showSections).forEach(key => { this.showSections[key] = false; });
+        }
     },
     components: {
         EmptyState,
@@ -273,7 +266,31 @@ export default {
 }
 </script>
 <style scoped>
-.not-showing {
-    text-align: center;
+.config-navigation { margin: 20px 0 18px; padding: 18px 18px 0; border: 1px solid var(--line, #e7e1d6); border-radius: 12px; background: var(--surface, #fff); box-shadow: 0 1px 4px rgba(43, 38, 32, .04); }
+.navigation-label { margin: 0 0 10px 3px; color: var(--ink-soft, #6b6255); font-size: 10px; font-weight: 700; letter-spacing: .1em; }
+.category-list, .subcategory-list { display: flex; gap: 6px; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: thin; }
+.category-list { padding: 0 0 15px; }
+.category-button, .subcategory-button { flex: 0 0 auto; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; transition: background-color .15s, color .15s, border-color .15s; }
+.category-button { display: inline-flex; align-items: center; gap: 8px; min-height: 42px; padding: 9px 13px; border: 1px solid transparent; border-radius: 8px; color: var(--ink-soft, #6b6255); background: transparent; }
+.category-button .material-icons { font-size: 19px; }
+.category-button:hover { background: var(--paper, #f3f1ed); color: var(--ink, #2b2620); }
+.category-button.is-active { background: var(--cor-destaque, #2e4f6c); border-color: var(--cor-destaque, #2e4f6c); color: #fff; }
+.category-button:focus-visible, .subcategory-button:focus-visible { outline: 2px solid var(--cor-destaque, #2e4f6c); outline-offset: 2px; }
+.subcategory-section { display: flex; align-items: center; gap: 16px; border-top: 1px solid var(--line, #e7e1d6); }
+.subcategory-heading { display: flex; align-items: center; gap: 7px; flex: 0 0 auto; padding: 15px 0; color: var(--ink-soft, #6b6255); font-size: 12px; font-weight: 700; }
+.subcategory-heading .material-icons { font-size: 17px; }
+.subcategory-list { min-width: 0; padding: 8px 3px; }
+.subcategory-button { min-height: 38px; padding: 8px 12px; border: 1px solid transparent; border-radius: 7px; background: transparent; color: var(--ink-soft, #6b6255); }
+.subcategory-button:hover { background: var(--paper, #f3f1ed); color: var(--ink, #2b2620); }
+.subcategory-button.is-active { border-color: var(--cor-destaque, #2e4f6c); color: var(--cor-destaque, #2e4f6c); background: var(--surface, #fff); box-shadow: inset 0 -2px 0 var(--cor-destaque, #2e4f6c); }
+.not-showing { text-align: center; }
+@media (max-width: 700px) {
+    .config-navigation { margin-top: 14px; padding: 14px 12px 0; }
+    .category-list { padding-bottom: 12px; }
+    .category-button { min-height: 44px; }
+    .subcategory-section { display: block; }
+    .subcategory-heading { padding: 12px 3px 2px; }
+    .subcategory-list { padding: 7px 3px 12px; }
+    .subcategory-button { min-height: 44px; }
 }
 </style>
