@@ -7,7 +7,7 @@
             <button class="btn btn-danger action-button" v-if="exclude_text" :disabled="isDisabled(2)" @click="exclude">
                 <span class="material-icons">{{ exclude_icon || "close" }}</span>{{ exclude_text }}
             </button>
-            <button class="btn btn-secondary action-button" v-if="edit_text" :disabled="isDisabled(3)" @click="edit">
+            <button class="btn btn-secondary action-button action-edit" v-if="edit_text" :disabled="isDisabled(3)" @click="edit">
                 <span class="material-icons">{{ edit_icon || "edit" }}</span>{{ edit_text }}
             </button>
             <slot></slot>
@@ -50,4 +50,6 @@ export default {
     gap: var(--space-3);
 }
 .action-button { gap: 8px; margin: 0; min-width: 0; }
+.action-edit { border: 1px solid var(--cor-destaque, #2E4F6C); }
+.action-edit:focus-visible { outline: 2px solid var(--cor-destaque, #2E4F6C); outline-offset: 2px; }
 </style>

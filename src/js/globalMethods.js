@@ -248,8 +248,9 @@ export const globalMethods = {
         selectRow: function (event) {
             this.descelectRows();
 
-            let id = $(event.target).html();
-            let parent = $(event.target).parent().parent();
+            let selectedElement = $(event.currentTarget || event.target);
+            let id = selectedElement.text();
+            let parent = selectedElement.closest("tr");
 
             this.showEditButtons();
             this.editId = parseInt(id);

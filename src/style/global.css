@@ -228,8 +228,12 @@ a, a:hover {
     text-decoration: underline;
 }
 
-.row-selected td {
-    background: var(--blue-high-2);
+.table tbody tr.row-selected > td {
+    background: var(--blue-high-2, #EDF6FF);
+}
+
+.table tbody tr.row-selected > td:first-child {
+    box-shadow: inset 4px 0 0 var(--cor-destaque, #2E4F6C);
 }
 
 .btn {
