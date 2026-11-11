@@ -138,7 +138,7 @@
             </div>
         </div>
 
-        <modal v-if="showModal" :modaltitle="modalTitle" :modalbutton1="modalButton1" :modalbutton2="modalButton2" :modalButton3="modalButton3" @closeModal="closeModalFunction(); afterModalClose();">
+        <modal v-if="showModal" :class="{ 'cancel-order-dialog': showCancelOrderModalContent }" :modaltitle="modalTitle" :modalbutton1="modalButton1" :modalbutton2="modalButton2" :modalButton3="modalButton3" @closeModal="closeModalFunction(); afterModalClose();">
             <cancelOrderModalContent v-if="showCancelOrderModalContent" :orderid="selectedComandaId" @savedContent="closeModalFunction(); afterModalClose();"></cancelOrderModalContent>
             <resolveKitchenItemModalContent
                 v-if="showResolveItemModalContent"
@@ -406,6 +406,10 @@ export default {
 }
 </script>
 <style scoped>
+@media (max-width: 480px) {
+    .cancel-order-dialog ::v-deep .modal-footer { flex-wrap: wrap; }
+    .cancel-order-dialog ::v-deep .modal-footer .btn { flex: 1 1 auto; min-width: 0; margin: 0; }
+}
 .kitchen-title { margin-bottom: 24px; }
 .kitchen-title h1 { margin: 4px 0 6px; }
 .eyebrow { margin: 0; color: #a64a34; font-size: 11px; font-weight: 800; letter-spacing: .12em; }

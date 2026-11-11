@@ -3,7 +3,7 @@
         <div class="page-title">
             <h1>Vendas</h1>
         </div>  
-        <actionButtons add_text="ADICIONAR PEDIDO" exclude_text="CANCELAR PEDIDO" edit_text="EDITAR PEDIDO" :disabledbuttons="disabledButtons" @add="addOrder()" @exclude="cancelOrder()" @edit="editOrder()">
+        <actionButtons add_text="ADICIONAR PEDIDO" exclude_text="CANCELAR PEDIDO" edit_text="EDITAR PEDIDO" :disabledbuttons="orderDisabledButtons" @add="addOrder()" @exclude="cancelOrder()" @edit="editOrder()">
             <button
                 class="btn btn-secondary action-button"
                 :disabled="!canSendToSeparation"
@@ -39,6 +39,7 @@
         </div>
         <modal
             v-if="showModal"
+            :class="{ 'cancel-order-dialog': showCancelOrderModalContent }"
             :modaltitle="modalTitle"
             :modalbutton1="modalButton1"
             :excludepath="confirmModal ? null : ('/orders/' + editId)"
@@ -79,11 +80,24 @@ export default {
         }
     },
     computed: {
+        selectedOrder() {
+            return this.orders.find((order) => order.comanda == this.editId);
+        },
+        canCancelOrder() {
+            if (!this.selectedOrder) return false;
+            if (this.selectedOrder.can_cancel !== undefined && this.selectedOrder.can_cancel !== null) {
+                return Number(this.selectedOrder.can_cancel) === 1;
+            }
+            return !['Finalizado', 'Cancelado'].includes(this.selectedOrder.status);
+        },
+        orderDisabledButtons() {
+            return this.canCancelOrder ? this.disabledButtons : [...new Set([...this.disabledButtons, 2])];
+        },
         // D.2: so faz sentido pra venda do app que o webhook ja colocou aguardando o envio
         // manual - venda local nunca passa por 'Aguardando separação' (D.1), entao nunca
         // habilita o botao.
         canSendToSeparation() {
-            const selected = this.orders.find((o) => o.comanda == this.editId);
+            const selected = this.selectedOrder;
             return !!selected && Number(selected.from_app) === 1 && selected.raw_status === 'Aguardando separação';
         }
     },
@@ -152,8 +166,9 @@ export default {
             this.confirmCallback = () => {};
         }, 
         cancelOrder: function () {
+            if (!this.canCancelOrder) return;
             this.resetModalContents();
-            let selectedOrder = this.orders.find(o => o.id == this.editId);
+            const selectedOrder = this.selectedOrder;
             if (selectedOrder && selectedOrder.cancel_status === 'requested') {
                 this.showModalFunction("Processar Cancelamento", "Aprovar", "Fechar", "Recusar");
             } else {
@@ -206,4 +221,8 @@ export default {
 </script>
 <style scoped>
 .receipt-button { margin: 0; }
+@media (max-width: 480px) {
+    .cancel-order-dialog ::v-deep .modal-footer { flex-wrap: wrap; }
+    .cancel-order-dialog ::v-deep .modal-footer .btn { flex: 1 1 auto; min-width: 0; margin: 0; }
+}
 </style>
