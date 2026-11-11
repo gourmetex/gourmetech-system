@@ -10,7 +10,7 @@
                 </div>
                 <div class="form-group">
                     <label for="password">Senha</label>
-                    <input type="password" name="password" id="password" v-model="temporary_password" required>
+                    <input type="password" name="password" id="password" v-model="password" autocomplete="current-password" required>
                 </div>
                 <button type="submit" class="btn btn-primary" id="login-button">Entrar</button>
                 <div class="complement">
@@ -33,7 +33,7 @@ export default {
     data() {
         return {
             email: "",
-            temporary_password: ""
+            password: ""
         }
     },
     methods: {
@@ -69,26 +69,10 @@ export default {
             }).then(() => {
                 loginButton.removeAttr("disabled").removeClass("btn-loading");
             })
-        },
-        verifyParams: function () {
-            let url = new URLSearchParams(window.location.search);
-            let email = decodeURI(url.get("email"))
-            let temporaryPassword = url.get("tp");
-
-            if (email && temporaryPassword) {
-                this.email = email;
-                this.temporary_password = temporaryPassword;
-
-                return true;
-            }
-
-            return false;
         }
     },
     mounted: function () {
-        if (!this.verifyParams()) {
-            this.checkIfUserIsAuthenticated();
-        }
+        this.checkIfUserIsAuthenticated();
     }
 }
 </script>

@@ -20,9 +20,8 @@
                 <label for="salary">Salário</label>
                 <input type="text" name="salary" id="salary" @input="inputMoneyCheck($event)" required>
             </div>
-            <div class="form-group">
-                <label for="temporary-password">Senha temporária</label>
-                <input type="text" name="temporary_password" id="temporary-password" placeholder="Será gerada automaticamente após inclusão" v-model="user.senha_temporaria" disabled>
+            <div class="form-group" v-if="user.convite_pendente">
+                <button type="button" class="btn btn-primary" :disabled="savingUser" @click="resendInvite">Reenviar convite</button>
             </div>
             <input type="submit" id="submit-button" style="display: none;">
         </form>
@@ -33,7 +32,6 @@
 import api from "../../configs/api";
 import $ from 'jquery';
 import { globalMethods } from "@/js/globalMethods";
-import { v4 as uuidv4 } from 'uuid';
 
 export default {
     name: "editUsersModalContent",
@@ -50,7 +48,7 @@ export default {
                 data_criacao: null,
                 url_foto_perfil: "",
                 cargo: "",
-                senha_temporaria: ""
+                convite_pendente: false
             },
             savingUser: false,
             response: ""
@@ -76,33 +74,25 @@ export default {
                 return obj;
             }, {});
 
-            data["company_id"] = self.$root.company.id;
-            data["company_name"] = self.$root.company.nome;
-            data["token"] = "";
-
-            let path = "register";
-
-            let now = new Date();
-
-            let temporaryPassword = self.$root.company.id + "_" + uuidv4() + now.toLocaleDateString('pt-BR').replace(/\//g, '');            
-
-            if (self.userid != 0 && self.userid != null) {
-                path = "edit_user/" + self.userid;
-            } else {
-                data["password"] = temporaryPassword;
-                data["temporary_password"] = temporaryPassword;
-            }
-
+            const path = this.userid ? "edit_user/" + this.userid : "invite";
             api.post("/users/" + path, data).then(() => {
-                self.$emit("savedContent", true);
+                this.$emit("savedContent", true);
             }).catch((error) => {
-                self.setResponse(error.response.data, "error");
-            }).then(() => {
-                self.savingUser = false;
-                setTimeout(() => {
-                    self.$emit("savedContent", true);
-                }, 5000)
-            })
+                const message = error.response?.data?.mensagem || error.response?.data || "Não foi possível salvar.";
+                this.setResponse(message, "error");
+            }).finally(() => {
+                this.savingUser = false;
+            });
+        },
+        resendInvite: function () {
+            this.savingUser = true;
+            api.post("/users/invite", { email: this.user.email, role: this.user.id_cargo }).then(() => {
+                this.setResponse("Convite enviado.", "success");
+            }).catch((error) => {
+                this.setResponse(error.response?.data?.mensagem || "Não foi possível enviar o convite.", "error");
+            }).finally(() => {
+                this.savingUser = false;
+            });
         },
         returnUser: function () {
             let self = this;

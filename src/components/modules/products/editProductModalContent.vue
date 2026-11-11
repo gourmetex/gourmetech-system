@@ -10,6 +10,8 @@
                     <label for="categoria">Categoria</label>
                     <SearchableSelect :options="dishes_categories" v-model="dish.categoria" name="categoria"
                         placeholder="Selecione a categoria..." />
+                    <button type="button" class="btn btn-sm" @click="openCategoryEditor"
+                        :disabled="categoryEditorOpen || loadingCategoryColors">Nova categoria</button>
                 </div>
                 <div class="form-group form-col-1">
                     <label for="preco">{{ priceFieldLabel }}</label>
@@ -25,6 +27,25 @@
                 <textarea name="descricao" id="descricao" v-model="dish.descricao" maxlength="5000" rows="3" placeholder="Descrição do produto para o cardápio..."></textarea>
             </div>
             <input type="submit" id="submit-button" style="display: none;">
+        </form>
+
+        <form v-if="categoryEditorOpen" @submit.prevent="createCategory">
+            <div class="form-row">
+                <div class="form-group form-col-2">
+                    <label for="category-name">Nome da categoria</label>
+                    <input id="category-name" v-model.trim="newCategory.nome" maxlength="100" required>
+                </div>
+                <div class="form-group form-col-1">
+                    <label for="category-color">Cor</label>
+                    <select id="category-color" v-model="newCategory.cor" required>
+                        <option v-for="color in categoryColors" :key="color.id" :value="color.id">
+                            {{ color.text || color.cor }}
+                        </option>
+                    </select>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-sm btn-primary" :disabled="savingCategory">Salvar categoria</button>
+            <button type="button" class="btn btn-sm" :disabled="savingCategory" @click="categoryEditorOpen = false">Cancelar</button>
         </form>
 
         <div class="section-divider"></div>
@@ -109,6 +130,11 @@ export default {
         return {
             quantity: "",
             savingDish: false,
+            categoryEditorOpen: false,
+            loadingCategoryColors: false,
+            savingCategory: false,
+            categoryColors: [],
+            newCategory: { nome: "", cor: null },
             dishes_categories: [],
             dishes: [],
             ingredients: [],
@@ -154,6 +180,38 @@ export default {
         }
     },
     methods: {
+        async openCategoryEditor() {
+            this.loadingCategoryColors = true;
+            try {
+                const { data } = await api.get("/products/categories/categories_colors");
+                this.categoryColors = data.returnObj;
+                if (!this.categoryColors.length) throw new Error("Paleta vazia");
+                this.newCategory = { nome: "", cor: this.categoryColors[0].id };
+                this.categoryEditorOpen = true;
+            } catch {
+                this.setResponse("Não foi possível carregar as cores da categoria", "error");
+            } finally {
+                this.loadingCategoryColors = false;
+            }
+        },
+        async createCategory() {
+            if (this.savingCategory || !this.newCategory.nome) return;
+            this.savingCategory = true;
+            try {
+                const { data } = await api.post("/products/categories/create_dish_category", this.newCategory);
+                const { id } = data.returnObj;
+                const color = this.categoryColors.find((option) => option.id === this.newCategory.cor);
+                this.dishes_categories.push({ id, nome: this.newCategory.nome, cor: color.cor });
+                this.dish.categoria = id;
+                this.categoryEditorOpen = false;
+                this.response = "";
+            } catch (error) {
+                const message = error.response?.data;
+                this.setResponse(typeof message === "string" ? message : "Não foi possível criar a categoria", "error");
+            } finally {
+                this.savingCategory = false;
+            }
+        },
         bulkPriceUnitFromMeasure: function (unit) {
             const unitMap = {
                 g: "kg",

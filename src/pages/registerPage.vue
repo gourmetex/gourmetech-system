@@ -3,24 +3,25 @@
         <img src="../assets/img/logo-gourmetech.svg" class="company-logo-p">
         <div class="register-container">
             <form @submit.prevent="register()" id="register-form">
-                <h2>REGISTRAR</h2>
+                <h2>Aceitar convite</h2>
+                <p v-if="!returnUrlParams().token">Abra o link de convite enviado ao seu e-mail para criar a conta.</p>
                 <div class="form-group">
                     <label for="name">Nome</label>
                     <input type="text" id="name" name="name" maxlength="45" required>
                 </div>
                 <div class="form-group">
                     <label for="email">Email</label>
-                    <input type="email" id="email" name="email" placeholder="example@domain.com" required>
+                    <input type="email" id="email" name="email" :value="returnUrlParams().email" autocomplete="email" readonly required>
                 </div>
                 <div class="form-group">
                     <label for="password">Senha</label>
-                    <input type="password" name="password" id="password" required>
+                    <input type="password" name="password" id="password" autocomplete="new-password" minlength="8" maxlength="72" required>
                 </div>
                 <div class="form-group">
                     <label for="repeat-password">Repita a senha</label>
-                    <input type="password" id="repeat-password" required>
+                    <input type="password" id="repeat-password" autocomplete="new-password" minlength="8" maxlength="72" required>
                 </div>
-                <button type="submit" class="btn btn-primary" id="register-button">Registrar</button>
+                <button type="submit" class="btn btn-primary" id="register-button" :disabled="!returnUrlParams().token">Criar conta</button>
                 <div class="complement">
                     <h3>Já possui cadastro? <router-link to="/login"><span>Entre</span></router-link></h3>
                     <h3 class="response">{{ response }}</h3>
@@ -42,7 +43,7 @@ export default {
         returnUrlParams: function () {
             let url = new URLSearchParams(window.location.search);
             let token = url.get("token");
-            let email = decodeURI(url.get("email"));
+            let email = url.get("email");
             
             let obj = {
                 token: token ? token : "",
@@ -63,10 +64,6 @@ export default {
             }, {});
 
             data["token"] = this.returnUrlParams().token;
-            data["temporary_password"] = "";
-            data["salary"] = 0;
-            data["role"] = "";
-            data["company_name"] = "";
 
             let password = $("#password").val();
             let repeatPassword = $("#repeat-password").val();
@@ -76,7 +73,7 @@ export default {
                     self.setResponse(res.data.message, "success");
                     self.logoutUser();
                 }).catch((error) => {
-                    self.setResponse(error.response.data, "error");
+                    self.setResponse(error.response?.data?.mensagem || "Não foi possível aceitar o convite.", "error");
                 }).then(() => {
                     registerButton.removeAttr("disabled").removeClass("btn-loading");
                 })
