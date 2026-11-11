@@ -1,6 +1,13 @@
 <template>
     <div class="print-out">
-        <div class="print-out-app" v-if="doc">
+        <div v-if="doc && doc.type === 'separation'" class="separation-print">
+            <div class="wizard-actions wizard-actions-top no-print">
+                <button type="button" class="btn btn-gray" @click="goBack">Voltar</button>
+                <button type="button" class="btn btn-primary" @click="triggerPrint"><span class="material-icons">print</span> Imprimir novamente</button>
+            </div>
+            <div class="print-area"><separationSheet :sheets="doc.sheets" /></div>
+        </div>
+        <div class="print-out-app" v-else-if="doc">
             <!-- Cabecalho do wizard: nao imprime -->
             <div class="wizard-header no-print">
                 <h1>Imprimir</h1>
@@ -81,6 +88,7 @@
 <script>
 import { printService } from "@/js/printService";
 import printDocument from "./printDocument.vue";
+import separationSheet from "./separationSheet.vue";
 
 // D.15: papel sugerido pelo chamador (doc.paper) e so um ponto de partida - a loja pode
 // trocar no passo 2, a impressora de verdade e quem manda.
@@ -89,7 +97,8 @@ const VALID_PAPERS = ["58mm", "80mm", "A4"];
 export default {
     name: "printOut",
     components: {
-        printDocument
+        printDocument,
+        separationSheet
     },
     data() {
         return {
@@ -155,6 +164,15 @@ export default {
     },
     mounted: function () {
         this.loadDocument();
+        if (this.doc && this.doc.type === 'separation') {
+            document.documentElement.classList.add('printing-separation');
+            document.body.classList.add('printing-separation');
+            this.triggerPrint();
+        }
+    },
+    beforeDestroy() {
+        document.documentElement.classList.remove('printing-separation');
+        document.body.classList.remove('printing-separation');
     }
 }
 </script>
@@ -238,5 +256,13 @@ export default {
     .paper-58mm, .paper-80mm {
         width: 100%;
     }
+}
+</style>
+
+<style>
+@media print {
+    html.printing-separation, body.printing-separation, body.printing-separation #app { width: auto !important; min-width: 0 !important; height: auto !important; min-height: 0 !important; overflow: visible !important; background: #fff !important; }
+    body.printing-separation .system-frame, body.printing-separation .BreadcrumbsComponent { display: none !important; }
+    body.printing-separation .inner-page-system, body.printing-separation .inner-page-system.menu-open { position: static !important; width: auto !important; height: auto !important; overflow: visible !important; padding: 0 !important; background: #fff !important; }
 }
 </style>

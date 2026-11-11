@@ -32,8 +32,8 @@
                     <grid-column prop="segundos_na_fila" label="Tempo na fila" align="center" v-slot="props">
                         {{ formatElapsedTime(props.item.segundos_na_fila) }}
                     </grid-column>
-                    <grid-column prop="acao" label="" align="center" v-slot="props">
-                        <button class="btn btn-gray small" @click="printOne(props.item)">
+                    <grid-column prop="acao" label="Ação" align="center" v-slot="props">
+                        <button class="btn btn-gray small print-action" type="button" title="Imprimir lista de separação" aria-label="Imprimir lista de separação" @click="printOne(props.item)">
                             <span class="material-icons">print</span>
                         </button>
                     </grid-column>
@@ -72,7 +72,7 @@
 
                         <p class="item-card-cancelled" v-if="item.status === 'Cancelado'">
                             <newBadge status="danger" text="CANCELADO" />
-                            {{ item.motivo_cancelamento || 'Motivo não informado' }}
+                            {{ formatCancellationReason(item.motivo_cancelamento) || 'Motivo não informado' }}
                         </p>
                         <p class="item-card-ready" v-else-if="item.status === 'Pronto'">
                             <newBadge status="success" text="PRONTO" />
@@ -148,6 +148,13 @@ export default {
         }
     },
     methods: {
+        formatCancellationReason(reason) {
+            if (!reason) return reason;
+            const labels = { 'Pedido lancado errado': 'Pedido lançado errado', 'Solicitacao do cliente': 'Solicitação do cliente' };
+            const separator = reason.indexOf(':');
+            const key = separator === -1 ? reason : reason.slice(0, separator);
+            return (labels[key] || key) + (separator === -1 ? '' : reason.slice(separator));
+        },
         formatLocationLabel(order) {
             if (order.tem_entrega) return "ENTREGA";
             if (order.mesa) return "Mesa " + order.mesa;
@@ -241,56 +248,17 @@ export default {
                 this.showModalFunction("Cancelamento do item", "Continuar", "Fechar");
             }
         },
-        // D.5: monta o bloco de aviso de substituicao - hoje sempre null, ja que
-        // preferencia_indisponivel/substituto so existem a partir da Fase 7 (B).
-        buildSubstitutionBadge(item) {
-            if (!item.preferencia_indisponivel || item.preferencia_indisponivel === 'cancelar') {
-                if (item.preferencia_indisponivel === 'cancelar') {
-                    return { type: 'danger', icon: '✕', text: 'SE NÃO TIVER → NÃO LEVAR NADA (cliente pediu)' };
-                }
-                return null;
-            }
-
-            if (item.substituto) {
-                return { type: 'warning', icon: '⚠', text: `SE NÃO TIVER → LEVAR: ${item.substituto.nome}` };
-            }
-
-            return null;
-        },
-        buildChecklistItems(itens) {
-            return itens.map((item) => ({
-                image: item.imagem,
-                title: item.nome,
-                quantity: item.quantidade,
-                unit: item.unidade,
-                note: item.observacoes,
-                badge: this.buildSubstitutionBadge(item)
-            }));
-        },
         printOne(order) {
             let self = this;
 
             api.get("/kitchen/orders/" + order.id + "/separation-sheet").then((response) => {
                 const sheet = response.data.returnObj;
 
-                const doc = {
-                    title: "Lista de separação",
-                    subtitle: `Venda #${sheet.comanda.id}`,
-                    meta: [
-                        { label: "Cliente", value: sheet.comanda.nome_cliente },
-                        { label: "Origem", value: (sheet.comanda.from_app == 1 ? "APP" : "BALCÃO") + (sheet.comanda.tem_entrega ? " · ENTREGA" : (sheet.comanda.mesa ? " · MESA " + sheet.comanda.mesa : "")) }
-                    ],
-                    paper: "80mm",
-                    blocks: [
-                        { type: "checklist", items: self.buildChecklistItems(sheet.itens) },
-                        { type: "signature", label: "Separado por" }
-                    ],
-                    footer: { text: "Confira antes de fechar a sacola" }
-                };
+                const doc = { type: "separation", sheets: [sheet] };
 
                 printService.print(self.$router, doc);
             }).catch((error) => {
-                this.$toast.error(error.response?.data || 'Não foi possível iniciar o item.');
+                this.$toast.error(error.response?.data || 'Não foi possível carregar a lista de separação.');
             });
         },
         printBatch() {
@@ -302,32 +270,13 @@ export default {
 
             api.get("/kitchen/separation-sheet?ids=" + ids).then((response) => {
                 const sheets = response.data.returnObj || [];
-                const blocks = [];
-
-                sheets.forEach((sheet, index) => {
-                    blocks.push({
-                        type: "keyValue",
-                        items: [
-                            { label: "Venda", value: "#" + sheet.comanda.id },
-                            { label: "Cliente", value: sheet.comanda.nome_cliente },
-                            { label: "Origem", value: (sheet.comanda.from_app == 1 ? "APP" : "BALCÃO") + (sheet.comanda.tem_entrega ? " · ENTREGA" : (sheet.comanda.mesa ? " · MESA " + sheet.comanda.mesa : "")) }
-                        ]
-                    });
-                    blocks.push({ type: "checklist", items: self.buildChecklistItems(sheet.itens) });
-                    blocks.push({ type: "signature", label: "Separado por" });
-
-                    if (index < sheets.length - 1) {
-                        blocks.push({ type: "pageBreak" });
-                    }
-                });
-
-                printService.print(self.$router, {
-                    title: "Lista de separação (lote)",
-                    paper: "80mm",
-                    blocks
-                });
+                if (!sheets.length) {
+                    this.$toast.error('Não há vendas disponíveis para impressão.');
+                    return;
+                }
+                printService.print(self.$router, { type: "separation", sheets });
             }).catch((error) => {
-                this.$toast.error(error.response?.data || 'Não foi possível abrir a resolução do item.');
+                this.$toast.error(error.response?.data || 'Não foi possível carregar as listas de separação.');
             });
         },
         returnOrders(cleanCache = false) {
@@ -388,6 +337,10 @@ export default {
 }
 </script>
 <style scoped>
+.print-action {
+    margin: 0 auto;
+}
+
 .grid-actions {
     display: flex;
     justify-content: flex-end;

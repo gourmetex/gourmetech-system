@@ -63,13 +63,13 @@
                 </div>
             </div>
 
-            <!-- ETAPA 2a (cancelar): motivo e estoque - fluxo ja existente -->
+            <!-- ETAPA 2a (cancelar): motivo e estoque - fluxo já existente -->
             <div v-else-if="step === 'form'">
                 <div class="info-group">
                     <h3>Motivo *</h3>
                     <label v-for="(reason, index) in reasons" :key="index" class="option-label">
                         <input type="radio" :value="reason" v-model="selectedReason" />
-                        <span>{{ reason }}</span>
+                        <span>{{ formatCancellationReason(reason) }}</span>
                     </label>
                 </div>
 
@@ -77,11 +77,11 @@
                     <h3>Estoque do prato</h3>
                     <p class="hint">
                         <span v-if="quantidadeFeita > 0">
-                            {{ formatNumber(quantidadeFeita) }} unidade(s) deste prato ja tinham sido preparadas
-                            nesta comanda e serao devolvidas ao estoque automaticamente.
+                            {{ formatNumber(quantidadeFeita) }} unidade(s) deste prato já tinham sido preparadas
+                            nesta comanda e serão devolvidas ao estoque automaticamente.
                         </span>
                         <span v-else>
-                            Nenhuma unidade deste prato tinha sido preparada ainda nesta comanda, entao nao ha
+                            Nenhuma unidade deste prato tinha sido preparada ainda nesta comanda, então não há
                             nada para devolver ao estoque.
                         </span>
                     </p>
@@ -91,14 +91,14 @@
                     <h3>Estoque do prato</h3>
                     <label class="option-label">
                         <input type="checkbox" v-model="restoreToStock" />
-                        <span>Devolver ao estoque a quantidade ja preparada deste prato</span>
+                        <span>Devolver ao estoque a quantidade já preparada deste prato</span>
                     </label>
                     <p class="hint" v-if="restoreToStock">
                         <span v-if="quantidadeFeita > 0">
-                            {{ formatNumber(quantidadeFeita) }} unidade(s) serao devolvidas ao estoque.
+                            {{ formatNumber(quantidadeFeita) }} unidade(s) serão devolvidas ao estoque.
                         </span>
                         <span v-else>
-                            Nenhuma unidade deste prato tinha sido preparada ainda, entao nao ha nada para devolver.
+                            Nenhuma unidade deste prato tinha sido preparada ainda, então não há nada para devolver.
                         </span>
                     </p>
                 </div>
@@ -111,8 +111,8 @@
                         liberar ou bloquear o item em novas compras.
                     </p>
                     <p class="hint" v-else>
-                        Este prato nao tem ingredientes cadastrados, entao nao ha estoque para ajustar. O
-                        cancelamento sera registrado apenas com o motivo.
+                        Este prato não tem ingredientes cadastrados, então não há estoque para ajustar. O
+                        cancelamento será registrado apenas com o motivo.
                     </p>
 
                     <div v-if="ingredients.length">
@@ -142,15 +142,15 @@
                         </div>
 
                         <button type="button" class="btn btn-gray mt-2" :disabled="!updateStock" @click="markUnavailable">
-                            Zerar tudo (marcar item como indisponivel)
+                            Zerar tudo (marcar item como indisponível)
                         </button>
 
                         <div class="availability" :class="willBeUnavailable ? 'unavailable' : 'available'" v-if="updateStock">
                             <span v-if="willBeUnavailable">
-                                Com essas quantidades o item <strong>ficara indisponivel</strong> para novas compras no app.
+                                Com essas quantidades o item <strong>ficará indisponível</strong> para novas compras no app.
                             </span>
                             <span v-else>
-                                Com essas quantidades o item <strong>continua disponivel</strong> no app
+                                Com essas quantidades o item <strong>continua disponível</strong> no app
                                 ({{ maxPortions }} unidade(s) ainda podem ser vendidas).
                             </span>
                         </div>
@@ -158,31 +158,31 @@
                 </div>
 
                 <div class="info-group">
-                    <h3>Observacao (opcional)</h3>
+                    <h3>Observação (opcional)</h3>
                     <input type="text" class="input-form w-100" v-model="observation" placeholder="Detalhe o que aconteceu" maxlength="180" />
                 </div>
             </div>
 
-            <!-- ETAPA 3: confirmacao final, sempre -->
+            <!-- ETAPA 3: confirmação final, sempre -->
             <div v-else>
                 <div class="info-group confirm-box" v-if="resolution === 'principal'">
                     <h3>Confirmar item separado</h3>
                     <p>
                         O item <strong>{{ item.nome }}</strong> da comanda <strong>#{{ item.id_comanda }}</strong>
-                        vai para "Pronto" e o estoque dos ingredientes sera baixado.
+                        vai para "Pronto" e o estoque dos ingredientes será baixado.
                     </p>
                 </div>
 
                 <div class="info-group confirm-box" v-else-if="resolution === 'substituto'">
                     <h3>Confirmar substituição</h3>
                     <p>
-                        <strong>{{ item.nome }}</strong> sera substituido por <strong>{{ selectedSubstituteName }}</strong>
-                        na comanda <strong>#{{ item.id_comanda }}</strong>. O item original sera cancelado e o
+                        <strong>{{ item.nome }}</strong> será substituído por <strong>{{ selectedSubstituteName }}</strong>
+                        na comanda <strong>#{{ item.id_comanda }}</strong>. O item original será cancelado e o
                         substituto vai direto para "Pronto".
                     </p>
                     <p class="mt-2" v-if="loadingCandidates">Calculando diferença de preço...</p>
                     <p class="mt-2" v-else-if="selectedSubstituteRefund > 0">
-                        <strong>R$ {{ selectedSubstituteRefund.toFixed(2) }}</strong> serao estornados ao cliente quando o pedido for entregue
+                        <strong>R$ {{ selectedSubstituteRefund.toFixed(2) }}</strong> serão estornados ao cliente quando o pedido for entregue
                         (substituto mais barato que o original).
                     </p>
                     <p class="mt-2" v-else>Sem diferença a estornar (mesmo preço ou substituto sem preço menor).</p>
@@ -192,32 +192,32 @@
                     <h3>Confirme o cancelamento</h3>
                     <p>
                         O item <strong>{{ item.nome }}</strong> da comanda <strong>#{{ item.id_comanda }}</strong>
-                        sera cancelado e sai da fila da cozinha. Essa acao nao pode ser desfeita.
+                        será cancelado e sai da fila da cozinha. Essa ação não pode ser desfeita.
                     </p>
-                    <p class="mt-2"><strong>Motivo:</strong> {{ fullReason }}</p>
+                    <p class="mt-2"><strong>Motivo:</strong> {{ formatCancellationReason(fullReason) }}</p>
 
                     <p class="mt-2 warning" v-if="isLastDish">
-                        Este e o ultimo item ativo da comanda: cancelar aqui cancela o pedido inteiro
-                        e, se ja tiver sido pago, dispara o estorno automatico.
+                        Este é o último item ativo da comanda: cancelar aqui cancela o pedido inteiro
+                        e, se já tiver sido pago, dispara o estorno automático.
                     </p>
 
                     <div class="mt-2" v-if="stockChanges.length">
-                        <strong>Estoque que sera alterado:</strong>
+                        <strong>Estoque que será alterado:</strong>
                         <ul>
                             <li v-for="change in stockChanges" :key="change.id">
                                 {{ change.nome }}: {{ formatNumber(change.de) }} &rarr; {{ formatNumber(change.para) }} {{ change.unidade }}
                             </li>
                         </ul>
                         <p :class="willBeUnavailable ? 'warning' : ''">
-                            <span v-if="willBeUnavailable">O item ficara indisponivel no app apos a confirmacao.</span>
-                            <span v-else>O item continua disponivel no app.</span>
+                            <span v-if="willBeUnavailable">O item ficará indisponível no app após a confirmação.</span>
+                            <span v-else>O item continua disponível no app.</span>
                         </p>
                     </div>
                     <p class="mt-2" v-else-if="willAutoRestoreDish">
-                        <strong>Estoque do prato:</strong> {{ formatNumber(quantidadeFeita) }} unidade(s) ja
-                        preparada(s) serao devolvidas ao estoque.
+                        <strong>Estoque do prato:</strong> {{ formatNumber(quantidadeFeita) }} unidade(s) já
+                        preparada(s) serão devolvidas ao estoque.
                     </p>
-                    <p class="mt-2" v-else><strong>Estoque:</strong> nenhuma alteracao.</p>
+                    <p class="mt-2" v-else><strong>Estoque:</strong> nenhuma alteração.</p>
                 </div>
             </div>
 
@@ -339,6 +339,13 @@ export default {
         }
     },
     methods: {
+        formatCancellationReason(reason) {
+            if (!reason) return reason;
+            const labels = { 'Pedido lancado errado': 'Pedido lançado errado', 'Solicitacao do cliente': 'Solicitação do cliente' };
+            const separator = reason.indexOf(':');
+            const key = separator === -1 ? reason : reason.slice(0, separator);
+            return (labels[key] || key) + (separator === -1 ? '' : reason.slice(separator));
+        },
         formatNumber(value) {
             const number = Number(value) || 0;
             return Number.isInteger(number) ? String(number) : number.toFixed(3).replace(/0+$/, "").replace(/\.$/, "");
@@ -398,7 +405,7 @@ export default {
                 this.substituteCandidates = response.data.returnObj || [];
             }).catch((error) => {
                 this.substituteCandidates = [];
-                this.setResponse(error.response?.data || "Nao foi possivel carregar os substitutos", "error");
+                this.setResponse(error.response?.data || "Não foi possível carregar os substitutos", "error");
             }).then(() => {
                 this.loadingCandidates = false;
             });
@@ -417,7 +424,7 @@ export default {
                     nova_quantidade: ingredient.quantidade_disponivel
                 }));
             }).catch((error) => {
-                this.setResponse(error.response?.data || "Nao foi possivel carregar os ingredientes do item", "error");
+                this.setResponse(error.response?.data || "Não foi possível carregar os ingredientes do item", "error");
             });
         },
         handleSubmit() {
@@ -452,7 +459,7 @@ export default {
             }
 
             if (this.stockChanges.some((change) => change.para === null)) {
-                this.setResponse("Informe uma quantidade valida para cada ingrediente", "error");
+                this.setResponse("Informe uma quantidade válida para cada ingrediente", "error");
                 return;
             }
 

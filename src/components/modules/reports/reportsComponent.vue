@@ -135,7 +135,7 @@ export default {
 .report-panel { background: #fff; border: 1px solid var(--line, #e7e1d6); border-radius: 12px; padding: 24px; }
 .report-heading { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 20px; }
 .report-heading h2, .chart-heading h3 { margin: 4px 0; } .eyebrow { font-size: 11px; letter-spacing: .1em; font-weight: 700; color: #578674; }
-.report-filters { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; } .report-filters label { display: grid; gap: 6px; font-size: 12px; font-weight: 600; color: #6b6255; }
+.report-filters { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; } .report-filters label { display: grid; gap: 6px; margin: 0; font-size: 12px; font-weight: 600; color: #6b6255; }
 .report-filters input, .report-filters select { min-height: 42px; width: 145px; border: 1px solid #dedbd4; border-radius: 6px; padding: 8px; background: #fff; }
 .report-filters .btn { min-width: auto; min-height: 42px; margin: 0; }
 .report-summary { display: flex; flex-wrap: wrap; gap: 12px; margin: 24px 0; } .summary-card { flex: 1 1 200px; display: grid; gap: 7px; padding: 18px; border: 1px solid #eeeae3; border-radius: 10px; background: #faf9f6; }
