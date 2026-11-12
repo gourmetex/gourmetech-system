@@ -16,10 +16,10 @@
                 <grid-column prop="comanda" label="Nº Comanda"></grid-column>
                 <grid-column prop="nome_cliente" label="Cliente"></grid-column>
                 <grid-column prop="data_criacao" label="Data Criação" v-slot="props">
-                    <p>{{ formatDateFromNow(props.item.data_criacao) }}</p>
+                    <p>{{ formatShippingDate(props.item.data_criacao) }}</p>
                 </grid-column>
                 <grid-column prop="valor_total" label="Valor Total" v-slot="props">
-                    <p>{{ formatCurrency(props.item.valor_total) }}</p>
+                    <p>{{ formatShippingTotal(props.item.valor_total) }}</p>
                 </grid-column>
                 <grid-column prop="status" label="Status" align="center" v-slot="props">
                     <newBadge
@@ -91,6 +91,13 @@ export default {
         }
     },
     methods: {
+        formatShippingDate(value) {
+            if (!value) return '';
+            return this.formatDateFromNow(String(value).replace(/(?:\.\d+)?Z$/i, ''));
+        },
+        formatShippingTotal(value) {
+            return this.formatCurrency(Number(value || 0).toFixed(2));
+        },
         // C.2/C.3: cancelar a entrega passou a cancelar a comanda inteira, com estorno
         // integral - o antigo confirm de uma linha so nao dava espaco pra motivo nem pra
         // escolher o que volta ao estoque (D8), entao abre o modal dedicado.
@@ -99,7 +106,7 @@ export default {
             const selected = this.selectedShipping;
 
             this.selectedComandaId = selected.comanda;
-            this.selectedValorTotal = selected.valor_total;
+            this.selectedValorTotal = Number(selected.valor_total || 0).toFixed(2);
             this.showCancelShippingModalContent = true;
             // O titulo nao pode conter a substring exata "Cancelar" (nem "Excluir"): e o que
             // modal.vue usa pra decidir entre mostrar o slot (conteudo custom) ou o modal

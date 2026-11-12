@@ -2,7 +2,6 @@
     <div class="kitchen-component">
         <div class="page-title kitchen-title">
             <div>
-                <p class="eyebrow">OPERAÇÃO · COZINHA</p>
                 <h1>Fila da cozinha</h1>
                 <p class="page-description">Acompanhe os pedidos e organize a separação dos itens.</p>
             </div>
@@ -435,7 +434,6 @@ export default {
 }
 .kitchen-title { margin-bottom: 24px; }
 .kitchen-title h1 { margin: 4px 0 6px; }
-.eyebrow { margin: 0; color: #a64a34; font-size: 11px; font-weight: 800; letter-spacing: .12em; }
 .page-description { margin: 0; color: var(--ink-soft); font-size: 14px; }
 .queue-overview { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 28px; }
 .overview-item { display: flex; align-items: center; gap: 14px; min-height: 90px; padding: 16px 20px; background: var(--surface); border: 1px solid #e9e3da; border-radius: 12px; }
